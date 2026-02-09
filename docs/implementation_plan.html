@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Book API - Implementation Plan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Guest Book API Testing Environment - Implementation Plan</h1>
+        
+        <div class="section">
+            <h2>1. Project Overview</h2>
+            <p>A Flask-based REST API with JWT authentication for testing CRUD operations on a guest book system. Guest book entries include Name, Email, Comment, and auto-generated UserID. Includes web UI with Excel import capability and comprehensive pytest test suite.</p>
+        </div>
+
+        <div class="section">
+            <h2>2. Technology Stack</h2>
+            <ul>
+                <li><strong>Backend:</strong> Flask (Python web framework)</li>
+                <li><strong>Database:</strong> SQLite (persistent storage)</li>
+                <li><strong>Authentication:</strong> JWT (JSON Web Tokens)</li>
+                <li><strong>Testing:</strong> pytest + requests</li>
+                <li><strong>Excel Processing:</strong> pandas/openpyxl</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>3. Database Schema</h2>
+            <div class="database-schema">
+                <h3>Table: users</h3>
+                <table>
+                    <tr>
+                        <th>Column</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>id</td>
+                        <td>INTEGER</td>
+                        <td>Primary Key (auto-increment)</td>
+                    </tr>
+                    <tr>
+                        <td>username</td>
+                        <td>TEXT</td>
+                        <td>Unique username</td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>TEXT</td>
+                        <td>Hashed password</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="database-schema">
+                <h3>Table: guestbook</h3>
+                <table>
+                    <tr>
+                        <th>Column</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>userId</td>
+                        <td>INTEGER</td>
+                        <td>Primary Key (auto-increment)</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>TEXT</td>
+                        <td>Guest name (required)</td>
+                    </tr>
+                    <tr>
+                        <td>email</td>
+                        <td>TEXT</td>
+                        <td>Guest email (required)</td>
+                    </tr>
+                    <tr>
+                        <td>comment</td>
+                        <td>TEXT</td>
+                        <td>Guest comment/message (required)</td>
+                    </tr>
+                    <tr>
+                        <td>created_at</td>
+                        <td>TIMESTAMP</td>
+                        <td>Entry creation time</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. API Endpoints</h2>
+            
+            <div class="endpoint">
+                <span class="endpoint-method">POST</span>
+                <span class="endpoint-path">/api/login</span>
+                <p><strong>Description:</strong> Authenticate user and receive JWT token</p>
+                <p><strong>Request Body:</strong> { "username": "string", "password": "string" }</p>
+                <p><strong>Response:</strong> { "token": "jwt_token_string" }</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">POST</span>
+                <span class="endpoint-path">/api/guestbook</span>
+                <p><strong>Description:</strong> Create new guest book entry</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Request Body:</strong> { "name": "string" (required), "email": "string" (required), "comment": "string" (required) }</p>
+                <p><strong>Response:</strong> { "userId": int, "name": "string", "email": "string", "comment": "string", "created_at": "timestamp" }</p>
+                <p><strong>Status Code:</strong> 201 Created</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-path">/api/guestbook</span>
+                <p><strong>Description:</strong> Get all guest book entries</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Response:</strong> [ { "userId": int, "name": "string", "email": "string", "comment": "string", "created_at": "timestamp" }, ... ]</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-path">/api/guestbook/{userId}</span>
+                <p><strong>Description:</strong> Get specific guest book entry</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Response:</strong> { "userId": int, "name": "string", "email": "string", "comment": "string", "created_at": "timestamp" }</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">PUT</span>
+                <span class="endpoint-path">/api/guestbook/{userId}</span>
+                <p><strong>Description:</strong> Update guest book entry</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Request Body:</strong> { "name": "string" (required), "email": "string" (required), "comment": "string" (required) }</p>
+                <p><strong>Response:</strong> { "userId": int, "name": "string", "email": "string", "comment": "string", "created_at": "timestamp" }</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">DELETE</span>
+                <span class="endpoint-path">/api/guestbook/{userId}</span>
+                <p><strong>Description:</strong> Delete single guest book entry</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Response:</strong> { "message": "Entry deleted successfully" }</p>
+                <p><strong>Status Code:</strong> 200 OK</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">DELETE</span>
+                <span class="endpoint-path">/api/guestbook/bulk</span>
+                <p><strong>Description:</strong> Delete multiple guest book entries at once (bulk delete)</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Request Body:</strong> { "ids": [1, 2, 3, 4] }</p>
+                <p><strong>Response:</strong> { "deleted": int, "message": "X entries deleted successfully" }</p>
+                <p><strong>Status Code:</strong> 200 OK</p>
+                <p><strong>Use Case:</strong> Efficiently delete multiple entries in a single API call instead of making individual DELETE requests for each entry</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">POST</span>
+                <span class="endpoint-path">/api/guestbook/import</span>
+                <p><strong>Description:</strong> Import guest book entries from Excel file</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Request:</strong> multipart/form-data with Excel file</p>
+                <p><strong>Response:</strong> { "imported": int, "message": "string" }</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>5. Authentication Flow</h2>
+            <div class="flow-step">User sends credentials to /api/login</div>
+            <div class="flow-step">Server validates credentials against database</div>
+            <div class="flow-step">Server generates JWT token with user info</div>
+            <div class="flow-step">Client receives token and stores it</div>
+            <div class="flow-step">Client includes token in Authorization header for all subsequent requests</div>
+            <div class="flow-step">Server validates token before processing protected endpoints</div>
+        </div>
+
+        <div class="section">
+            <h2>6. Project Structure</h2>
+            <div class="code-block">
+API_Test/
+├── docs/
+│   ├── implementation_plan.html
+│   └── style.css
+├── templates/
+│   ├── login.html
+│   └── guestbook.html
+├── static/
+│   └── style.css
+├── app.py                      # Flask application & API endpoints
+├── database.py                 # SQLite database setup & operations
+├── api_test_run.py            # Your existing tests
+├── test_guestbook_api.py      # New comprehensive CRUD tests
+├── requirements.txt           # Python dependencies
+└── guestbook.db              # SQLite database (created at runtime)
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>7. Test Coverage (pytest)</h2>
+            <h3>Authentication Tests</h3>
+            <ul>
+                <li>test_login_success - Valid credentials return token</li>
+                <li>test_login_invalid - Invalid credentials return 401</li>
+                <li>test_protected_without_token - Access denied without token</li>
+            </ul>
+
+            <h3>CRUD Tests</h3>
+            <ul>
+                <li>test_create_entry - POST creates new guest book entry</li>
+                <li>test_read_all_entries - GET returns all entries</li>
+                <li>test_read_single_entry - GET returns specific entry</li>
+                <li>test_update_entry - PUT modifies existing entry</li>
+                <li>test_delete_entry - DELETE removes single entry from database</li>
+                <li>test_delete_nonexistent - DELETE on invalid ID returns 404</li>
+                <li>test_bulk_delete - DELETE multiple entries at once</li>
+                <li>test_bulk_delete_empty_list - Bulk delete with empty array returns error</li>
+            </ul>
+
+            <h3>Validation Tests</h3>
+            <ul>
+                <li>test_missing_name - POST without name returns 400 with "Name is required"</li>
+                <li>test_missing_email - POST without email returns 400 with "Email is required"</li>
+                <li>test_missing_comment - POST without comment returns 400 with "Comment is required"</li>
+            </ul>
+
+            <h3>Excel Import Tests</h3>
+            <ul>
+                <li>test_import_excel - POST with Excel file imports entries</li>
+                <li>test_import_invalid_file - Invalid file format returns error</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>8. Test Examples</h2>
+            <h3>Example 1: Valid Login</h3>
+            <div class="code-block">
+payload = {
+    "username": "admin",
+    "password": "password123"
+}
+response = requests.post("http://localhost:8080/api/login", json=payload)
+# Returns: {"token": "jwt_token_string"}, 200
+            </div>
+
+            <h3>Example 2: Invalid Login</h3>
+            <div class="code-block">
+payload = {
+    "username": "invaliduser",
+    "password": "invalidpassword"
+}
+response = requests.post("http://localhost:8080/api/login", json=payload)
+# Returns: {"message": "Invalid credentials"}, 401
+            </div>
+
+            <h3>Example 3: Create Guest Book Entry</h3>
+            <div class="code-block">
+headers = {"Authorization": f"Bearer {token}"}
+payload = {
+    "name": "David Testuser",
+    "email": "david.testuser@example.com",
+    "comment": "Hjälper pappa att testa API:et"
+}
+response = requests.post("http://localhost:8080/api/guestbook", json=payload, headers=headers)
+# Returns: {"userId": 1, "name": "David Testuser", "email": "david.testuser@example.com", 
+#           "comment": "Hjälper pappa att testa API:et", "created_at": "timestamp"}, 201
+            </div>
+
+            <h3>Example 4: Missing Name Field</h3>
+            <div class="code-block">
+headers = {"Authorization": f"Bearer {token}"}
+payload = {
+    "email": "test@example.com",
+    "comment": "test"
+}
+response = requests.post("http://localhost:8080/api/guestbook", json=payload, headers=headers)
+# Returns: {"message": "Name is required"}, 400
+            </div>
+
+            <h3>Example 5: Missing Email Field</h3>
+            <div class="code-block">
+headers = {"Authorization": f"Bearer {token}"}
+payload = {
+    "name": "John",
+    "comment": "test"
+}
+response = requests.post("http://localhost:8080/api/guestbook", json=payload, headers=headers)
+# Returns: {"message": "Email is required"}, 400
+            </div>
+
+            <h3>Example 6: Missing Comment Field</h3>
+            <div class="code-block">
+headers = {"Authorization": f"Bearer {token}"}
+payload = {
+    "name": "John",
+    "email": "test@example.com"
+}
+response = requests.post("http://localhost:8080/api/guestbook", json=payload, headers=headers)
+# Returns: {"message": "Comment is required"}, 400
+            </div>
+
+            <h3>Example 7: Access Without Token</h3>
+            <div class="code-block">
+response = requests.get("http://localhost:8080/api/guestbook")
+# Returns: {"message": "Token is missing"}, 401
+            </div>
+
+            <h3>Example 8: Delete Single Entry</h3>
+            <div class="code-block">
+headers = {"Authorization": f"Bearer {token}"}
+response = requests.delete("http://localhost:8080/api/guestbook/6", headers=headers)
+# Returns: {"message": "Entry deleted successfully"}, 200
+            </div>
+
+            <h3>Example 9: Bulk Delete Multiple Entries</h3>
+            <div class="code-block">
+headers = {"Authorization": f"Bearer {token}"}
+payload = {
+    "ids": [1, 2, 3, 4]
+}
+response = requests.delete("http://localhost:8080/api/guestbook/bulk", json=payload, headers=headers)
+# Returns: {"deleted": 4, "message": "4 entries deleted successfully"}, 200
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>9. Web UI Features</h2>
+            <h3>Login Page (login.html)</h3>
+            <ul>
+                <li>Username and password input fields</li>
+                <li>Login button that calls /api/login</li>
+                <li>Stores JWT token in sessionStorage</li>
+                <li>Redirects to guest book on success</li>
+            </ul>
+
+            <h3>Guest Book Page (guestbook.html)</h3>
+            <ul>
+                <li>Display all guest book entries in table</li>
+                <li>Form to add new entry (Name, Email, Comment - all required fields)</li>
+                <li>Edit and Delete buttons for each entry</li>
+                <li>Excel file upload button for bulk import</li>
+                <li>All operations use JWT token from sessionStorage</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>10. Excel Import Format</h2>
+            <div class="note">
+                Excel file must contain columns: <strong>name</strong> (required), <strong>email</strong> (required), and <strong>comment</strong> (required). All fields are mandatory. The userId will be auto-generated by the database.
+            </div>
+            <table>
+                <tr>
+                    <th>name</th>
+                    <th>email</th>
+                    <th>comment</th>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>john@example.com</td>
+                    <td>Great website!</td>
+                </tr>
+                <tr>
+                    <td>Jane Smith</td>
+                    <td>jane@example.com</td>
+                    <td>Thanks for the service</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>11. Implementation Steps</h2>
+            <ol>
+                <li>Create database.py - Initialize SQLite database with tables</li>
+                <li>Create app.py - Flask app with all API endpoints</li>
+                <li>Create templates/login.html - Login page with JWT handling</li>
+                <li>Create templates/guestbook.html - Guest book UI with CRUD operations</li>
+                <li>Create static/style.css - Styling for web pages</li>
+                <li>Create test_guestbook_api.py - Comprehensive pytest test suite</li>
+                <li>Create requirements.txt - List all dependencies</li>
+                <li>Test all endpoints manually and with pytest</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>12. Running the Application</h2>
+            <div class="code-block">
+# Install dependencies
+pip install -r requirements.txt
+
+# Run Flask application
+python app.py
+
+# Access web UI
+http://localhost:5000
+
+# Run tests
+pytest test_guestbook_api.py -v
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>13. Default Test Credentials</h2>
+            <div class="note">
+                Username: <strong>admin</strong> | Password: <strong>password123</strong>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
