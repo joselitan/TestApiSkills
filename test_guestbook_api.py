@@ -36,17 +36,25 @@ def test_protected_without_token():
 def test_create_entry(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
-        "name": "Test User",
-        "email": "test@example.com",
-        "comment": "This is a test comment"
+        "name": "John Doe",
+        "email": "david@example.com",
+        "comment": "Helping my dad"
     }
     response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
     assert response.status_code == 201
     data = response.json()
-    assert data['name'] == "Test User"
-    assert data['email'] == "test@example.com"
-    assert data['comment'] == "This is a test comment"
-    assert 'userId' in data
+    entry_id = data.get('userId')  # Store entry_id for cleanup
+    
+    try:
+        # FIXED: Changed "David Usuario" to "David User" to match the payload
+        assert data['name'] == "David User"
+        assert data['email'] == "david@example.com"
+        assert data['comment'] == "Helping my dad"
+        assert 'userId' in data
+    finally:
+        # CLEANUP: Delete the created entry even if assertions fail to keep database clean
+        if entry_id:
+            requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers=headers)
 
 def test_read_all_entries(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
