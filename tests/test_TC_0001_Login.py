@@ -59,9 +59,9 @@ def test_4_create_guestbook_entry():
         "Authorization": f"Bearer {token}"
     }
     payload = {
-        "name": "David User",
-        "email": "david.user@example.com",
-        "message": "Hjälper pappa att testa API:et"
+        "name": "Jose User",
+        "email": "jose.user@example.com",
+        "comment": "Hjälper pappa att testa API:et"
     }
     response = requests.post("http://localhost:8080/api/guestbook", json=payload, headers=headers)
     print(response.status_code)
@@ -82,7 +82,7 @@ def test_5_delete_guestbook_entry():
     headers = {
         "Authorization": f"Bearer {token}"
     }
-    response = requests.delete("http://localhost:8080/api/guestbook/6", headers=headers)
+    response = requests.delete("http://localhost:8080/api/guestbook/27", headers=headers)
     print(response.status_code)
     print(response.json())
     assert response.status_code == 200, f"Förväntade statuskod 200 för att ta bort gästboksinlägg"
