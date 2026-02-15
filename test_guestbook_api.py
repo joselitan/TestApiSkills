@@ -36,7 +36,7 @@ def test_protected_without_token():
 def test_create_entry(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
-        "name": "John Doe",
+        "name": "David User",
         "email": "david@example.com",
         "comment": "Helping my dad"
     }
