@@ -1,0 +1,135 @@
+:root {
+    --bg-dark: #0f172a;
+    --bg-card: #1e293b;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --primary: #8b5cf6; /* Violet */
+    --secondary: #ec4899; /* Pink */
+    --code-bg: #020617;
+    --border: #334155;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    line-height: 1.7;
+    margin: 0;
+    padding: 40px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 60px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+}
+
+h1 {
+    font-size: 3.5rem;
+    margin: 0;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    margin-top: 10px;
+}
+
+.step {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.step::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+}
+
+.step-number {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--secondary);
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: block;
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 1.8rem;
+}
+
+p {
+    color: var(--text-muted);
+}
+
+pre {
+    background-color: var(--code-bg);
+    padding: 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    margin-top: 20px;
+}
+
+code {
+    font-family: 'Fira Code', monospace;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.highlight {
+    color: var(--secondary);
+}
+
+.comment {
+    color: #64748b;
+}
+
+.btn-demo {
+    display: inline-block;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+ul {
+    padding-left: 20px;
+    color: var(--text-muted);
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+footer {
+    text-align: center;
+    margin-top: 80px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}

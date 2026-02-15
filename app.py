@@ -7,7 +7,9 @@ from database import init_db, get_db
 import pandas as pd
 import os
 
-app = Flask(__name__)
+# Explicitly set the static folder path to avoid directory confusion
+basedir = os.path.abspath(os.path.dirname(__file__))
+app = Flask(__name__, static_folder=os.path.join(basedir, 'static'))
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 
 def token_required(f):

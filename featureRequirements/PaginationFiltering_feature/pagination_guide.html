@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to: Pagination & Filtering</title>
+    <link rel="stylesheet" href="pagination_guide.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Pagination & Filtering</h1>
+            <p class="subtitle">A step-by-step guide to upgrading your Guestbook API</p>
+        </header>
+
+        <div class="step">
+            <span class="step-number">Step 01</span>
+            <h2>Understand the Goal</h2>
+            <p>Currently, your API returns <strong>every single entry</strong> in the database. If you have 10,000 entries, this will crash your app. We need to:</p>
+            <ul>
+                <li>Accept <code>page</code> and <code>limit</code> parameters in the URL.</li>
+                <li>Calculate the SQL <code>OFFSET</code>.</li>
+                <li>Return only the requested slice of data.</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-number">Step 02</span>
+            <h2>Update the Backend (app.py)</h2>
+            <p>Modify your <code>get_all_entries</code> function to handle query parameters.</p>
+            <pre><code>@app.route('/api/guestbook', methods=['GET'])
+@token_required
+def get_all_entries():
+    <span class="comment"># 1. Get query parameters with defaults</span>
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 5, type=int)
+    
+    <span class="comment"># 2. Calculate offset for SQL</span>
+    offset = (page - 1) * limit
+
+    conn = get_db()
+    
+    <span class="comment"># 3. Fetch total count (for frontend pagination UI)</span>
+    total_count = conn.execute('SELECT COUNT(*) FROM guestbook').fetchone()[0]
+
+    <span class="comment"># 4. Fetch specific slice of data</span>
+    entries = conn.execute(
+        'SELECT * FROM guestbook ORDER BY created_at DESC LIMIT ? OFFSET ?', 
+        (limit, offset)
+    ).fetchall()
+    conn.close()
+
+    <span class="comment"># 5. Return data AND metadata</span>
+    return jsonify({
+        'data': [dict(entry) for entry in entries],
+        'meta': {
+            'page': page,
+            'limit': limit,
+            'total': total_count,
+            'pages': (total_count + limit - 1) // limit
+        }
+    })</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">Step 03</span>
+            <h2>Update the Frontend (guestbook.html)</h2>
+            <p>The JavaScript needs to send these parameters and handle the new response structure.</p>
+            <pre><code>let currentPage = 1;
+const limit = 5;
+
+async function loadEntries(page = 1) {
+    <span class="comment">// Send page param to API</span>
+    const response = await fetch(`/api/guestbook?page=${page}&limit=${limit}`, {headers});
+    const result = await response.json();
+    
+    <span class="comment">// Note: Response is now result.data, not just result</span>
+    const entries = result.data; 
+    
+    <span class="comment">// Update Table</span>
+    const tbody = document.getElementById('entriesBody');
+    tbody.innerHTML = entries.map(entry => `...`).join('');
+
+    <span class="comment">// Update Pagination Controls</span>
+    document.getElementById('pageInfo').innerText = 
+        `Page ${result.meta.page} of ${result.meta.pages}`;
+        
+    currentPage = result.meta.page;
+}
+
+function nextPage() {
+    loadEntries(currentPage + 1);
+}
+
+function prevPage() {
+    if (currentPage > 1) loadEntries(currentPage - 1);
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">Step 04</span>
+            <h2>Add Filtering (Search)</h2>
+            <p>To add search, we update the SQL query to use <code>LIKE</code>.</p>
+            <pre><code><span class="comment"># In app.py</span>
+search = request.args.get('search', '')
+
+if search:
+    query = '''
+        SELECT * FROM guestbook 
+        WHERE name LIKE ? OR comment LIKE ?
+        ORDER BY created_at DESC LIMIT ? OFFSET ?
+    '''
+    params = (f'%{search}%', f'%{search}%', limit, offset)
+else:
+    <span class="comment"># ... standard query ...</span></code></pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">Step 05</span>
+            <h2>How to Test It</h2>
+            <p>Now you can write tests in <code>test_pagination.py</code> to verify the logic.</p>
+            <pre><code>def test_pagination_limit(auth_token):
+    <span class="comment"># Request only 2 items</span>
+    response = requests.get(
+        f"{BASE_URL}/api/guestbook?limit=2", 
+        headers=headers
+    )
+    data = response.json()
+    
+    <span class="comment"># Assert we got exactly 2 items</span>
+    assert len(data['data']) == 2
+    assert data['meta']['limit'] == 2
+
+def test_pagination_page_2(auth_token):
+    <span class="comment"># Get page 1 and page 2</span>
+    r1 = requests.get(f"{BASE_URL}/api/guestbook?page=1&limit=2", headers=headers)
+    r2 = requests.get(f"{BASE_URL}/api/guestbook?page=2&limit=2", headers=headers)
+    
+    id_page_1 = r1.json()['data'][0]['userId']
+    id_page_2 = r2.json()['data'][0]['userId']
+    
+    <span class="comment"># Assert they are different entries</span>
+    assert id_page_1 != id_page_2</code></pre>
+        </div>
+
+        <footer>
+            Generated by Gemini Code Assist for TestApiSkills
+        </footer>
+    </div>
+</body>
+</html>

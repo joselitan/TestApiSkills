@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Guest Book</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="login-container">
@@ -18,30 +18,6 @@
         <p class="hint">Default: admin / password123</p>
     </div>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    sessionStorage.setItem('token', data.token);
-                    window.location.href = '/guestbook';
-                } else {
-                    document.getElementById('error').textContent = 'Invalid credentials';
-                }
-            } catch (error) {
-                document.getElementById('error').textContent = 'Login failed';
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>
