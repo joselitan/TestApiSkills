@@ -34,6 +34,4 @@ jobs:
     - name: Run tests
       run: pytest test_guestbook_api.py -s -v
 
-    - name: Stop Flask app
-      run: kill $(jobs -p)  
-      
+
