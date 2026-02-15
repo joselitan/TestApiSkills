@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Documentation</title>
+    <link rel="stylesheet" href="guestbook_index.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Guestbook <span>API Tests</span></h1>
+            <p class="intro">Documentation for <code>test_guestbook_api.py</code></p>
+        </header>
+
+        <div class="section-title">Authentication & Setup</div>
+        <div class="grid">
+            <div class="card">
+                <span class="tag setup">Fixture</span>
+                <h3>auth_token</h3>
+                <p>Runs once per module. Logs in as <code>admin</code> to retrieve a JWT token, which is then passed to all other tests requiring authentication.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_login_success</h3>
+                <p>Verifies that valid credentials return a 200 OK status and a JSON response containing the auth token.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_login_invalid</h3>
+                <p>Ensures that logging in with incorrect passwords returns a 401 Unauthorized status.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_protected_without_token</h3>
+                <p>Checks security by attempting to access the guestbook without a token, expecting a 401 error.</p>
+            </div>
+        </div>
+
+        <div class="section-title">CRUD Operations</div>
+        <div class="grid">
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_create_entry</h3>
+                <p>Creates a new entry ("David User") and asserts the response matches the payload. Includes a <strong>finally</strong> block to delete the entry, ensuring the database stays clean.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_read_all_entries</h3>
+                <p>Fetches the guestbook list and verifies the response is a JSON list format.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_read_single_entry</h3>
+                <p>Creates a specific entry, retrieves it by its generated ID, and verifies the data integrity.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_update_entry</h3>
+                <p>Demonstrates the full lifecycle: Create &rarr; Update (PUT) &rarr; Verify. Checks that name and comments are updated correctly.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_delete_entry</h3>
+                <p>Creates an entry and immediately deletes it. Verifies the deletion by attempting to fetch the ID again and expecting a 404 Not Found.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_delete_nonexistent</h3>
+                <p>Edge case testing: Tries to delete a random ID (99999) to ensure the API handles missing resources gracefully (404).</p>
+            </div>
+        </div>
+
+        <div class="section-title">Advanced Features</div>
+        <div class="grid">
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_import_excel</h3>
+                <p><strong>Integration Test:</strong> Uses Pandas to generate a real <code>.xlsx</code> file, uploads it to the import endpoint, and verifies the import count. Deletes the temporary file afterwards.</p>
+            </div>
+            <div class="card">
+                <span class="tag test">Test</span>
+                <h3>test_import_invalid_file</h3>
+                <p>Validation testing: Uploads a text file to the Excel import endpoint to verify the API rejects invalid file types with a 400 Bad Request.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
