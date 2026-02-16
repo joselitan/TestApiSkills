@@ -61,7 +61,10 @@ def test_read_all_entries(auth_token):
     response = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
+    # Response is now a dict with 'data' and 'meta' keys due to pagination
+    assert isinstance(data, dict)
+    assert 'data' in data
+    assert isinstance(data['data'], list)
 
 def test_read_single_entry(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
