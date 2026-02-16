@@ -81,10 +81,35 @@ def create_entry():
 @app.route('/api/guestbook', methods=['GET'])
 @token_required
 def get_all_entries():
+    # 1. Get query parameters with defaults
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
+
+    # 2. Calculate offset for SQL
+    offset = (page - 1) * limit
+
     conn = get_db()
-    entries = conn.execute('SELECT * FROM guestbook ORDER BY created_at DESC').fetchall()
+
+    # 3. Fetch total count (for frontend paginiation UI)
+    total_count = conn.execute('SELECT COUNT(*) FROM guestbook').fetchone()[0]
+
+    # 4. Fetch specific slice of data
+    entries = conn.execute(
+        'SELECT * FROM guestbook ORDER BY created_at DESC LIMIT ? OFFSET ?', 
+        (limit, offset)
+    ).fetchall()
     conn.close()
-    return jsonify([dict(entry) for entry in entries])
+    
+    # 5. Return data AND metadata
+    return jsonify({
+        'data': [dict(entry) for entry in entries],
+        'meta': {
+            'page': page,
+            'limit': limit,
+            'total': total_count,
+            'pages': (total_count + limit - 1) // limit  # Calculate total pages
+        }
+    })
 
 @app.route('/api/guestbook/<int:user_id>', methods=['GET'])
 @token_required

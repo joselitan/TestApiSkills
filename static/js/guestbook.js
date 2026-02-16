@@ -13,17 +13,21 @@ const headers = {
     'Content-Type': 'application/json'
 };
 
-async function loadEntries() {
-    console.log('📡 Fetching entries from API...');
+let currentPage = 1;
+const limit = 10; // Number of entries per page
+
+async function loadEntries(page = 1) {
+    console.log(`📡 Fetching entries for page ${page}...`);
     try {
-        const response = await fetch('/api/guestbook', {headers});
+        const response = await fetch(`/api/guestbook?page=${page}&limit=${limit}`, {headers});
         console.log('Response status:', response.status);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const entries = await response.json();
+        const result = await response.json();
+        const entries = result.data;
         console.log('📦 Entries received:', entries);
 
         const tbody = document.getElementById('entriesBody');
@@ -50,10 +54,28 @@ async function loadEntries() {
                 </td>
             </tr>
         `).join('');
+        
+        // Update pagination controls
+        const pageInfo = document.getElementById('pageInfo');
+        if (pageInfo && result.meta) {
+            pageInfo.innerText = `Page ${result.meta.page} of ${result.meta.pages}`;
+            currentPage = result.meta.page;
+        }
+        
         console.log('✅ Table updated successfully');
 
     } catch (error) {
         console.error('❌ Error loading entries:', error);
+    }
+}
+
+function nextPage(){
+    loadEntries(currentPage + 1);
+}
+
+function prevPage(){
+    if (currentPage > 1) {
+        loadEntries(currentPage - 1);
     }
 }
 

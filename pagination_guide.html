@@ -64,8 +64,14 @@ def get_all_entries():
 
         <div class="step">
             <span class="step-number">Step 03</span>
-            <h2>Update the Frontend (guestbook.html)</h2>
-            <p>The JavaScript needs to send these parameters and handle the new response structure.</p>
+            <h2>Update the Frontend</h2>
+            <p><strong>1. Update the UI (templates/guestbook.html):</strong> Add pagination controls below your table.</p>
+            <pre><code>&lt;div id="pagination"&gt;
+    &lt;button onclick="prevPage()"&gt;Previous&lt;/button&gt;
+    &lt;span id="pageInfo"&gt;&lt;/span&gt;
+    &lt;button onclick="nextPage()"&gt;Next&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+            <p><strong>2. Update the Logic (static/js/guestbook.js):</strong> Update the <code>loadEntries</code> function to handle the new data structure.</p>
             <pre><code>let currentPage = 1;
 const limit = 5;
 

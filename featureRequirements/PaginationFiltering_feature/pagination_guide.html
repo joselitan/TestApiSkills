@@ -64,28 +64,56 @@ def get_all_entries():
 
         <div class="step">
             <span class="step-number">Step 03</span>
-            <h2>Update the Frontend (guestbook.html)</h2>
-            <p>The JavaScript needs to send these parameters and handle the new response structure.</p>
+            <h2>Update the Frontend</h2>
+            <p><strong>1. Update the UI (templates/guestbook.html):</strong> Add pagination controls below your table.</p>
+            <pre><code>&lt;div id="pagination"&gt;
+    &lt;button onclick="prevPage()"&gt;Previous&lt;/button&gt;
+    &lt;span id="pageInfo"&gt;&lt;/span&gt;
+    &lt;button onclick="nextPage()"&gt;Next&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+            <p><strong>2. Update the Logic (static/js/guestbook.js):</strong> Update the <code>loadEntries</code> function to handle the new data structure.</p>
             <pre><code>let currentPage = 1;
 const limit = 5;
 
 async function loadEntries(page = 1) {
-    <span class="comment">// Send page param to API</span>
-    const response = await fetch(`/api/guestbook?page=${page}&limit=${limit}`, {headers});
-    const result = await response.json();
-    
-    <span class="comment">// Note: Response is now result.data, not just result</span>
-    const entries = result.data; 
-    
-    <span class="comment">// Update Table</span>
-    const tbody = document.getElementById('entriesBody');
-    tbody.innerHTML = entries.map(entry => `...`).join('');
-
-    <span class="comment">// Update Pagination Controls</span>
-    document.getElementById('pageInfo').innerText = 
-        `Page ${result.meta.page} of ${result.meta.pages}`;
+    console.log(`📡 Fetching entries for page ${page}...`);
+    try {
+        const response = await fetch(`/api/guestbook?page=${page}&limit=${limit}`, {headers});
         
-    currentPage = result.meta.page;
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const result = await response.json();
+        const entries = result.data;
+        
+        const tbody = document.getElementById('entriesBody');
+        
+        if (entries.length === 0) {
+            tbody.innerHTML = '&lt;tr&gt;&lt;td colspan="6" style="text-align:center"&gt;No entries found&lt;/td&gt;&lt;/tr&gt;';
+        } else {
+            tbody.innerHTML = entries.map(entry => `
+                &lt;tr&gt;
+                    &lt;td&gt;${entry.userId}&lt;/td&gt;
+                    &lt;td&gt;${entry.name}&lt;/td&gt;
+                    &lt;td&gt;${entry.email}&lt;/td&gt;
+                    &lt;td&gt;${entry.comment || ''}&lt;/td&gt;
+                    &lt;td&gt;${new Date(entry.created_at).toLocaleString()}&lt;/td&gt;
+                    &lt;td&gt;
+                        &lt;button class="edit-btn" onclick="editEntry(${entry.userId})"&gt;Edit&lt;/button&gt;
+                        &lt;button class="delete-btn" onclick="deleteEntry(${entry.userId})"&gt;Delete&lt;/button&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            `).join('');
+        }
+
+        // Update Pagination Controls
+        if (result.meta) {
+            document.getElementById('pageInfo').innerText = 
+                `Page ${result.meta.page} of ${result.meta.pages}`;
+            currentPage = result.meta.page;
+        }
+    } catch (error) {
+        console.error('❌ Error loading entries:', error);
+    }
 }
 
 function nextPage() {
