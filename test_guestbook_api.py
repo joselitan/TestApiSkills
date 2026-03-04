@@ -1,6 +1,7 @@
 import requests
 import pytest
 import os
+import json
 
 BASE_URL = "http://localhost:8080"
 token = None
@@ -34,27 +35,39 @@ def test_protected_without_token():
     assert response.status_code == 401
 
 def test_create_entry(auth_token):
+    print("\n--- Test: Create a new guestbook entry")
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
-        "name": "David User",
-        "email": "david@example.com",
-        "comment": "Helping my dad"
+        "name": "Emelie User",
+        "email": "emelie@example.com",
+        "comment": "Helping my mom"
     }
+    print(f"▶️  POST /api/guestbook")
+    print(f"    Payload: {json.dumps(payload, indent=2)}")
+
     response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    
+    print(f"◀️  Response Status Code: {response.status_code}")
+    print(f"    Response JSON: {json.dumps(response.json(), indent=2)}")
     assert response.status_code == 201
     data = response.json()
     entry_id = data.get('userId')  # Store entry_id for cleanup
     
     try:
         # FIXED: Changed "David Usuario" to "David User" to match the payload
-        assert data['name'] == "David User"
-        assert data['email'] == "david@example.com"
-        assert data['comment'] == "Helping my dad"
+        print("🔎 Verifying response content...")
+        assert data['name'] == "Emelie User"
+        assert data['email'] == "emelie@example.com"
+        assert data['comment'] == "Helping my mom"
         assert 'userId' in data
+        print("✅ Verification successful.")
     finally:
         # CLEANUP: Delete the created entry even if assertions fail to keep database clean
         if entry_id:
-            requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers=headers)
+            # requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers=headers)
+            print(f"🧹 CLEANUP: Deleting created entry with ID: {entry_id}")
+            delete_response = requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers={"Authorization": f"Bearer {auth_token}"})
+            print(f"   Cleanup response status: {delete_response.status_code}")
 
 def test_read_all_entries(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -65,6 +78,50 @@ def test_read_all_entries(auth_token):
     assert isinstance(data, dict)
     assert 'data' in data
     assert isinstance(data['data'], list)
+
+def test_read_all_with_search(auth_token):
+    print("\n--- Test: Search/filter guestbook entries ---")
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    
+    # Create two entries for testing search
+    payload1 = {
+        "name": "Search Test User One",
+        "email": "search1@example.com",
+        "comment": "This entry contains the unique keyword 'XYZ_UNIQUE'"
+    }
+    payload2 = {
+        "name": "Search Test User Two",
+        "email": "search2@example.com",
+        "comment": "This is just another entry"
+    }
+    
+    create_resp1 = requests.post(f"{BASE_URL}/api/guestbook", json=payload1, headers=headers)
+    assert create_resp1.status_code == 201
+    entry_id1 = create_resp1.json()['userId']
+
+    create_resp2 = requests.post(f"{BASE_URL}/api/guestbook", json=payload2, headers=headers)
+    assert create_resp2.status_code == 201
+    entry_id2 = create_resp2.json()['userId']
+
+    try:
+        search_term = "XYZ_UNIQUE"
+        print(f"▶️  GET /api/guestbook?search={search_term}")
+        response = requests.get(f"{BASE_URL}/api/guestbook?search={search_term}", headers=headers)
+        
+        assert response.status_code == 200
+        data = response.json()
+        print(f"◀️  Response JSON: {json.dumps(data, indent=2)}")
+        
+        print("🔎 Verifying search results...")
+        assert len(data['data']) == 1, "Should only find one entry"
+        assert data['data'][0]['name'] == "Search Test User One"
+        assert data['meta']['total'] == 1, "Metadata total should be 1"
+        print("✅ Verification successful.")
+
+    finally:
+        print(f"🧹 CLEANUP: Deleting created entries with IDs: {entry_id1}, {entry_id2}")
+        requests.delete(f"{BASE_URL}/api/guestbook/{entry_id1}", headers=headers)
+        requests.delete(f"{BASE_URL}/api/guestbook/{entry_id2}", headers=headers)
 
 def test_read_single_entry(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}

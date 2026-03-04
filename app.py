@@ -84,30 +84,40 @@ def get_all_entries():
     # 1. Get query parameters with defaults
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
+    search = request.args.get('search', None, type=str)
 
     # 2. Calculate offset for SQL
     offset = (page - 1) * limit
 
     conn = get_db()
 
-    # 3. Fetch total count (for frontend paginiation UI)
-    total_count = conn.execute('SELECT COUNT(*) FROM guestbook').fetchone()[0]
+    # 3. Build query parts based on search
+    base_query = 'FROM guestbook'
+    where_clause = ''
+    params = []
+    if search:
+        where_clause = ' WHERE name LIKE ? OR email LIKE ? OR comment LIKE ?'
+        search_term = f'%{search}%'
+        params.extend([search_term, search_term, search_term])
 
-    # 4. Fetch specific slice of data
-    entries = conn.execute(
-        'SELECT * FROM guestbook ORDER BY created_at DESC LIMIT ? OFFSET ?', 
-        (limit, offset)
-    ).fetchall()
+    # 4. Fetch total count with filter
+    count_query = f'SELECT COUNT(*) {base_query}{where_clause}'
+    total_count = conn.execute(count_query, params).fetchone()[0]
+
+    # 5. Fetch specific slice of data with filter
+    data_query = f'SELECT * {base_query}{where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?'
+    query_params = params + [limit, offset]
+    entries = conn.execute(data_query, query_params).fetchall()
     conn.close()
     
-    # 5. Return data AND metadata
+    # 6. Return data AND metadata
     return jsonify({
         'data': [dict(entry) for entry in entries],
         'meta': {
             'page': page,
             'limit': limit,
             'total': total_count,
-            'pages': (total_count + limit - 1) // limit  # Calculate total pages
+            'pages': (total_count + limit - 1) // limit if limit > 0 else 0
         }
     })
 
