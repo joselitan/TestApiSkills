@@ -1,9 +1,14 @@
 import sqlite3
+import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 
+def get_db_path():
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(basedir, 'guestbook.db')
+
 def init_db():
-    conn = sqlite3.connect('guestbook.db')
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
     
     cursor.execute('''
@@ -33,6 +38,6 @@ def init_db():
     conn.close()
 
 def get_db():
-    conn = sqlite3.connect('guestbook.db')
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     return conn

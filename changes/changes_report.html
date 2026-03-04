@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plattformsoberoende Ändringar - TestApiSkills</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 Plattformsoberoende Ändringar</h1>
+            <p class="subtitle">Garantera att projektet fungerar likadant mellan Mac och Windows</p>
+        </header>
+
+        <div class="content">
+            <!-- STEG 2: Plattformsoberoende sökvägar -->
+            <div class="section">
+                <h2><span class="icon">📁</span> Steg 2: Plattformsoberoende Sökvägar <span class="status completed">GENOMFÖRD</span></h2>
+                
+                <div class="change-item">
+                    <h3>Fil: database.py</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\database.py</div>
+                    
+                    <div class="description">
+                        <strong>Problem:</strong> Databasen använder hårdkodad sökväg <code>'guestbook.db'</code> som kan bete sig olika på Mac och Windows.
+                    </div>
+                    
+                    <div class="description">
+                        <strong>Lösning:</strong> Implementerade plattformsoberoende sökvägar med <code>os.path.join()</code>
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+# Tillagt:<br>
+import os<br>
+<br>
+def get_db_path():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;basedir = os.path.abspath(os.path.dirname(__file__))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return os.path.join(basedir, 'guestbook.db')<br>
+<br>
+# Uppdaterat:<br>
+def init_db():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn = sqlite3.connect(get_db_path())  # Använder nu get_db_path()<br>
+<br>
+def get_db():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn = sqlite3.connect(get_db_path())  # Använder nu get_db_path()
+                        </code>
+                    </div>
+                    
+                    <div class="description">
+                        <strong>Fördelar:</strong>
+                        <ul>
+                            <li>Fungerar på både Mac (/) och Windows (\) filsystem</li>
+                            <li>Databasen skapas alltid i projektets rotkatalog</li>
+                            <li>Inga hårdkodade sökvägar</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>Fil: app.py</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\app.py</div>
+                    
+                    <div class="description">
+                        <strong>Status:</strong> <span class="highlight">Redan korrekt implementerad! ✅</span>
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+# Redan använder plattformsoberoende sökvägar:<br>
+basedir = os.path.abspath(os.path.dirname(__file__))<br>
+app = Flask(__name__, static_folder=os.path.join(basedir, 'static'))
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEG 4: .gitignore -->
+            <div class="section">
+                <h2><span class="icon">🚫</span> Steg 4: .gitignore Uppdatering <span class="status completed">GENOMFÖRD</span></h2>
+                
+                <div class="change-item">
+                    <h3>Fil: .gitignore</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\.gitignore</div>
+                    
+                    <div class="description">
+                        <strong>Status:</strong> <span class="highlight">Redan korrekt konfigurerad! ✅</span>
+                    </div>
+                    
+                    <div class="description">
+                        Din .gitignore innehåller redan alla nödvändiga exkluderingar:
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+# Python<br>
+__pycache__/<br>
+*.py[cod]<br>
+*$py.class<br>
+*.so<br>
+.Python<br>
+venv/<br>
+env/<br>
+ENV/<br>
+<br>
+# Database<br>
+*.db<br>
+*.sqlite<br>
+*.sqlite3<br>
+<br>
+# IDE<br>
+.vscode/<br>
+.idea/<br>
+*.swp<br>
+*.swo<br>
+<br>
+# OS<br>
+.DS_Store  # Mac-specifik<br>
+Thumbs.db  # Windows-specifik
+                        </code>
+                    </div>
+                    
+                    <div class="description">
+                        <strong>Täcker:</strong>
+                        <ul>
+                            <li>✅ Virtuella miljöer (venv/)</li>
+                            <li>✅ Databaser (*.db)</li>
+                            <li>✅ Python cache (__pycache__/)</li>
+                            <li>✅ Mac-specifika filer (.DS_Store)</li>
+                            <li>✅ Windows-specifika filer (Thumbs.db)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ÖVRIGA STEG (Information) -->
+            <div class="section">
+                <h2><span class="icon">ℹ️</span> Övriga Steg för Plattformsoberoende <span class="status info">INFO</span></h2>
+                
+                <div class="info-box">
+                    <h3>Steg 1: requirements.txt</h3>
+                    <p>Din <code>requirements.txt</code> är redan korrekt konfigurerad med alla nödvändiga paket:</p>
+                    <ul>
+                        <li>Flask>=3.0.0</li>
+                        <li>PyJWT>=2.8.0</li>
+                        <li>Werkzeug>=3.0.0</li>
+                        <li>requests>=2.31.0</li>
+                        <li>pytest>=7.4.0</li>
+                        <li>pandas>=2.0.0</li>
+                        <li>openpyxl>=3.1.0</li>
+                    </ul>
+                    <p><strong>Installation på Windows:</strong></p>
+                    <div class="code-block">
+                        <code>
+venv\Scripts\activate<br>
+pip install -r requirements.txt
+                        </code>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Steg 3: Frys Exakta Versioner (Rekommendation)</h3>
+                    <p>För att garantera exakt samma miljö på båda plattformarna:</p>
+                    <div class="code-block">
+                        <code>
+# På Mac (när allt fungerar):<br>
+pip freeze > requirements.txt<br>
+<br>
+# På Windows:<br>
+pip install -r requirements.txt
+                        </code>
+                    </div>
+                    <p>Detta låser alla paket till exakta versioner (t.ex. Flask==3.0.3 istället för Flask>=3.0.0)</p>
+                </div>
+
+                <div class="info-box">
+                    <h3>Steg 5: Python-version</h3>
+                    <p>Kontrollera att du använder samma Python-version på båda plattformarna:</p>
+                    <div class="code-block">
+                        <code>python --version</code>
+                    </div>
+                    <p>Rekommendation: Använd Python 3.9+ för bästa kompatibilitet</p>
+                </div>
+            </div>
+
+            <!-- SAMMANFATTNING -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Sammanfattning</h2>
+                
+                <div class="description">
+                    <h3 style="color: #34d399; margin-bottom: 15px;">Genomförda Ändringar:</h3>
+                    <ul>
+                        <li><strong>database.py:</strong> Implementerade <code>get_db_path()</code> funktion med <code>os.path.join()</code> för plattformsoberoende databassökväg</li>
+                        <li><strong>.gitignore:</strong> Verifierad - innehåller redan alla nödvändiga exkluderingar för både Mac och Windows</li>
+                        <li><strong>app.py:</strong> Verifierad - använder redan plattformsoberoende sökvägar</li>
+                    </ul>
+                </div>
+
+                <div class="description" style="margin-top: 30px;">
+                    <h3 style="color: #60a5fa; margin-bottom: 15px;">Nästa Steg för Dig:</h3>
+                    <ol style="margin-left: 20px;">
+                        <li>Aktivera virtuell miljö: <code>venv\Scripts\activate</code></li>
+                        <li>Installera paket: <code>pip install -r requirements.txt</code></li>
+                        <li>Initiera databas: <code>python -c "from database import init_db; init_db()"</code></li>
+                        <li>Kör applikationen: <code>python app.py</code></li>
+                        <li>Testa att allt fungerar på Windows</li>
+                        <li>Commit och push ändringarna till Git</li>
+                        <li>Testa på Mac för att verifiera kompatibilitet</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills Projekt</p>
+            <p>Alla ändringar är plattformsoberoende och fungerar på både Mac och Windows</p>
+        </footer>
+    </div>
+</body>
+</html>
