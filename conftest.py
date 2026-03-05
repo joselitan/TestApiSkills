@@ -1,10 +1,14 @@
 import pytest
 import os
 import sys
+import requests
 from database import init_db, clear_test_db, get_db_path
+from tests.factories import create_guestbook_entry, create_multiple_entries
 
 # Sätt test mode environment variable
 os.environ['TEST_MODE'] = '1'
+
+BASE_URL = "http://localhost:8080"
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database():
@@ -28,3 +32,22 @@ def clean_test_db():
 def test_db_path():
     """Return test database path"""
     return get_db_path(test_mode=True)
+
+@pytest.fixture(scope="module")
+def auth_token():
+    """Get authentication token for tests"""
+    response = requests.post(f"{BASE_URL}/api/login", json={
+        "username": "admin",
+        "password": "password123"
+    })
+    return response.json()['token']
+
+@pytest.fixture
+def test_entry():
+    """Generate a single test entry using factory"""
+    return create_guestbook_entry()
+
+@pytest.fixture
+def test_entries():
+    """Generate multiple test entries using factory"""
+    return create_multiple_entries(5)
