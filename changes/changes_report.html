@@ -11,6 +11,7 @@
         <header>
             <h1>🔧 Plattformsoberoende Ändringar</h1>
             <p class="subtitle">Garantera att projektet fungerar likadant mellan Mac och Windows</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Senast uppdaterad: 2026-03-06</p>
         </header>
 
         <div class="content">
@@ -134,6 +135,131 @@ Thumbs.db  # Windows-specifik
                 </div>
             </div>
 
+            <!-- NY ÄNDRING: Test Cleanup Strategy -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> Test Cleanup Strategy <span class="status completed">GENOMFÖRD</span></h2>
+                <p style="color: #fbbf24; margin-bottom: 20px;"><strong>Uppdaterad: 2026-03-06</strong></p>
+                
+                <div class="change-item">
+                    <h3>Problem som Identifierades</h3>
+                    <div class="description">
+                        <strong>Utmaning:</strong> Testerna hade cleanup-kod i varje enskild test som raderade testdata direkt efter skapande. Detta gjorde det omöjligt att se skapade poster i frontend för manuell verifiering under utveckling.
+                    </div>
+                    
+                    <div class="description">
+                        <strong>Tidigare Problem:</strong>
+                        <ul>
+                            <li>❌ Cleanup-kod duplicerad i varje test</li>
+                            <li>❌ Testdata raderades omedelbart - kunde inte verifieras i frontend</li>
+                            <li>❌ Svårt att debugga när data försvinner direkt</li>
+                            <li>❌ Onödigt komplex kod med try/finally block i varje test</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>Lösning: Centraliserad Cleanup-metod</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\test_guestbook_api.py</div>
+                    
+                    <div class="description">
+                        <strong>Ny Strategi:</strong> En enda cleanup-metod som körs sist och rensar ALLT
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+# Alla tester - INGEN cleanup<br>
+def test_create_entry(auth_token):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... skapar post ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(f"✅ Entry created with ID: {data['userId']}")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Ingen cleanup - posten stannar!<br>
+<br>
+def test_read_all_with_search(auth_token):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... skapar 2 poster ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print("✅ Search verification successful")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Ingen cleanup - posterna stannar!<br>
+<br>
+# EN metod som körs SIST (alfabetisk ordning)<br>
+def test_zzz_cleanup_all_test_data(auth_token):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Cleanup method - runs last to remove all test data"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Hämtar ALLA poster<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response = requests.get(f"{BASE_URL}/api/guestbook?limit=1000", headers=headers)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;entries = response.json().get('data', [])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Raderar alla<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for entry in entries:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.delete(f"{BASE_URL}/api/guestbook/{entry['userId']}", headers=headers)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print("✅ Cleanup completed - Database is clean")
+                        </code>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>Användning</h3>
+                    
+                    <div class="description">
+                        <strong>Kör alla tester (med cleanup):</strong>
+                    </div>
+                    <div class="code-block">
+                        <code>
+pytest test_guestbook_api.py -s -v<br>
+# 1. Kör alla tester - data skapas<br>
+# 2. Du kan se data i frontend under testning<br>
+# 3. test_zzz_cleanup körs sist - rensar allt
+                        </code>
+                    </div>
+                    
+                    <div class="description" style="margin-top: 20px;">
+                        <strong>Kör tester UTAN cleanup (data stannar):</strong>
+                    </div>
+                    <div class="code-block">
+                        <code>
+pytest test_guestbook_api.py -s -v -k "not zzz_cleanup"<br>
+# Kör alla tester UTOM cleanup<br>
+# Testdata stannar i databasen<br>
+# Perfekt för frontend-verifiering
+                        </code>
+                    </div>
+                    
+                    <div class="description" style="margin-top: 20px;">
+                        <strong>Kör ENDAST cleanup:</strong>
+                    </div>
+                    <div class="code-block">
+                        <code>
+pytest test_guestbook_api.py -s -v -k "zzz_cleanup"<br>
+# Rensar databasen manuellt när du vill
+                        </code>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>Fördelar med Denna Lösning</h3>
+                    
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Enklare Kod:</strong> Ingen cleanup-kod i varje test</li>
+                            <li>✅ <strong>Flexibel Testning:</strong> Kan välja att köra med eller utan cleanup</li>
+                            <li>✅ <strong>Frontend-verifiering:</strong> Testdata synlig under hela testkörningen</li>
+                            <li>✅ <strong>Lättare Debugging:</strong> Data finns kvar för inspektion</li>
+                            <li>✅ <strong>Centraliserad Cleanup:</strong> En metod hanterar all städning</li>
+                            <li>✅ <strong>CI/CD Vänlig:</strong> Automatisk cleanup i slutet av testkörning</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="change-item">
+                    <h3>Ändringar från Föregående Version</h3>
+                    
+                    <div class="description">
+                        <ul>
+                            <li>❌ <strong>Borttaget:</strong> <code>test_guestbook_demo.py</code> - Behövs inte längre</li>
+                            <li>❌ <strong>Borttaget:</strong> Cleanup-kod från <code>test_create_entry()</code></li>
+                            <li>❌ <strong>Borttaget:</strong> Cleanup-kod från <code>test_read_all_with_search()</code></li>
+                            <li>✅ <strong>Tillagt:</strong> <code>test_zzz_cleanup_all_test_data()</code> - Centraliserad cleanup</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- ÖVRIGA STEG (Information) -->
             <div class="section">
                 <h2><span class="icon">ℹ️</span> Övriga Steg för Plattformsoberoende <span class="status info">INFO</span></h2>
@@ -194,6 +320,8 @@ pip install -r requirements.txt
                         <li><strong>database.py:</strong> Implementerade <code>get_db_path()</code> funktion med <code>os.path.join()</code> för plattformsoberoende databassökväg</li>
                         <li><strong>.gitignore:</strong> Verifierad - innehåller redan alla nödvändiga exkluderingar för både Mac och Windows</li>
                         <li><strong>app.py:</strong> Verifierad - använder redan plattformsoberoende sökvägar</li>
+                        <li><strong>test_guestbook_api.py:</strong> Centraliserad cleanup-strategi med <code>test_zzz_cleanup_all_test_data()</code></li>
+                        <li><strong>test.yml:</strong> Kör alla tester inklusive automatisk cleanup</li>
                     </ul>
                 </div>
 

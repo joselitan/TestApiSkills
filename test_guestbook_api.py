@@ -51,23 +51,13 @@ def test_create_entry(auth_token):
     print(f"    Response JSON: {json.dumps(response.json(), indent=2)}")
     assert response.status_code == 201
     data = response.json()
-    entry_id = data.get('userId')  # Store entry_id for cleanup
     
-    try:
-        # FIXED: Changed "David Usuario" to "David User" to match the payload
-        print("🔎 Verifying response content...")
-        assert data['name'] == "Emelie User"
-        assert data['email'] == "emelie@example.com"
-        assert data['comment'] == "Helping my mom"
-        assert 'userId' in data
-        print("✅ Verification successful.")
-    finally:
-        # CLEANUP: Delete the created entry even if assertions fail to keep database clean
-        if entry_id:
-            # requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers=headers)
-            print(f"🧹 CLEANUP: Deleting created entry with ID: {entry_id}")
-            delete_response = requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers={"Authorization": f"Bearer {auth_token}"})
-            print(f"   Cleanup response status: {delete_response.status_code}")
+    print("🔎 Verifying response content...")
+    assert data['name'] == "Emelie User"
+    assert data['email'] == "emelie@example.com"
+    assert data['comment'] == "Helping my mom"
+    assert 'userId' in data
+    print(f"✅ Entry created with ID: {data['userId']}")
 
 def test_read_all_entries(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -98,30 +88,26 @@ def test_read_all_with_search(auth_token):
     create_resp1 = requests.post(f"{BASE_URL}/api/guestbook", json=payload1, headers=headers)
     assert create_resp1.status_code == 201
     entry_id1 = create_resp1.json()['userId']
+    print(f"✅ Created entry 1 with ID: {entry_id1}")
 
     create_resp2 = requests.post(f"{BASE_URL}/api/guestbook", json=payload2, headers=headers)
     assert create_resp2.status_code == 201
     entry_id2 = create_resp2.json()['userId']
+    print(f"✅ Created entry 2 with ID: {entry_id2}")
 
-    try:
-        search_term = "XYZ_UNIQUE"
-        print(f"▶️  GET /api/guestbook?search={search_term}")
-        response = requests.get(f"{BASE_URL}/api/guestbook?search={search_term}", headers=headers)
-        
-        assert response.status_code == 200
-        data = response.json()
-        print(f"◀️  Response JSON: {json.dumps(data, indent=2)}")
-        
-        print("🔎 Verifying search results...")
-        assert len(data['data']) == 1, "Should only find one entry"
-        assert data['data'][0]['name'] == "Search Test User One"
-        assert data['meta']['total'] == 1, "Metadata total should be 1"
-        print("✅ Verification successful.")
-
-    finally:
-        print(f"🧹 CLEANUP: Deleting created entries with IDs: {entry_id1}, {entry_id2}")
-        requests.delete(f"{BASE_URL}/api/guestbook/{entry_id1}", headers=headers)
-        requests.delete(f"{BASE_URL}/api/guestbook/{entry_id2}", headers=headers)
+    search_term = "XYZ_UNIQUE"
+    print(f"▶️  GET /api/guestbook?search={search_term}")
+    response = requests.get(f"{BASE_URL}/api/guestbook?search={search_term}", headers=headers)
+    
+    assert response.status_code == 200
+    data = response.json()
+    print(f"◀️  Response JSON: {json.dumps(data, indent=2)}")
+    
+    print("🔎 Verifying search results...")
+    assert len(data['data']) == 1, "Should only find one entry"
+    assert data['data'][0]['name'] == "Search Test User One"
+    assert data['meta']['total'] == 1, "Metadata total should be 1"
+    print("✅ Search verification successful")
 
 def test_read_single_entry(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -222,3 +208,25 @@ def test_import_invalid_file(auth_token):
     os.remove('test_invalid.txt')
     
     assert response.status_code == 400
+
+def test_zzz_cleanup_all_test_data(auth_token):
+    """Cleanup method - runs last (alphabetically) to remove all test data"""
+    print("\n--- CLEANUP: Removing all test data from database ---")
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    
+    # Get all entries
+    response = requests.get(f"{BASE_URL}/api/guestbook?limit=1000", headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        entries = data.get('data', [])
+        
+        if entries:
+            print(f"🧹 Found {len(entries)} entries to clean up")
+            for entry in entries:
+                entry_id = entry['userId']
+                delete_resp = requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers=headers)
+                if delete_resp.status_code == 200:
+                    print(f"   ✅ Deleted entry ID: {entry_id}")
+            print("✅ Cleanup completed - Database is clean")
+        else:
+            print("✅ No entries to clean up")
