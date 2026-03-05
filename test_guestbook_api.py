@@ -215,6 +215,7 @@ def test_zzz_cleanup_all_test_data(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     
     # Get all entries
+    # simple comment
     response = requests.get(f"{BASE_URL}/api/guestbook?limit=1000", headers=headers)
     if response.status_code == 200:
         data = response.json()
