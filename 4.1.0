@@ -1,0 +1,8 @@
+Requirement already satisfied: pytest-cov in c:\users\admin\testapiskills\venv\lib\site-packages (7.0.0)
+Requirement already satisfied: coverage>=7.10.6 in c:\users\admin\testapiskills\venv\lib\site-packages (from coverage[toml]>=7.10.6->pytest-cov) (7.13.4)
+Requirement already satisfied: pluggy>=1.2 in c:\users\admin\testapiskills\venv\lib\site-packages (from pytest-cov) (1.6.0)
+Requirement already satisfied: pytest>=7 in c:\users\admin\testapiskills\venv\lib\site-packages (from pytest-cov) (9.0.2)
+Requirement already satisfied: colorama>=0.4 in c:\users\admin\testapiskills\venv\lib\site-packages (from pytest>=7->pytest-cov) (0.4.6)
+Requirement already satisfied: iniconfig>=1.0.1 in c:\users\admin\testapiskills\venv\lib\site-packages (from pytest>=7->pytest-cov) (2.3.0)
+Requirement already satisfied: packaging>=22 in c:\users\admin\testapiskills\venv\lib\site-packages (from pytest>=7->pytest-cov) (26.0)
+Requirement already satisfied: pygments>=2.7.2 in c:\users\admin\testapiskills\venv\lib\site-packages (from pytest>=7->pytest-cov) (2.19.2)

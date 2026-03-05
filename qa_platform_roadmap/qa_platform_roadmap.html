@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Test Platform Roadmap - TestApiSkills</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 QA Test Platform Roadmap</h1>
+            <p class="subtitle">Från Guestbook App till Komplett QA Test Platform</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">API + UI + Security + Performance + CI/CD</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Skapad: 2026-03-06</p>
+        </header>
+
+        <div class="content">
+            <!-- NUVARANDE STATUS -->
+            <div class="section">
+                <h2><span class="icon">✅</span> Nuvarande Status - Vad Vi Redan Har</h2>
+                
+                <div class="success-box">
+                    <h3>Grunden är Stark! 🎉</h3>
+                    <p>Din app har redan en solid grund för att bli en QA test-plattform. Här är vad som redan fungerar:</p>
+                </div>
+
+                <div class="phase-item">
+                    <h3>1. API Backend (Flask) ✅</h3>
+                    <div class="description">
+                        <strong>Fil:</strong> <code>app.py</code>
+                        <ul>
+                            <li>✅ RESTful API med CRUD operationer</li>
+                            <li>✅ JWT Authentication</li>
+                            <li>✅ Pagination & Filtering</li>
+                            <li>✅ Bulk operations (DELETE)</li>
+                            <li>✅ Excel import funktionalitet</li>
+                            <li>✅ SQLite databas</li>
+                            <li>✅ Plattformsoberoende sökvägar</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>2. Frontend UI ✅</h3>
+                    <div class="description">
+                        <strong>Filer:</strong> <code>templates/</code>, <code>static/</code>
+                        <ul>
+                            <li>✅ Login sida med authentication</li>
+                            <li>✅ Guestbook UI med CRUD funktioner</li>
+                            <li>✅ Responsiv design</li>
+                            <li>✅ JavaScript för API-anrop</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>3. API Testing ✅</h3>
+                    <div class="description">
+                        <strong>Fil:</strong> <code>test_guestbook_api.py</code>
+                        <ul>
+                            <li>✅ Pytest framework</li>
+                            <li>✅ 13 API test cases</li>
+                            <li>✅ Authentication tests</li>
+                            <li>✅ CRUD operation tests</li>
+                            <li>✅ Search/filter tests</li>
+                            <li>✅ Excel import tests</li>
+                            <li>✅ Centraliserad cleanup strategi</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>4. CI/CD Pipeline ✅</h3>
+                    <div class="description">
+                        <strong>Fil:</strong> <code>.github/workflows/test.yml</code>
+                        <ul>
+                            <li>✅ GitHub Actions workflow</li>
+                            <li>✅ Automatisk test-körning vid push/PR</li>
+                            <li>✅ Python 3.11 setup</li>
+                            <li>✅ Dependency installation</li>
+                            <li>✅ Database initialization</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>5. Dokumentation ✅</h3>
+                    <div class="description">
+                        <strong>Mappar:</strong> <code>docs/</code>, <code>changes/</code>, <code>featureRequirements/</code>
+                        <ul>
+                            <li>✅ README med setup instruktioner</li>
+                            <li>✅ HTML-baserad dokumentation</li>
+                            <li>✅ Implementation plans</li>
+                            <li>✅ Feature guides (pagination)</li>
+                            <li>✅ Change reports</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FÖRBÄTTRINGSOMRÅDEN -->
+            <div class="section">
+                <h2><span class="icon">🔧</span> Vad Vi Kan Förbättra Direkt</h2>
+                
+                <div class="warning-box">
+                    <h3>Lågt Hängande Frukter - Snabba Förbättringar</h3>
+                    <p>Dessa förbättringar kan göras snabbt och ger omedelbart värde:</p>
+                </div>
+
+                <div class="phase-item">
+                    <h3>1. Test Rapportering</h3>
+                    <div class="description">
+                        <strong>Problem:</strong> Tester körs men vi har ingen visuell rapport
+                        <br><strong>Lösning:</strong>
+                        <ul>
+                            <li>Lägg till pytest-html för HTML test reports</li>
+                            <li>Lägg till pytest-cov för code coverage</li>
+                            <li>Generera rapport efter varje test-körning</li>
+                        </ul>
+                    </div>
+                    <div class="code-block">
+                        <code>
+# requirements.txt<br>
+pytest-html>=4.1.0<br>
+pytest-cov>=4.1.0<br>
+<br>
+# Kör med rapport:<br>
+pytest test_guestbook_api.py --html=reports/test_report.html --cov=. --cov-report=html
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>2. Test Data Management</h3>
+                    <div class="description">
+                        <strong>Problem:</strong> Testdata blandas med produktionsdata
+                        <br><strong>Lösning:</strong>
+                        <ul>
+                            <li>Separata databaser för test och produktion</li>
+                            <li>Test fixtures för konsekvent testdata</li>
+                            <li>Database seeding script (redan finns: seed_data.py)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>3. API Dokumentation</h3>
+                    <div class="description">
+                        <strong>Problem:</strong> Ingen automatisk API dokumentation
+                        <br><strong>Lösning:</strong>
+                        <ul>
+                            <li>Implementera Swagger/OpenAPI med flask-swagger-ui</li>
+                            <li>Auto-genererad API dokumentation</li>
+                            <li>Interaktiv API testing direkt i browsern</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>4. Logging & Monitoring</h3>
+                    <div class="description">
+                        <strong>Problem:</strong> Ingen strukturerad logging
+                        <br><strong>Lösning:</strong>
+                        <ul>
+                            <li>Implementera Python logging module</li>
+                            <li>Logga API requests, errors, performance</li>
+                            <li>Roterande log-filer</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAS 1: API TESTING ENHANCEMENT -->
+            <div class="section">
+                <h2><span class="icon">🧪</span> Fas 1: API Testing Enhancement <span class="status planned">PLANERAD</span></h2>
+                
+                <div class="timeline">
+                    <span class="timeline-icon">⏱️</span>
+                    <strong>Tidsåtgång:</strong> 2-3 veckor | <strong>Prioritet:</strong> <span class="priority-high">HÖG</span>
+                </div>
+
+                <div class="phase-item">
+                    <h3>1.1 Avancerad Test Rapportering</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Skapa professionella, visuella test-rapporter som kan delas med teamet
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>pytest-html:</strong> HTML test reports med screenshots</li>
+                            <li><strong>pytest-cov:</strong> Code coverage rapporter (mål: 80%+)</li>
+                            <li><strong>Allure Framework:</strong> Enterprise-grade test rapportering</li>
+                            <li><strong>Test Metrics:</strong> Pass/Fail rate, execution time, trends</li>
+                        </ul>
+                    </div>
+
+                    <h4>Nya Filer:</h4>
+                    <div class="code-block">
+                        <code>
+reports/<br>
+├── test_report.html          # Pytest HTML rapport<br>
+├── coverage_report.html      # Code coverage<br>
+├── allure-results/           # Allure data<br>
+└── allure-report/            # Allure HTML rapport
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>1.2 API Contract Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Validera att API följer sitt kontrakt (schema, datatyper, required fields)
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>JSON Schema Validation:</strong> Validera response struktur</li>
+                            <li><strong>Pydantic Models:</strong> Type-safe API models</li>
+                            <li><strong>Contract Tests:</strong> Verifiera API kontrakt</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/test_api_contract.py<br>
+<br>
+# Exempel:<br>
+def test_guestbook_entry_schema():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;schema = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "object",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"required": ["userId", "name", "email", "comment"],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"properties": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"userId": {"type": "integer"},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": {"type": "string"},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"email": {"type": "string", "format": "email"}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;validate(response.json(), schema)
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>1.3 Performance Testing (API)</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Mäta API prestanda och identifiera flaskhalsar
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Locust:</strong> Load testing framework</li>
+                            <li><strong>Response Time Tracking:</strong> Mät varje endpoint</li>
+                            <li><strong>Concurrent Users:</strong> Testa med 10, 50, 100 användare</li>
+                            <li><strong>Performance Baselines:</strong> Sätt acceptabla gränser</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/test_performance.py<br>
+tests/locustfile.py<br>
+<br>
+# Kör load test:<br>
+locust -f tests/locustfile.py --host=http://localhost:8080
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>1.4 Negative Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Testa att API hanterar felaktiga inputs korrekt
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>Invalid data types (string istället för integer)</li>
+                            <li>Missing required fields</li>
+                            <li>SQL injection attempts</li>
+                            <li>XSS attempts</li>
+                            <li>Oversized payloads</li>
+                            <li>Invalid tokens</li>
+                            <li>Rate limiting tests</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/test_negative_cases.py<br>
+tests/test_security_api.py
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>1.5 Test Data Factory</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Generera realistisk testdata enkelt och konsekvent
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Faker:</strong> Generera fake men realistisk data</li>
+                            <li><strong>Factory Pattern:</strong> Skapa test objekt enkelt</li>
+                            <li><strong>Fixtures:</strong> Återanvändbara test datasets</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/factories.py<br>
+tests/conftest.py  # Pytest fixtures<br>
+<br>
+# Exempel:<br>
+from faker import Faker<br>
+fake = Faker()<br>
+<br>
+def create_test_entry():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": fake.name(),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"email": fake.email(),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"comment": fake.text()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Fas 1 - Sammanfattning</h3>
+                    <p><strong>Nya Dependencies:</strong></p>
+                    <div class="code-block">
+                        <code>
+pytest-html>=4.1.0<br>
+pytest-cov>=4.1.0<br>
+allure-pytest>=2.13.0<br>
+jsonschema>=4.20.0<br>
+pydantic>=2.5.0<br>
+locust>=2.20.0<br>
+faker>=22.0.0
+                        </code>
+                    </div>
+                    <p><strong>Resultat:</strong> Professionell API test suite med rapportering, performance testing och säkerhetstester</p>
+                </div>
+            </div>
+
+            <!-- FAS 2: UI TESTING -->
+            <div class="section">
+                <h2><span class="icon">🖥️</span> Fas 2: UI Testing (Frontend) <span class="status planned">PLANERAD</span></h2>
+                
+                <div class="timeline">
+                    <span class="timeline-icon">⏱️</span>
+                    <strong>Tidsåtgång:</strong> 2-3 veckor | <strong>Prioritet:</strong> <span class="priority-high">HÖG</span>
+                </div>
+
+                <div class="phase-item">
+                    <h3>2.1 End-to-End Testing med Playwright</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Automatisera UI-tester som simulerar riktiga användare
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Playwright:</strong> Modern E2E testing framework</li>
+                            <li><strong>Multi-browser:</strong> Chrome, Firefox, Safari</li>
+                            <li><strong>Screenshots & Videos:</strong> Vid test failures</li>
+                            <li><strong>Trace Viewer:</strong> Debug failed tests visuellt</li>
+                        </ul>
+                    </div>
+
+                    <h4>Test Scenarios:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>Login flow (success & failure)</li>
+                            <li>Create guestbook entry via UI</li>
+                            <li>Edit entry via UI</li>
+                            <li>Delete entry via UI</li>
+                            <li>Search/filter functionality</li>
+                            <li>Pagination navigation</li>
+                            <li>Excel import via UI</li>
+                            <li>Logout flow</li>
+                        </ul>
+                    </div>
+
+                    <h4>Nya Filer:</h4>
+                    <div class="code-block">
+                        <code>
+tests/ui/<br>
+├── test_login_ui.py<br>
+├── test_guestbook_ui.py<br>
+├── test_search_ui.py<br>
+├── test_pagination_ui.py<br>
+└── conftest.py  # Playwright fixtures<br>
+<br>
+# Kör UI tester:<br>
+pytest tests/ui/ --headed  # Med synlig browser<br>
+pytest tests/ui/ --browser firefox  # Specifik browser
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>2.2 Visual Regression Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Upptäck oavsiktliga visuella förändringar i UI
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Playwright Screenshots:</strong> Ta baseline screenshots</li>
+                            <li><strong>Pixel Comparison:</strong> Jämför mot baseline</li>
+                            <li><strong>Diff Reports:</strong> Visa visuella skillnader</li>
+                            <li><strong>Responsive Testing:</strong> Desktop, tablet, mobile</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/ui/test_visual_regression.py<br>
+<br>
+# Exempel:<br>
+def test_login_page_visual(page):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;page.goto("http://localhost:8080")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(page).to_have_screenshot("login-page.png")
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>2.3 Accessibility Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Säkerställ att UI är tillgänglig för alla användare (WCAG 2.1)
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>axe-core:</strong> Automatisk accessibility scanning</li>
+                            <li><strong>Keyboard Navigation:</strong> Testa utan mus</li>
+                            <li><strong>Screen Reader:</strong> ARIA labels, semantic HTML</li>
+                            <li><strong>Color Contrast:</strong> Verifiera kontrast ratios</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/ui/test_accessibility.py<br>
+<br>
+# Kör accessibility scan:<br>
+pytest tests/ui/test_accessibility.py --axe
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>2.4 Cross-Browser Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Verifiera att UI fungerar i alla populära browsers
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>Chrome/Chromium</li>
+                            <li>Firefox</li>
+                            <li>Safari (WebKit)</li>
+                            <li>Edge</li>
+                            <li>Mobile browsers (iOS Safari, Chrome Mobile)</li>
+                        </ul>
+                    </div>
+
+                    <h4>Konfiguration:</h4>
+                    <div class="code-block">
+                        <code>
+# pytest.ini<br>
+[pytest]<br>
+addopts = --browser chromium --browser firefox --browser webkit
+                        </code>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Fas 2 - Sammanfattning</h3>
+                    <p><strong>Nya Dependencies:</strong></p>
+                    <div class="code-block">
+                        <code>
+playwright>=1.40.0<br>
+pytest-playwright>=0.4.0<br>
+axe-playwright-python>=0.1.0
+                        </code>
+                    </div>
+                    <p><strong>Resultat:</strong> Komplett UI test suite med E2E, visual regression, accessibility och cross-browser testing</p>
+                </div>
+            </div>
+
+            <!-- FAS 3: SECURITY TESTING -->
+            <div class="section">
+                <h2><span class="icon">🔒</span> Fas 3: Security Testing <span class="status planned">PLANERAD</span></h2>
+                
+                <div class="timeline">
+                    <span class="timeline-icon">⏱️</span>
+                    <strong>Tidsåtgång:</strong> 2 veckor | <strong>Prioritet:</strong> <span class="priority-high">HÖG</span>
+                </div>
+
+                <div class="phase-item">
+                    <h3>3.1 OWASP Top 10 Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Testa mot de vanligaste säkerhetshoten enligt OWASP
+                    </div>
+                    
+                    <h4>Test Cases:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>A01 - Broken Access Control:</strong> Testa authorization</li>
+                            <li><strong>A02 - Cryptographic Failures:</strong> Verifiera JWT, password hashing</li>
+                            <li><strong>A03 - Injection:</strong> SQL injection, XSS, command injection</li>
+                            <li><strong>A04 - Insecure Design:</strong> Rate limiting, brute force protection</li>
+                            <li><strong>A05 - Security Misconfiguration:</strong> Debug mode, error messages</li>
+                            <li><strong>A06 - Vulnerable Components:</strong> Dependency scanning</li>
+                            <li><strong>A07 - Authentication Failures:</strong> Weak passwords, session management</li>
+                            <li><strong>A08 - Data Integrity:</strong> Input validation</li>
+                            <li><strong>A09 - Logging Failures:</strong> Security event logging</li>
+                            <li><strong>A10 - SSRF:</strong> Server-side request forgery</li>
+                        </ul>
+                    </div>
+
+                    <h4>Nya Filer:</h4>
+                    <div class="code-block">
+                        <code>
+tests/security/<br>
+├── test_injection.py          # SQL injection, XSS<br>
+├── test_authentication.py     # Auth vulnerabilities<br>
+├── test_authorization.py      # Access control<br>
+├── test_input_validation.py   # Malicious inputs<br>
+└── test_rate_limiting.py      # DoS protection
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>3.2 Automated Security Scanning</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Automatisk scanning efter kända sårbarheter
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Bandit:</strong> Python security linter</li>
+                            <li><strong>Safety:</strong> Dependency vulnerability scanner</li>
+                            <li><strong>OWASP ZAP:</strong> Dynamic application security testing</li>
+                            <li><strong>Trivy:</strong> Container & dependency scanning</li>
+                        </ul>
+                    </div>
+
+                    <h4>Konfiguration:</h4>
+                    <div class="code-block">
+                        <code>
+# Kör security scans:<br>
+bandit -r . -f json -o reports/bandit_report.json<br>
+safety check --json > reports/safety_report.json<br>
+<br>
+# ZAP baseline scan:<br>
+docker run -v $(pwd):/zap/wrk/:rw \<br>
+&nbsp;&nbsp;owasp/zap2docker-stable zap-baseline.py \<br>
+&nbsp;&nbsp;-t http://localhost:8080 -r zap_report.html
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>3.3 Penetration Testing Scenarios</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Simulera riktiga attacker mot applikationen
+                    </div>
+                    
+                    <h4>Attack Scenarios:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Brute Force:</strong> Försök gissa lösenord</li>
+                            <li><strong>Token Manipulation:</strong> Modifiera JWT tokens</li>
+                            <li><strong>IDOR:</strong> Access andra användares data</li>
+                            <li><strong>Mass Assignment:</strong> Injicera extra fields</li>
+                            <li><strong>File Upload:</strong> Malicious file uploads</li>
+                            <li><strong>CORS:</strong> Cross-origin attacks</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/security/test_penetration.py<br>
+<br>
+# Exempel - Brute force test:<br>
+def test_brute_force_protection():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for i in range(10):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = login("admin", "wrong_password")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Förvänta rate limiting efter X försök<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert response.status_code == 429
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>3.4 Security Headers & Best Practices</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Implementera och testa säkerhets-headers
+                    </div>
+                    
+                    <h4>Headers att Testa:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>Content-Security-Policy</li>
+                            <li>X-Frame-Options</li>
+                            <li>X-Content-Type-Options</li>
+                            <li>Strict-Transport-Security</li>
+                            <li>X-XSS-Protection</li>
+                            <li>Referrer-Policy</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/security/test_security_headers.py<br>
+<br>
+def test_security_headers():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response = requests.get(BASE_URL)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert "X-Frame-Options" in response.headers<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert response.headers["X-Frame-Options"] == "DENY"
+                        </code>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Fas 3 - Sammanfattning</h3>
+                    <p><strong>Nya Dependencies:</strong></p>
+                    <div class="code-block">
+                        <code>
+bandit>=1.7.0<br>
+safety>=3.0.0<br>
+flask-talisman>=1.1.0  # Security headers<br>
+flask-limiter>=3.5.0   # Rate limiting
+                        </code>
+                    </div>
+                    <p><strong>Resultat:</strong> Komplett security test suite med OWASP Top 10 coverage, automated scanning och penetration testing</p>
+                </div>
+            </div>
+
+            <!-- FAS 4: PERFORMANCE TESTING -->
+            <div class="section">
+                <h2><span class="icon">⚡</span> Fas 4: Performance Testing <span class="status planned">PLANERAD</span></h2>
+                
+                <div class="timeline">
+                    <span class="timeline-icon">⏱️</span>
+                    <strong>Tidsåtgång:</strong> 1-2 veckor | <strong>Prioritet:</strong> <span class="priority-medium">MEDEL</span>
+                </div>
+
+                <div class="phase-item">
+                    <h3>4.1 Load Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Testa hur systemet hanterar många samtidiga användare
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Locust:</strong> Python-baserad load testing</li>
+                            <li><strong>Scenarios:</strong> 10, 50, 100, 500 concurrent users</li>
+                            <li><strong>Metrics:</strong> Response time, throughput, error rate</li>
+                            <li><strong>Real-time Dashboard:</strong> Web UI för monitoring</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/performance/locustfile.py<br>
+<br>
+from locust import HttpUser, task, between<br>
+<br>
+class GuestbookUser(HttpUser):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;wait_time = between(1, 3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def on_start(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Login och få token<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = self.client.post("/api/login", json={...})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.token = response.json()["token"]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@task(3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def read_entries(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.client.get("/api/guestbook", headers={...})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@task(1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def create_entry(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.client.post("/api/guestbook", json={...}, headers={...})<br>
+<br>
+# Kör:<br>
+locust -f tests/performance/locustfile.py --users 100 --spawn-rate 10
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>4.2 Stress Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Hitta systemets breaking point
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>Gradvis öka load tills systemet kraschar</li>
+                            <li>Identifiera max capacity</li>
+                            <li>Testa recovery efter crash</li>
+                            <li>Memory leak detection</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>4.3 Database Performance</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Optimera databas queries och identifiera slow queries
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Query Profiling:</strong> Mät execution time</li>
+                            <li><strong>Index Optimization:</strong> Lägg till indexes där behövs</li>
+                            <li><strong>N+1 Query Detection:</strong> Hitta ineffektiva queries</li>
+                            <li><strong>Connection Pool:</strong> Optimera DB connections</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/performance/test_database_performance.py<br>
+<br>
+def test_query_performance():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;start = time.time()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn.execute("SELECT * FROM guestbook LIMIT 1000")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;duration = time.time() - start<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert duration < 0.1  # Max 100ms
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>4.4 Frontend Performance</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Mät och optimera frontend prestanda
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Lighthouse:</strong> Performance, SEO, Best Practices</li>
+                            <li><strong>Core Web Vitals:</strong> LCP, FID, CLS</li>
+                            <li><strong>Bundle Size:</strong> Mät JavaScript/CSS storlek</li>
+                            <li><strong>Load Time:</strong> Page load metrics</li>
+                        </ul>
+                    </div>
+
+                    <h4>Ny Fil:</h4>
+                    <div class="code-block">
+                        <code>
+tests/performance/test_frontend_performance.py<br>
+<br>
+# Playwright + Lighthouse<br>
+def test_lighthouse_score(page):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;page.goto("http://localhost:8080")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;lighthouse_result = run_lighthouse(page)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert lighthouse_result["performance"] > 90
+                        </code>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Fas 4 - Sammanfattning</h3>
+                    <p><strong>Nya Dependencies:</strong></p>
+                    <div class="code-block">
+                        <code>
+locust>=2.20.0<br>
+memory-profiler>=0.61.0<br>
+py-spy>=0.3.0  # Performance profiling
+                        </code>
+                    </div>
+                    <p><strong>Resultat:</strong> Komplett performance test suite med load, stress, database och frontend testing</p>
+                </div>
+            </div>
+
+            <!-- FAS 5: CI/CD ENHANCEMENT -->
+            <div class="section">
+                <h2><span class="icon">🔄</span> Fas 5: CI/CD Enhancement <span class="status planned">PLANERAD</span></h2>
+                
+                <div class="timeline">
+                    <span class="timeline-icon">⏱️</span>
+                    <strong>Tidsåtgång:</strong> 1-2 veckor | <strong>Prioritet:</strong> <span class="priority-medium">MEDEL</span>
+                </div>
+
+                <div class="phase-item">
+                    <h3>5.1 Multi-Stage Pipeline</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Skapa en komplett CI/CD pipeline med flera stages
+                    </div>
+                    
+                    <h4>Pipeline Stages:</h4>
+                    <div class="description">
+                        <ol>
+                            <li><strong>Lint & Format:</strong> Black, flake8, pylint</li>
+                            <li><strong>Unit Tests:</strong> Snabba tester</li>
+                            <li><strong>Integration Tests:</strong> API tester</li>
+                            <li><strong>Security Scan:</strong> Bandit, Safety</li>
+                            <li><strong>UI Tests:</strong> Playwright E2E</li>
+                            <li><strong>Performance Tests:</strong> Load testing</li>
+                            <li><strong>Build:</strong> Docker image</li>
+                            <li><strong>Deploy:</strong> Till staging/production</li>
+                        </ol>
+                    </div>
+
+                    <h4>Uppdaterad Fil:</h4>
+                    <div class="code-block">
+                        <code>
+.github/workflows/ci-cd-pipeline.yml<br>
+<br>
+jobs:<br>
+&nbsp;&nbsp;lint:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest<br>
+&nbsp;&nbsp;&nbsp;&nbsp;steps:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: black --check .<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: flake8 .<br>
+<br>
+&nbsp;&nbsp;unit-tests:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;needs: lint<br>
+&nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest<br>
+&nbsp;&nbsp;&nbsp;&nbsp;steps:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: pytest tests/unit/ -v<br>
+<br>
+&nbsp;&nbsp;api-tests:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;needs: unit-tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest<br>
+&nbsp;&nbsp;&nbsp;&nbsp;steps:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: pytest test_guestbook_api.py --html=report.html<br>
+<br>
+&nbsp;&nbsp;security-scan:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;needs: api-tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest<br>
+&nbsp;&nbsp;&nbsp;&nbsp;steps:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: bandit -r . -f json<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: safety check<br>
+<br>
+&nbsp;&nbsp;ui-tests:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;needs: api-tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest<br>
+&nbsp;&nbsp;&nbsp;&nbsp;steps:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: playwright install<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- run: pytest tests/ui/ -v
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>5.2 Test Reporting & Artifacts</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Spara och publicera test-rapporter från CI/CD
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>GitHub Actions Artifacts:</strong> Spara HTML reports</li>
+                            <li><strong>Test Summary:</strong> Visa i PR comments</li>
+                            <li><strong>Coverage Badge:</strong> Visa coverage i README</li>
+                            <li><strong>Allure Reports:</strong> Publicera till GitHub Pages</li>
+                        </ul>
+                    </div>
+
+                    <h4>Konfiguration:</h4>
+                    <div class="code-block">
+                        <code>
+- name: Upload test reports<br>
+&nbsp;&nbsp;uses: actions/upload-artifact@v3<br>
+&nbsp;&nbsp;with:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name: test-reports<br>
+&nbsp;&nbsp;&nbsp;&nbsp;path: reports/<br>
+<br>
+- name: Publish test results<br>
+&nbsp;&nbsp;uses: EnricoMi/publish-unit-test-result-action@v2<br>
+&nbsp;&nbsp;with:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;files: reports/junit.xml
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>5.3 Matrix Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Testa mot flera Python-versioner och OS
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>Python: 3.9, 3.10, 3.11, 3.12</li>
+                            <li>OS: Ubuntu, Windows, macOS</li>
+                            <li>Browsers: Chrome, Firefox, Safari</li>
+                        </ul>
+                    </div>
+
+                    <h4>Konfiguration:</h4>
+                    <div class="code-block">
+                        <code>
+strategy:<br>
+&nbsp;&nbsp;matrix:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;python-version: ['3.9', '3.10', '3.11', '3.12']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;os: [ubuntu-latest, windows-latest, macos-latest]<br>
+runs-on: ${{ matrix.os }}<br>
+steps:<br>
+&nbsp;&nbsp;- uses: actions/setup-python@v4<br>
+&nbsp;&nbsp;&nbsp;&nbsp;with:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;python-version: ${{ matrix.python-version }}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>5.4 Scheduled Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Kör tester automatiskt på schema (nightly builds)
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Nightly Tests:</strong> Kör alla tester varje natt</li>
+                            <li><strong>Weekly Security Scan:</strong> Full security audit</li>
+                            <li><strong>Monthly Performance Test:</strong> Load testing</li>
+                        </ul>
+                    </div>
+
+                    <h4>Konfiguration:</h4>
+                    <div class="code-block">
+                        <code>
+on:<br>
+&nbsp;&nbsp;schedule:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- cron: '0 2 * * *'  # Varje natt kl 02:00<br>
+&nbsp;&nbsp;push:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;branches: [main]<br>
+&nbsp;&nbsp;pull_request:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;branches: [main]
+                        </code>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Fas 5 - Sammanfattning</h3>
+                    <p><strong>Nya Dependencies:</strong></p>
+                    <div class="code-block">
+                        <code>
+black>=23.0.0<br>
+flake8>=6.0.0<br>
+pylint>=3.0.0<br>
+pytest-xdist>=3.5.0  # Parallel testing
+                        </code>
+                    </div>
+                    <p><strong>Resultat:</strong> Enterprise-grade CI/CD pipeline med multi-stage testing, matrix testing och automated reporting</p>
+                </div>
+            </div>
+
+            <!-- FAS 6: TEST MANAGEMENT PLATFORM -->
+            <div class="section">
+                <h2><span class="icon">📊</span> Fas 6: Test Management Platform <span class="status future">FRAMTID</span></h2>
+                
+                <div class="timeline">
+                    <span class="timeline-icon">⏱️</span>
+                    <strong>Tidsåtgång:</strong> 3-4 veckor | <strong>Prioritet:</strong> <span class="priority-low">LÅG</span>
+                </div>
+
+                <div class="phase-item">
+                    <h3>6.1 Test Dashboard</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Skapa en central dashboard för alla test-resultat
+                    </div>
+                    
+                    <h4>Features:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Real-time Metrics:</strong> Pass/Fail rate, trends</li>
+                            <li><strong>Test History:</strong> Historik över alla test-körningar</li>
+                            <li><strong>Coverage Trends:</strong> Code coverage över tid</li>
+                            <li><strong>Performance Graphs:</strong> Response time trends</li>
+                            <li><strong>Security Score:</strong> Aggregerad säkerhetspoäng</li>
+                            <li><strong>Flaky Test Detection:</strong> Identifiera instabila tester</li>
+                        </ul>
+                    </div>
+
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Backend:</strong> Ny Flask blueprint för test data</li>
+                            <li><strong>Database:</strong> Spara test results i SQLite/PostgreSQL</li>
+                            <li><strong>Frontend:</strong> React/Vue dashboard med charts</li>
+                            <li><strong>API:</strong> REST API för test data</li>
+                        </ul>
+                    </div>
+
+                    <h4>Nya Filer:</h4>
+                    <div class="code-block">
+                        <code>
+dashboard/<br>
+├── backend/<br>
+│   ├── app.py<br>
+│   ├── models.py<br>
+│   └── api/<br>
+│       ├── test_results.py<br>
+│       ├── metrics.py<br>
+│       └── reports.py<br>
+├── frontend/<br>
+│   ├── src/<br>
+│   │   ├── components/<br>
+│   │   │   ├── TestSummary.jsx<br>
+│   │   │   ├── CoverageChart.jsx<br>
+│   │   │   ├── PerformanceGraph.jsx<br>
+│   │   │   └── SecurityScore.jsx<br>
+│   │   └── App.jsx<br>
+│   └── package.json<br>
+└── database/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── test_results.db
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>6.2 Test Case Management</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Hantera och organisera test cases
+                    </div>
+                    
+                    <h4>Features:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>Create/Edit/Delete test cases via UI</li>
+                            <li>Test case kategorisering (API, UI, Security, Performance)</li>
+                            <li>Test suites och test plans</li>
+                            <li>Requirement traceability</li>
+                            <li>Test execution scheduling</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>6.3 Bug Tracking Integration</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Integrera med bug tracking system
+                    </div>
+                    
+                    <h4>Implementation:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>GitHub Issues:</strong> Auto-create issues från failed tests</li>
+                            <li><strong>Jira Integration:</strong> Sync med Jira tickets</li>
+                            <li><strong>Slack Notifications:</strong> Notifiera team vid failures</li>
+                            <li><strong>Email Reports:</strong> Dagliga/veckovisa rapporter</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>6.4 AI-Powered Testing</h3>
+                    <h4>Mål:</h4>
+                    <div class="description">
+                        Använd AI för att förbättra testing
+                    </div>
+                    
+                    <h4>Features:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Auto Test Generation:</strong> Generera tester från API spec</li>
+                            <li><strong>Intelligent Test Selection:</strong> Kör bara relevanta tester</li>
+                            <li><strong>Failure Analysis:</strong> AI analyserar varför tester failar</li>
+                            <li><strong>Test Optimization:</strong> Föreslå förbättringar</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Fas 6 - Sammanfattning</h3>
+                    <p><strong>Nya Dependencies:</strong></p>
+                    <div class="code-block">
+                        <code>
+# Backend<br>
+flask-cors>=4.0.0<br>
+sqlalchemy>=2.0.0<br>
+alembic>=1.13.0<br>
+<br>
+# Frontend (Node.js)<br>
+react>=18.0.0<br>
+chart.js>=4.0.0<br>
+axios>=1.6.0
+                        </code>
+                    </div>
+                    <p><strong>Resultat:</strong> Komplett test management platform med dashboard, test case management och AI-powered features</p>
+                </div>
+            </div>
+
+            <!-- IMPLEMENTATION ROADMAP -->
+            <div class="section">
+                <h2><span class="icon">🗺️</span> Implementation Roadmap</h2>
+                
+                <div class="phase-item">
+                    <h3>Rekommenderad Ordning</h3>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fas</th>
+                                <th>Område</th>
+                                <th>Tidsåtgång</th>
+                                <th>Prioritet</th>
+                                <th>Beroenden</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Fas 1</td>
+                                <td>API Testing Enhancement</td>
+                                <td>2-3 veckor</td>
+                                <td><span class="priority-high">HÖG</span></td>
+                                <td>Ingen</td>
+                            </tr>
+                            <tr>
+                                <td>Fas 3</td>
+                                <td>Security Testing</td>
+                                <td>2 veckor</td>
+                                <td><span class="priority-high">HÖG</span></td>
+                                <td>Fas 1</td>
+                            </tr>
+                            <tr>
+                                <td>Fas 2</td>
+                                <td>UI Testing</td>
+                                <td>2-3 veckor</td>
+                                <td><span class="priority-high">HÖG</span></td>
+                                <td>Fas 1</td>
+                            </tr>
+                            <tr>
+                                <td>Fas 5</td>
+                                <td>CI/CD Enhancement</td>
+                                <td>1-2 veckor</td>
+                                <td><span class="priority-medium">MEDEL</span></td>
+                                <td>Fas 1, 2, 3</td>
+                            </tr>
+                            <tr>
+                                <td>Fas 4</td>
+                                <td>Performance Testing</td>
+                                <td>1-2 veckor</td>
+                                <td><span class="priority-medium">MEDEL</span></td>
+                                <td>Fas 1</td>
+                            </tr>
+                            <tr>
+                                <td>Fas 6</td>
+                                <td>Test Management Platform</td>
+                                <td>3-4 veckor</td>
+                                <td><span class="priority-low">LÅG</span></td>
+                                <td>Alla tidigare faser</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Total Tidsåtgång</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Minimum (Fas 1-3):</strong> 6-8 veckor</li>
+                            <li><strong>Rekommenderat (Fas 1-5):</strong> 8-12 veckor</li>
+                            <li><strong>Komplett (Fas 1-6):</strong> 11-16 veckor</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Milstolpar</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Milstolpe 1 (Vecka 3):</strong> API Testing Enhancement klar</li>
+                            <li><strong>Milstolpe 2 (Vecka 5):</strong> Security Testing klar</li>
+                            <li><strong>Milstolpe 3 (Vecka 8):</strong> UI Testing klar</li>
+                            <li><strong>Milstolpe 4 (Vecka 10):</strong> CI/CD Enhancement klar</li>
+                            <li><strong>Milstolpe 5 (Vecka 12):</strong> Performance Testing klar</li>
+                            <li><strong>Milstolpe 6 (Vecka 16):</strong> Test Management Platform klar</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUICK WINS -->
+            <div class="section">
+                <h2><span class="icon">⚡</span> Quick Wins - Börja Här!</h2>
+                
+                <div class="success-box">
+                    <h3>Saker Du Kan Göra Idag (1-2 timmar)</h3>
+                    <ol>
+                        <li><strong>Lägg till pytest-html:</strong>
+                            <div class="code-block">
+                                <code>
+pip install pytest-html pytest-cov<br>
+pytest test_guestbook_api.py --html=report.html --cov=. --cov-report=html
+                                </code>
+                            </div>
+                        </li>
+                        <li><strong>Lägg till Bandit security scanning:</strong>
+                            <div class="code-block">
+                                <code>
+pip install bandit<br>
+bandit -r . -f json -o security_report.json
+                                </code>
+                            </div>
+                        </li>
+                        <li><strong>Skapa reports/ mapp:</strong>
+                            <div class="code-block">
+                                <code>
+mkdir reports<br>
+echo "reports/" >> .gitignore
+                                </code>
+                            </div>
+                        </li>
+                        <li><strong>Uppdatera .github/workflows/test.yml:</strong>
+                            <div class="code-block">
+                                <code>
+- name: Run tests with coverage<br>
+&nbsp;&nbsp;run: pytest test_guestbook_api.py --html=reports/report.html --cov=.<br>
+<br>
+- name: Upload reports<br>
+&nbsp;&nbsp;uses: actions/upload-artifact@v3<br>
+&nbsp;&nbsp;with:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name: test-reports<br>
+&nbsp;&nbsp;&nbsp;&nbsp;path: reports/
+                                </code>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- SAMMANFATTNING -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Sammanfattning</h2>
+                
+                <div class="phase-item">
+                    <h3>Vad Vi Har Nu ✅</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ Fungerande Flask API med CRUD</li>
+                            <li>✅ JWT Authentication</li>
+                            <li>✅ 13 API test cases med pytest</li>
+                            <li>✅ Basic CI/CD med GitHub Actions</li>
+                            <li>✅ Frontend UI</li>
+                            <li>✅ Dokumentation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Vad Vi Kommer Att Ha 🚀</h3>
+                    <div class="description">
+                        <ul>
+                            <li>🚀 <strong>API Testing:</strong> Contract testing, performance, negative testing</li>
+                            <li>🚀 <strong>UI Testing:</strong> E2E, visual regression, accessibility, cross-browser</li>
+                            <li>🚀 <strong>Security Testing:</strong> OWASP Top 10, penetration testing, automated scanning</li>
+                            <li>🚀 <strong>Performance Testing:</strong> Load, stress, database optimization</li>
+                            <li>🚀 <strong>CI/CD:</strong> Multi-stage pipeline, matrix testing, scheduled runs</li>
+                            <li>🚀 <strong>Test Platform:</strong> Dashboard, test management, AI-powered features</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Nyckelfunktioner i Slutprodukten</h3>
+                    <div class="description">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kategori</th>
+                                    <th>Features</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>API Testing</strong></td>
+                                    <td>CRUD, Contract, Performance, Negative</td>
+                                    <td><span class="status completed">DELVIS</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>UI Testing</strong></td>
+                                    <td>E2E, Visual, Accessibility, Cross-browser</td>
+                                    <td><span class="status planned">PLANERAD</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Security</strong></td>
+                                    <td>OWASP Top 10, Penetration, Scanning</td>
+                                    <td><span class="status planned">PLANERAD</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Performance</strong></td>
+                                    <td>Load, Stress, Database, Frontend</td>
+                                    <td><span class="status planned">PLANERAD</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CI/CD</strong></td>
+                                    <td>Multi-stage, Matrix, Scheduled, Reports</td>
+                                    <td><span class="status completed">DELVIS</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Platform</strong></td>
+                                    <td>Dashboard, Management, AI, Integration</td>
+                                    <td><span class="status future">FRAMTID</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <h3>⚠️ Viktiga Noteringar</h3>
+                    <ul>
+                        <li><strong>Börja Smått:</strong> Implementera en fas i taget, testa och validera</li>
+                        <li><strong>Dokumentera:</strong> Uppdatera dokumentation efter varje fas</li>
+                        <li><strong>Refaktorera:</strong> Förbättra befintlig kod innan du lägger till nytt</li>
+                        <li><strong>Test Data:</strong> Använd separata databaser för test och produktion</li>
+                        <li><strong>Performance:</strong> Optimera innan du skalar upp</li>
+                        <li><strong>Security First:</strong> Prioritera säkerhet från början</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- NÄSTA STEG -->
+            <div class="section">
+                <h2><span class="icon">👉</span> Nästa Steg</h2>
+                
+                <div class="phase-item">
+                    <h3>Vad Ska Du Göra Nu?</h3>
+                    <div class="description">
+                        <ol>
+                            <li><strong>Granska Planen:</strong> Läs igenom hela roadmapen</li>
+                            <li><strong>Prioritera:</strong> Bestäm vilka faser som är viktigast för dig</li>
+                            <li><strong>Quick Wins:</strong> Börja med de enkla förbättringarna (se Quick Wins)</li>
+                            <li><strong>Fas 1:</strong> Starta med API Testing Enhancement</li>
+                            <li><strong>Iterera:</strong> Implementera, testa, förbättra, upprepa</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h3>🎉 Lycka Till!</h3>
+                    <p>Du har redan en stark grund. Med denna roadmap kan du systematiskt bygga ut din app till en komplett QA test-plattform. Ta det steg för steg, och du kommer att ha en professionell test-plattform inom några månader!</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills QA Platform Roadmap</p>
+            <p>Från Guestbook App till Enterprise QA Test Platform 🚀</p>
+        </footer>
+    </div>
+</body>
+</html>
