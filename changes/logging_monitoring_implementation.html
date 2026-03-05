@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging & Monitoring Implementation - TestApiSkills</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Logging & Monitoring Implementation</h1>
+            <p class="subtitle">QA Platform Roadmap - Quick Win #4</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Senast uppdaterad: 2026-03-06</p>
+        </header>
+
+        <div class="content">
+            <!-- ÖVERSIKT -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                
+                <div class="success-box">
+                    <h3>Alla Quick Wins Genomförda! 🎉</h3>
+                    <p>Implementerat Logging & Monitoring enligt QA Platform Roadmap - "Vad Vi Kan Förbättra Direkt" punkt 4. Detta är den sista Quick Win!</p>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Problem</h3>
+                    <div class="description">
+                        <strong>Innan:</strong> Ingen strukturerad logging
+                        <ul>
+                            <li>❌ Ingen spårning av API-anrop</li>
+                            <li>❌ Svårt att debugga problem</li>
+                            <li>❌ Ingen performance monitoring</li>
+                            <li>❌ Ingen security tracking</li>
+                            <li>❌ Ingen audit trail</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Lösning</h3>
+                    <div class="description">
+                        <strong>Nu:</strong> Professionell logging & monitoring
+                        <ul>
+                            <li>✅ <strong>Strukturerad logging:</strong> Python logging module</li>
+                            <li>✅ <strong>Automatisk tracking:</strong> Alla requests loggas</li>
+                            <li>✅ <strong>Error tracking:</strong> Full traceback</li>
+                            <li>✅ <strong>Performance monitoring:</strong> Slow request detection</li>
+                            <li>✅ <strong>Security logging:</strong> Login attempts, failures</li>
+                            <li>✅ <strong>Roterande log-filer:</strong> Max 10MB, 10 backups</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPLEMENTERADE ÄNDRINGAR -->
+            <div class="section">
+                <h2><span class="icon">🔧</span> Implementerade Ändringar</h2>
+
+                <div class="change-item">
+                    <h3>1. logger_config.py - Logger Setup (NY FIL)</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\logger_config.py</div>
+                    
+                    <div class="description">
+                        <strong>Syfte:</strong> Centraliserad logging-konfiguration
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+def setup_logger(app):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Console Handler (utveckling)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console_handler = logging.StreamHandler()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# File Handler - Alla loggar<br>
+&nbsp;&nbsp;&nbsp;&nbsp;file_handler = RotatingFileHandler(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'logs/app.log',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxBytes=10*1024*1024,  # 10MB<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;backupCount=10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# File Handler - Errors only<br>
+&nbsp;&nbsp;&nbsp;&nbsp;error_handler = RotatingFileHandler(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'logs/error.log',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxBytes=10*1024*1024,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;backupCount=10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# File Handler - Access logs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;access_handler = RotatingFileHandler(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'logs/access.log',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxBytes=10*1024*1024,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;backupCount=10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Features:</strong>
+                        <ul>
+                            <li>3 separata log-filer (app, error, access)</li>
+                            <li>Roterande filer (10MB max, 10 backups)</li>
+                            <li>Console output för utveckling</li>
+                            <li>Strukturerad formattering</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>2. app.py - Request/Response Middleware</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\app.py</div>
+                    
+                    <div class="description">
+                        <strong>Tillagt:</strong> Automatisk logging av alla requests
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+@app.before_request<br>
+def before_request():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;g.start_time = time.time()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;g.request_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')<br>
+<br>
+@app.after_request<br>
+def after_request(response):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;elapsed = (time.time() - g.start_time) * 1000<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Extract user from JWT token<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user = 'anonymous'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;token = request.headers.get('Authorization')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if token:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;user = payload.get('user', 'unknown')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Log request<br>
+&nbsp;&nbsp;&nbsp;&nbsp;log_msg = f"{request.method} {request.path} | User: {user} | "<br>
+&nbsp;&nbsp;&nbsp;&nbsp;log_msg += f"IP: {request.remote_addr} | Status: {response.status_code} | "<br>
+&nbsp;&nbsp;&nbsp;&nbsp;log_msg += f"Time: {elapsed:.0f}ms"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if response.status_code >= 500:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;app.logger.error(log_msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;elif response.status_code >= 400:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;app.logger.warning(log_msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;access_logger.info(log_msg)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Warn on slow requests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if elapsed > 500:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;app.logger.warning(f"Slow request: {request.path} took {elapsed:.0f}ms")
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Loggar automatiskt:</strong>
+                        <ul>
+                            <li>HTTP Method & Path</li>
+                            <li>User (från JWT token)</li>
+                            <li>IP Address</li>
+                            <li>Response Status Code</li>
+                            <li>Response Time (ms)</li>
+                            <li>Slow requests (>500ms)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>3. Error Handlers</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\app.py</div>
+                    
+                    <div class="description">
+                        <strong>Tillagt:</strong> Global error handling med logging
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+@app.errorhandler(Exception)<br>
+def handle_exception(e):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.logger.error(f"Unhandled exception: {str(e)}")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.logger.error(traceback.format_exc())<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({'message': 'Internal server error'}), 500<br>
+<br>
+@app.errorhandler(404)<br>
+def not_found(e):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.logger.warning(f"404 Not Found: {request.path}")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({'message': 'Resource not found'}), 404<br>
+<br>
+@app.errorhandler(500)<br>
+def internal_error(e):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.logger.error(f"500 Internal Server Error: {str(e)}")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({'message': 'Internal server error'}), 500
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Fångar:</strong>
+                        <ul>
+                            <li>Alla unhandled exceptions</li>
+                            <li>404 Not Found errors</li>
+                            <li>500 Internal Server errors</li>
+                            <li>Loggar med full traceback</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>4. Security Logging i Login Endpoint</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\app.py</div>
+                    
+                    <div class="description">
+                        <strong>Tillagt:</strong> Logging av login-försök
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+@app.route('/api/login', methods=['POST'])<br>
+def login():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;username = data.get('username')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.logger.info(f"Login attempt for user: {username} from IP: {request.remote_addr}")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if user and check_password_hash(user['password'], password):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;app.logger.info(f"Login successful for user: {username}")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({'token': token})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.logger.warning(f"Login failed for user: {username} - Invalid credentials")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({'message': 'Invalid credentials'}), 401
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Spårar:</strong>
+                        <ul>
+                            <li>Alla login-försök</li>
+                            <li>Lyckade logins</li>
+                            <li>Misslyckade logins</li>
+                            <li>IP-adresser</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>5. logs/ Mapp (NY MAPP)</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\logs\</div>
+                    
+                    <div class="description">
+                        <strong>Innehåll:</strong>
+                        <ul>
+                            <li><code>app.log</code> - Alla loggar (INFO, WARNING, ERROR)</li>
+                            <li><code>error.log</code> - Bara errors (ERROR, CRITICAL)</li>
+                            <li><code>access.log</code> - API access logs</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>6. .gitignore - Uppdaterad</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\.gitignore</div>
+                    
+                    <div class="description">
+                        <strong>Tillagt:</strong>
+                    </div>
+                    <div class="code-block">
+                        <code>
+# Logs<br>
+logs/<br>
+*.log
+                        </code>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>7. LOGGING_GUIDE.md - Användarguide (NY FIL)</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\LOGGING_GUIDE.md</div>
+                    
+                    <div class="description">
+                        <strong>Innehåll:</strong>
+                        <ul>
+                            <li>Log-format och exempel</li>
+                            <li>Hur man läser loggarna</li>
+                            <li>Sök och analys-kommandon</li>
+                            <li>Tips & tricks</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOG EXEMPEL -->
+            <div class="section">
+                <h2><span class="icon">📝</span> Log Exempel</h2>
+
+                <div class="phase-item">
+                    <h3>Lyckad Login</h3>
+                    <div class="code-block">
+                        <code>
+[2024-03-06 14:30:10] INFO - Login attempt for user: admin from IP: 127.0.0.1<br>
+[2024-03-06 14:30:10] INFO - Login successful for user: admin<br>
+[2024-03-06 14:30:10] INFO - POST /api/login | User: anonymous | IP: 127.0.0.1 | Status: 200 | Time: 23ms
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Misslyckad Login</h3>
+                    <div class="code-block">
+                        <code>
+[2024-03-06 14:31:05] INFO - Login attempt for user: hacker from IP: 192.168.1.100<br>
+[2024-03-06 14:31:05] WARNING - Login failed for user: hacker - Invalid credentials<br>
+[2024-03-06 14:31:05] WARNING - POST /api/login | User: anonymous | IP: 192.168.1.100 | Status: 401 | Time: 15ms
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>API Request</h3>
+                    <div class="code-block">
+                        <code>
+[2024-03-06 14:32:00] INFO - POST /api/guestbook | User: admin | IP: 127.0.0.1 | Status: 201 | Time: 45ms
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Slow Request</h3>
+                    <div class="code-block">
+                        <code>
+[2024-03-06 14:35:00] INFO - GET /api/guestbook?limit=1000 | User: admin | IP: 127.0.0.1 | Status: 200 | Time: 1250ms<br>
+[2024-03-06 14:35:00] WARNING - Slow request detected: /api/guestbook took 1250ms
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Error med Traceback</h3>
+                    <div class="code-block">
+                        <code>
+[2024-03-06 14:40:00] ERROR - Unhandled exception: Database connection failed<br>
+[2024-03-06 14:40:00] ERROR - Traceback (most recent call last):<br>
+&nbsp;&nbsp;File "app.py", line 145, in create_entry<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn = get_db()<br>
+&nbsp;&nbsp;...<br>
+[2024-03-06 14:40:00] ERROR - POST /api/guestbook | User: admin | IP: 127.0.0.1 | Status: 500 | Time: 102ms
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANVÄNDNING -->
+            <div class="section">
+                <h2><span class="icon">🚀</span> Hur Man Använder Loggarna</h2>
+
+                <div class="phase-item">
+                    <h3>Se Senaste Loggarna</h3>
+                    <div class="code-block">
+                        <code>
+# Windows<br>
+type logs\app.log<br>
+<br>
+# Mac/Linux<br>
+tail -f logs/app.log
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Sök Efter Errors</h3>
+                    <div class="code-block">
+                        <code>
+# Windows<br>
+findstr "ERROR" logs\error.log<br>
+<br>
+# Mac/Linux<br>
+grep "ERROR" logs/error.log
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Hitta Långsamma Requests</h3>
+                    <div class="code-block">
+                        <code>
+# Windows<br>
+findstr "Slow request" logs\app.log<br>
+<br>
+# Mac/Linux<br>
+grep "Slow request" logs/app.log
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Spåra Specifik Användare</h3>
+                    <div class="code-block">
+                        <code>
+# Windows<br>
+findstr "User: admin" logs\access.log<br>
+<br>
+# Mac/Linux<br>
+grep "User: admin" logs/access.log
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROADMAP PROGRESS -->
+            <div class="section">
+                <h2><span class="icon">🗺️</span> QA Platform Roadmap Progress</h2>
+
+                <div class="phase-item">
+                    <h3>Quick Wins - ALLA KLARA! 🎉</h3>
+                    <div class="description">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Förbättring</th>
+                                    <th>Status</th>
+                                    <th>Datum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Test Rapportering</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>2. Test Data Management</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>3. API Dokumentation</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>4. Logging & Monitoring</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h3>🎊 ALLA QUICK WINS GENOMFÖRDA!</h3>
+                    <p>4 av 4 Quick Wins är nu implementerade! Du har nu en solid grund för din QA test-plattform med test rapportering, test data management, API dokumentation och logging & monitoring.</p>
+                </div>
+            </div>
+
+            <!-- NÄSTA STEG -->
+            <div class="section">
+                <h2><span class="icon">👉</span> Nästa Steg</h2>
+
+                <div class="phase-item">
+                    <h3>Testa Logging</h3>
+                    <div class="description">
+                        <ol>
+                            <li>Starta appen: <code>python app.py</code></li>
+                            <li>Se loggar i console</li>
+                            <li>Gör några API-anrop via Swagger</li>
+                            <li>Kolla <code>logs/</code> mappen</li>
+                            <li>Öppna <code>logs/app.log</code></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fortsätt Med Roadmap</h3>
+                    <div class="description">
+                        Nu när alla Quick Wins är klara, fortsätt med:
+                        <ul>
+                            <li><strong>Fas 1:</strong> API Testing Enhancement</li>
+                            <li><strong>Fas 2:</strong> UI Testing</li>
+                            <li><strong>Fas 3:</strong> Security Testing</li>
+                            <li><strong>Fas 4:</strong> Performance Testing</li>
+                            <li><strong>Fas 5:</strong> CI/CD Enhancement</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAMMANFATTNING -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Sammanfattning</h2>
+                
+                <div class="phase-item">
+                    <h3>Vad Vi Har Uppnått</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ Strukturerad logging med Python logging module</li>
+                            <li>✅ Automatisk request/response logging</li>
+                            <li>✅ Error tracking med full traceback</li>
+                            <li>✅ Performance monitoring (slow requests)</li>
+                            <li>✅ Security logging (login tracking)</li>
+                            <li>✅ Roterande log-filer (10MB, 10 backups)</li>
+                            <li>✅ 3 separata log-filer (app, error, access)</li>
+                            <li>✅ Komplett dokumentation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Teknisk Skuld Reducerad</h3>
+                    <div class="description">
+                        <ul>
+                            <li>❌ <strong>Borttaget:</strong> Blind debugging utan loggar</li>
+                            <li>❌ <strong>Borttaget:</strong> Ingen spårning av API-anrop</li>
+                            <li>❌ <strong>Borttaget:</strong> Ingen performance insight</li>
+                            <li>❌ <strong>Borttaget:</strong> Ingen security monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Impact</h3>
+                    <p>Logging & Monitoring ger dig full insyn i vad som händer i din applikation. Detta är kritiskt för debugging, performance optimization, security monitoring och audit trails. Nu har du en production-ready logging setup!</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills QA Platform</p>
+            <p>Logging & Monitoring - Quick Win #4 ✅ | ALLA QUICK WINS KLARA! 🎊</p>
+        </footer>
+    </div>
+</body>
+</html>

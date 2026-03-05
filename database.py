@@ -3,12 +3,13 @@ import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 
-def get_db_path():
+def get_db_path(test_mode=False):
     basedir = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(basedir, 'guestbook.db')
+    db_name = 'guestbook_test.db' if test_mode else 'guestbook.db'
+    return os.path.join(basedir, db_name)
 
-def init_db():
-    conn = sqlite3.connect(get_db_path())
+def init_db(test_mode=False):
+    conn = sqlite3.connect(get_db_path(test_mode))
     cursor = conn.cursor()
     
     cursor.execute('''
@@ -37,7 +38,19 @@ def init_db():
     conn.commit()
     conn.close()
 
-def get_db():
-    conn = sqlite3.connect(get_db_path())
+def get_db(test_mode=False):
+    conn = sqlite3.connect(get_db_path(test_mode))
     conn.row_factory = sqlite3.Row
     return conn
+
+def clear_test_db():
+    """Clear all data from test database"""
+    test_db_path = get_db_path(test_mode=True)
+    if os.path.exists(test_db_path):
+        conn = sqlite3.connect(test_db_path)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM guestbook")
+        conn.commit()
+        conn.close()
+        return True
+    return False

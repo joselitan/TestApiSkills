@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation Implementation - TestApiSkills</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 API Documentation Implementation</h1>
+            <p class="subtitle">QA Platform Roadmap - Quick Win #3</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Senast uppdaterad: 2026-03-06</p>
+        </header>
+
+        <div class="content">
+            <!-- ÖVERSIKT -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                
+                <div class="success-box">
+                    <h3>Genomförd Förbättring ✅</h3>
+                    <p>Implementerat Swagger/OpenAPI dokumentation enligt QA Platform Roadmap - "Vad Vi Kan Förbättra Direkt" punkt 3.</p>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Problem</h3>
+                    <div class="description">
+                        <strong>Innan:</strong> Ingen automatisk API-dokumentation
+                        <ul>
+                            <li>❌ Måste använda Postman för att testa API</li>
+                            <li>❌ Ingen central dokumentation av endpoints</li>
+                            <li>❌ Svårt att dela API-specifikation med teamet</li>
+                            <li>❌ Manuell dokumentation blir snabbt föråldrad</li>
+                            <li>❌ Ingen validering av requests</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Lösning</h3>
+                    <div class="description">
+                        <strong>Nu:</strong> Interaktiv Swagger/OpenAPI dokumentation
+                        <ul>
+                            <li>✅ <strong>Swagger UI:</strong> http://localhost:8080/apidocs/</li>
+                            <li>✅ <strong>Interaktiv testning:</strong> "Try it out" för alla endpoints</li>
+                            <li>✅ <strong>JWT Authentication:</strong> Inbyggd authorization</li>
+                            <li>✅ <strong>Auto-validering:</strong> Schema validation</li>
+                            <li>✅ <strong>OpenAPI Spec:</strong> Exporterbar JSON spec</li>
+                            <li>✅ <strong>Alltid uppdaterad:</strong> Dokumentation lever i koden</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPLEMENTERADE ÄNDRINGAR -->
+            <div class="section">
+                <h2><span class="icon">🔧</span> Implementerade Ändringar</h2>
+
+                <div class="change-item">
+                    <h3>1. app.py - Swagger Konfiguration</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\app.py</div>
+                    
+                    <div class="description">
+                        <strong>Tillagt:</strong> Flasgger import och konfiguration
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+from flasgger import Swagger<br>
+<br>
+# Swagger configuration<br>
+swagger_config = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"headers": [],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"specs": [{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"endpoint": 'apispec',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"route": '/apispec.json',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"swagger_ui": True,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"specs_route": "/apidocs/"<br>
+}<br>
+<br>
+swagger_template = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"swagger": "2.0",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"info": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"title": "Guestbook API",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"description": "RESTful API for Guestbook application",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"version": "1.0.0"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"securityDefinitions": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Bearer": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "apiKey",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Authorization",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"in": "header"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+swagger = Swagger(app, config=swagger_config, template=swagger_template)
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Resultat:</strong>
+                        <ul>
+                            <li>Swagger UI tillgänglig på <code>/apidocs/</code></li>
+                            <li>OpenAPI spec på <code>/apispec.json</code></li>
+                            <li>JWT Bearer authentication konfigurerad</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>2. Endpoint Dokumentation - Authentication</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\app.py</div>
+                    
+                    <div class="description">
+                        <strong>POST /api/login</strong> - Dokumenterad med YAML docstring
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+@app.route('/api/login', methods=['POST'])<br>
+def login():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;User login endpoint<br>
+&nbsp;&nbsp;&nbsp;&nbsp;---<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tags:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Authentication<br>
+&nbsp;&nbsp;&nbsp;&nbsp;parameters:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- in: body<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: credentials<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;required: true<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schema:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: object<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;properties:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;username:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example: "admin"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;password:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example: "password123"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;responses:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;200:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description: Login successful<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;401:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description: Invalid credentials<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""
+                        </code>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>3. Endpoint Dokumentation - Guestbook CRUD</h3>
+                    <div class="description">
+                        <strong>Alla endpoints dokumenterade:</strong>
+                    </div>
+                    
+                    <div class="description">
+                        <ul>
+                            <li><strong>POST /api/guestbook</strong> - Skapa ny entry
+                                <ul>
+                                    <li>Request body schema med required fields</li>
+                                    <li>Exempel-värden för alla fält</li>
+                                    <li>Response schemas för 201, 400, 401</li>
+                                </ul>
+                            </li>
+                            <li><strong>GET /api/guestbook</strong> - Hämta alla entries
+                                <ul>
+                                    <li>Query parameters: page, limit, search</li>
+                                    <li>Pagination metadata i response</li>
+                                    <li>Array av entry-objekt</li>
+                                </ul>
+                            </li>
+                            <li><strong>GET /api/guestbook/{id}</strong> - Hämta en entry
+                                <ul>
+                                    <li>Path parameter: user_id</li>
+                                    <li>Response för 200 och 404</li>
+                                </ul>
+                            </li>
+                            <li><strong>PUT /api/guestbook/{id}</strong> - Uppdatera entry
+                                <ul>
+                                    <li>Path parameter + request body</li>
+                                    <li>Required fields dokumenterade</li>
+                                </ul>
+                            </li>
+                            <li><strong>DELETE /api/guestbook/{id}</strong> - Radera entry
+                                <ul>
+                                    <li>Path parameter</li>
+                                    <li>Success/error responses</li>
+                                </ul>
+                            </li>
+                            <li><strong>DELETE /api/guestbook/bulk</strong> - Bulk delete
+                                <ul>
+                                    <li>Array av IDs i request body</li>
+                                    <li>Antal raderade i response</li>
+                                </ul>
+                            </li>
+                            <li><strong>POST /api/guestbook/import</strong> - Excel import
+                                <ul>
+                                    <li>File upload (multipart/form-data)</li>
+                                    <li>Excel format requirements</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>4. SWAGGER_GUIDE.md - Användarguide (NY FIL)</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\SWAGGER_GUIDE.md</div>
+                    
+                    <div class="description">
+                        <strong>Innehåll:</strong>
+                        <ul>
+                            <li>Steg-för-steg guide för att använda Swagger UI</li>
+                            <li>Hur man loggar in och auktoriserar</li>
+                            <li>Hur man testar endpoints</li>
+                            <li>Tips & tricks</li>
+                            <li>API översikt</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANVÄNDNING -->
+            <div class="section">
+                <h2><span class="icon">🚀</span> Hur Man Använder Swagger UI</h2>
+
+                <div class="phase-item">
+                    <h3>Steg 1: Starta Applikationen</h3>
+                    <div class="code-block">
+                        <code>
+python app.py
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Steg 2: Öppna Swagger UI</h3>
+                    <div class="description">
+                        Gå till: <strong>http://localhost:8080/apidocs/</strong>
+                    </div>
+                    <div class="description">
+                        Du ser nu en interaktiv API-dokumentation med:
+                        <ul>
+                            <li>📁 <strong>Authentication</strong> - Login endpoint</li>
+                            <li>📁 <strong>Guestbook</strong> - Alla CRUD endpoints</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Steg 3: Logga In och Få Token</h3>
+                    <div class="description">
+                        <ol>
+                            <li>Klicka på <strong>POST /api/login</strong></li>
+                            <li>Klicka <strong>"Try it out"</strong></li>
+                            <li>Fyll i credentials:
+                                <div class="code-block">
+                                    <code>
+{<br>
+&nbsp;&nbsp;"username": "admin",<br>
+&nbsp;&nbsp;"password": "password123"<br>
+}
+                                    </code>
+                                </div>
+                            </li>
+                            <li>Klicka <strong>"Execute"</strong></li>
+                            <li>Kopiera <strong>token</strong> från response</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Steg 4: Auktorisera</h3>
+                    <div class="description">
+                        <ol>
+                            <li>Klicka på <strong>"Authorize"</strong> knappen (🔒 högst upp)</li>
+                            <li>Skriv: <code>Bearer {din-token-här}</code></li>
+                            <li>Klicka <strong>"Authorize"</strong></li>
+                            <li>Klicka <strong>"Close"</strong></li>
+                        </ol>
+                    </div>
+                    <div class="description">
+                        Nu är du auktoriserad och kan testa alla endpoints! 🎉
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Steg 5: Testa Endpoints</h3>
+                    <div class="description">
+                        <strong>Exempel: Skapa en guestbook entry</strong>
+                        <ol>
+                            <li>Klicka på <strong>POST /api/guestbook</strong></li>
+                            <li>Klicka <strong>"Try it out"</strong></li>
+                            <li>Fyll i data (exempel finns redan)</li>
+                            <li>Klicka <strong>"Execute"</strong></li>
+                            <li>Se request och response direkt!</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FUNKTIONER -->
+            <div class="section">
+                <h2><span class="icon">✨</span> Funktioner & Fördelar</h2>
+
+                <div class="phase-item">
+                    <h3>Interaktiv Testning</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>"Try it out"</strong> för varje endpoint</li>
+                            <li>✅ <strong>Formulär</strong> med exempel-värden</li>
+                            <li>✅ <strong>Live request/response</strong> visning</li>
+                            <li>✅ <strong>Curl kommandon</strong> genereras automatiskt</li>
+                            <li>✅ <strong>HTTP status codes</strong> och error messages</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Komplett Dokumentation</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Alla endpoints</strong> dokumenterade</li>
+                            <li>✅ <strong>Request schemas</strong> med datatyper</li>
+                            <li>✅ <strong>Response schemas</strong> för alla status codes</li>
+                            <li>✅ <strong>Exempel-värden</strong> för alla fält</li>
+                            <li>✅ <strong>Required fields</strong> markerade</li>
+                            <li>✅ <strong>Beskrivningar</strong> för varje parameter</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>JWT Authentication</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Bearer token</strong> support</li>
+                            <li>✅ <strong>Authorize knapp</strong> i UI</li>
+                            <li>✅ <strong>Automatisk header</strong> för alla requests</li>
+                            <li>✅ <strong>Låsikon</strong> visar skyddade endpoints</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Exporterbar Spec</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>OpenAPI JSON:</strong> http://localhost:8080/apispec.json</li>
+                            <li>✅ <strong>Importera till Postman</strong></li>
+                            <li>✅ <strong>Code generation</strong> (client libraries)</li>
+                            <li>✅ <strong>CI/CD integration</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROADMAP PROGRESS -->
+            <div class="section">
+                <h2><span class="icon">🗺️</span> QA Platform Roadmap Progress</h2>
+
+                <div class="phase-item">
+                    <h3>Quick Wins - Status</h3>
+                    <div class="description">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Förbättring</th>
+                                    <th>Status</th>
+                                    <th>Datum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Test Rapportering</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>2. Test Data Management</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>3. API Dokumentation</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>4. Logging & Monitoring</td>
+                                    <td><span class="status planned">PLANERAD</span></td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h3>🎉 Milstolpe Uppnådd!</h3>
+                    <p>3 av 4 Quick Wins är nu implementerade! Vi har nu professionell API-dokumentation som gör det enkelt att testa och dela API:et.</p>
+                </div>
+            </div>
+
+            <!-- EXEMPEL -->
+            <div class="section">
+                <h2><span class="icon">💡</span> Praktiska Exempel</h2>
+
+                <div class="phase-item">
+                    <h3>Exempel 1: Testa Pagination</h3>
+                    <div class="description">
+                        <ol>
+                            <li>Gå till <strong>GET /api/guestbook</strong></li>
+                            <li>Klicka "Try it out"</li>
+                            <li>Ändra parametrar:
+                                <ul>
+                                    <li>page: 1</li>
+                                    <li>limit: 5</li>
+                                    <li>search: (lämna tom)</li>
+                                </ul>
+                            </li>
+                            <li>Klicka "Execute"</li>
+                            <li>Se paginated results med metadata!</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Exempel 2: Testa Search</h3>
+                    <div class="description">
+                        <ol>
+                            <li>Gå till <strong>GET /api/guestbook</strong></li>
+                            <li>Klicka "Try it out"</li>
+                            <li>Fyll i search: "test"</li>
+                            <li>Klicka "Execute"</li>
+                            <li>Se filtrerade resultat!</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Exempel 3: Exportera Curl Kommando</h3>
+                    <div class="description">
+                        Efter varje "Execute" ser du curl-kommandot:
+                    </div>
+                    <div class="code-block">
+                        <code>
+curl -X POST "http://localhost:8080/api/guestbook" \<br>
+&nbsp;&nbsp;-H "Authorization: Bearer eyJhbGc..." \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+&nbsp;&nbsp;-d '{"name":"John","email":"john@example.com","comment":"Test"}'
+                        </code>
+                    </div>
+                    <div class="description">
+                        Kopiera och använd i terminal eller scripts!
+                    </div>
+                </div>
+            </div>
+
+            <!-- NÄSTA STEG -->
+            <div class="section">
+                <h2><span class="icon">👉</span> Nästa Steg</h2>
+
+                <div class="phase-item">
+                    <h3>Rekommenderade Nästa Steg</h3>
+                    <div class="description">
+                        <ol>
+                            <li><strong>Testa Swagger UI:</strong>
+                                <ul>
+                                    <li>Starta app.py</li>
+                                    <li>Öppna http://localhost:8080/apidocs/</li>
+                                    <li>Testa alla endpoints</li>
+                                </ul>
+                            </li>
+                            <li><strong>Dela med Teamet:</strong>
+                                <ul>
+                                    <li>Skicka länk till Swagger UI</li>
+                                    <li>Exportera OpenAPI spec</li>
+                                    <li>Importera till Postman</li>
+                                </ul>
+                            </li>
+                            <li><strong>Quick Win #4 - Logging & Monitoring:</strong>
+                                <ul>
+                                    <li>Strukturerad logging</li>
+                                    <li>Request/response logging</li>
+                                    <li>Error tracking</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAMMANFATTNING -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Sammanfattning</h2>
+                
+                <div class="phase-item">
+                    <h3>Vad Vi Har Uppnått</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ Swagger/OpenAPI dokumentation för alla 8 endpoints</li>
+                            <li>✅ Interaktiv Swagger UI på /apidocs/</li>
+                            <li>✅ JWT Bearer authentication support</li>
+                            <li>✅ Request/Response schemas med exempel</li>
+                            <li>✅ Exporterbar OpenAPI spec</li>
+                            <li>✅ Komplett användarguide</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Teknisk Skuld Reducerad</h3>
+                    <div class="description">
+                        <ul>
+                            <li>❌ <strong>Borttaget:</strong> Behov av Postman för API-testning</li>
+                            <li>❌ <strong>Borttaget:</strong> Manuell dokumentation som blir föråldrad</li>
+                            <li>❌ <strong>Borttaget:</strong> Svårighet att dela API-spec</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Impact</h3>
+                    <p>Swagger-dokumentationen gör det enkelt för utvecklare, testare och externa parter att förstå och använda API:et. Detta är särskilt värdefullt när vi går vidare med UI testing och integration testing i kommande faser.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills QA Platform</p>
+            <p>API Documentation - Quick Win #3 ✅</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -13,6 +13,12 @@ ENV/
 *.sqlite
 *.sqlite3
 
+# Logs
+logs/
+*.log
+*.sqlite
+*.sqlite3
+
 # IDE
 .vscode/
 .idea/

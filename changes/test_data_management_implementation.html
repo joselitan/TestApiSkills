@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Data Management Implementation - TestApiSkills</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧪 Test Data Management Implementation</h1>
+            <p class="subtitle">QA Platform Roadmap - Quick Win #2</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Senast uppdaterad: 2026-03-06</p>
+        </header>
+
+        <div class="content">
+            <!-- ÖVERSIKT -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                
+                <div class="success-box">
+                    <h3>Genomförd Förbättring ✅</h3>
+                    <p>Implementerat separata databaser för test och produktion enligt QA Platform Roadmap - "Vad Vi Kan Förbättra Direkt" punkt 2.</p>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Problem</h3>
+                    <div class="description">
+                        <strong>Innan:</strong> Testdata och produktionsdata blandades i samma databas (guestbook.db)
+                        <ul>
+                            <li>❌ Risk att tester förstör produktionsdata</li>
+                            <li>❌ Svårt att rensa testdata utan att påverka produktion</li>
+                            <li>❌ Kan inte köra tester parallellt med produktion</li>
+                            <li>❌ Testdata synlig i produktions-UI</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Lösning</h3>
+                    <div class="description">
+                        <strong>Nu:</strong> Separata databaser med automatisk hantering
+                        <ul>
+                            <li>✅ <strong>guestbook.db</strong> - Produktionsdatabas (app.py)</li>
+                            <li>✅ <strong>guestbook_test.db</strong> - Test-databas (tester)</li>
+                            <li>✅ Automatisk setup via pytest fixtures</li>
+                            <li>✅ Enkel cleanup av testdata</li>
+                            <li>✅ Säker testning utan risk för produktionsdata</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPLEMENTERADE ÄNDRINGAR -->
+            <div class="section">
+                <h2><span class="icon">🔧</span> Implementerade Ändringar</h2>
+
+                <div class="change-item">
+                    <h3>1. database.py - Uppdaterad med test_mode</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\database.py</div>
+                    
+                    <div class="description">
+                        <strong>Ändringar:</strong> Lagt till test_mode parameter i alla databas-funktioner
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+# FÖRE:<br>
+def get_db_path():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;basedir = os.path.abspath(os.path.dirname(__file__))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return os.path.join(basedir, 'guestbook.db')<br>
+<br>
+# EFTER:<br>
+def get_db_path(test_mode=False):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;basedir = os.path.abspath(os.path.dirname(__file__))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;db_name = 'guestbook_test.db' if test_mode else 'guestbook.db'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return os.path.join(basedir, db_name)
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Uppdaterade funktioner:</strong>
+                        <ul>
+                            <li><code>get_db_path(test_mode=False)</code> - Returnerar rätt databas-sökväg</li>
+                            <li><code>init_db(test_mode=False)</code> - Initierar rätt databas</li>
+                            <li><code>get_db(test_mode=False)</code> - Ansluter till rätt databas</li>
+                        </ul>
+                    </div>
+
+                    <div class="description">
+                        <strong>Ny funktion:</strong>
+                    </div>
+                    <div class="code-block">
+                        <code>
+def clear_test_db():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Clear all data from test database"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;test_db_path = get_db_path(test_mode=True)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if os.path.exists(test_db_path):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn = sqlite3.connect(test_db_path)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor = conn.cursor()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor.execute("DELETE FROM guestbook")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn.commit()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn.close()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return False
+                        </code>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>2. conftest.py - Pytest Fixtures (NY FIL)</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\conftest.py</div>
+                    
+                    <div class="description">
+                        <strong>Syfte:</strong> Automatisk setup och hantering av test-databas
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+import pytest<br>
+import os<br>
+from database import init_db, clear_test_db, get_db_path<br>
+<br>
+os.environ['TEST_MODE'] = '1'<br>
+<br>
+@pytest.fixture(scope="session", autouse=True)<br>
+def setup_test_database():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Setup test database before all tests"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print("\n🔧 Setting up test database...")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;init_db(test_mode=True)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(f"✅ Test database created: {get_db_path(test_mode=True)}")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;yield<br>
+<br>
+@pytest.fixture(scope="function")<br>
+def clean_test_db():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Clean test database before each test"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;clear_test_db()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;yield<br>
+<br>
+@pytest.fixture(scope="session")<br>
+def test_db_path():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Return test database path"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return get_db_path(test_mode=True)
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Fixtures:</strong>
+                        <ul>
+                            <li><strong>setup_test_database:</strong> Körs automatiskt innan alla tester (session scope)</li>
+                            <li><strong>clean_test_db:</strong> Kan användas för att rensa DB innan specifika tester</li>
+                            <li><strong>test_db_path:</strong> Returnerar sökväg till test-databasen</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>3. test_app.py - Test Application (NY FIL)</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\test_app.py</div>
+                    
+                    <div class="description">
+                        <strong>Syfte:</strong> Separat version av app.py som alltid använder test-databasen
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+"""<br>
+Test version of app.py that uses test database<br>
+Run tests against this instead of main app.py<br>
+"""<br>
+import os<br>
+os.environ['TEST_MODE'] = '1'<br>
+<br>
+from flask import Flask, request, jsonify<br>
+from database import init_db, get_db<br>
+<br>
+app = Flask(__name__)<br>
+app.config['TESTING'] = True<br>
+TEST_MODE = True<br>
+<br>
+# Alla endpoints använder get_db(test_mode=TEST_MODE)<br>
+@app.route('/api/guestbook', methods=['GET'])<br>
+@token_required<br>
+def get_all_entries():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn = get_db(test_mode=TEST_MODE)  # Använder test DB<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... rest of code
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        <strong>Användning:</strong>
+                        <ul>
+                            <li>Kör <code>python test_app.py</code> för manuell testning</li>
+                            <li>All data går till guestbook_test.db</li>
+                            <li>Kan köras parallellt med produktion (app.py)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>4. TEST_DATA_MANAGEMENT.md - Dokumentation (NY FIL)</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\TEST_DATA_MANAGEMENT.md</div>
+                    
+                    <div class="description">
+                        <strong>Innehåll:</strong>
+                        <ul>
+                            <li>Översikt över test data management</li>
+                            <li>Hur systemet fungerar</li>
+                            <li>Användningsinstruktioner</li>
+                            <li>Exempel och best practices</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>5. .gitignore - Uppdaterad</h3>
+                    <div class="file-path">c:\Users\admin\TestApiSkills\.gitignore</div>
+                    
+                    <div class="description">
+                        <strong>Ändring:</strong> Säkerställ att alla databas-filer ignoreras
+                    </div>
+                    
+                    <div class="code-block">
+                        <code>
+# Database<br>
+*.db<br>
+*.sqlite<br>
+*.sqlite3
+                        </code>
+                    </div>
+
+                    <div class="description">
+                        Nu ignoreras både guestbook.db och guestbook_test.db automatiskt
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANVÄNDNING -->
+            <div class="section">
+                <h2><span class="icon">🚀</span> Hur Man Använder Det</h2>
+
+                <div class="phase-item">
+                    <h3>Scenario 1: Kör Produktion (Normal App)</h3>
+                    <div class="code-block">
+                        <code>
+# Startar produktion med guestbook.db<br>
+python app.py<br>
+<br>
+# Öppna http://localhost:8080<br>
+# All data sparas i guestbook.db
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Scenario 2: Kör Automatiska Tester</h3>
+                    <div class="code-block">
+                        <code>
+# Tester använder automatiskt guestbook_test.db<br>
+pytest test_guestbook_api.py -v<br>
+<br>
+# Med HTML rapport och coverage<br>
+pytest test_guestbook_api.py --html=reports/test_report.html --cov=. --cov-report=html<br>
+<br>
+# Utan cleanup (data stannar för inspektion)<br>
+pytest test_guestbook_api.py -k "not zzz_cleanup" -v
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Scenario 3: Manuell Testning med Test App</h3>
+                    <div class="code-block">
+                        <code>
+# Starta test app (använder guestbook_test.db)<br>
+python test_app.py<br>
+<br>
+# Öppna http://localhost:8080<br>
+# All data sparas i guestbook_test.db<br>
+# Produktionsdata påverkas inte
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Scenario 4: Rensa Test Database</h3>
+                    <div class="code-block">
+                        <code>
+# Alternativ 1: Via Python<br>
+python -c "from database import clear_test_db; clear_test_db()"<br>
+<br>
+# Alternativ 2: Via pytest cleanup test<br>
+pytest test_guestbook_api.py -k "zzz_cleanup" -v<br>
+<br>
+# Alternativ 3: Ta bort filen<br>
+del guestbook_test.db  # Windows<br>
+rm guestbook_test.db   # Mac/Linux
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FÖRDELAR -->
+            <div class="section">
+                <h2><span class="icon">✨</span> Fördelar med Denna Lösning</h2>
+
+                <div class="phase-item">
+                    <h3>Säkerhet & Isolation</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Dataskydd:</strong> Tester kan aldrig förstöra produktionsdata</li>
+                            <li>✅ <strong>Isolation:</strong> Test och produktion är helt separerade</li>
+                            <li>✅ <strong>Parallell körning:</strong> Kan köra tester medan produktion är igång</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Utvecklarupplevelse</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Automatisk setup:</strong> Pytest fixtures hanterar allt</li>
+                            <li>✅ <strong>Enkel cleanup:</strong> En funktion rensar all testdata</li>
+                            <li>✅ <strong>Flexibilitet:</strong> Kan välja att behålla eller rensa testdata</li>
+                            <li>✅ <strong>Debugging:</strong> Testdata finns kvar för inspektion</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>CI/CD Vänlig</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Automatisk:</strong> Fungerar direkt i GitHub Actions</li>
+                            <li>✅ <strong>Ren miljö:</strong> Varje test-körning får en ren databas</li>
+                            <li>✅ <strong>Ingen konfiguration:</strong> Fungerar out-of-the-box</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILSTRUKTUR -->
+            <div class="section">
+                <h2><span class="icon">📁</span> Uppdaterad Filstruktur</h2>
+
+                <div class="code-block">
+                    <code>
+TestApiSkills/<br>
+├── guestbook.db              # Produktionsdatabas (ignorerad i git)<br>
+├── guestbook_test.db         # Test-databas (auto-skapad, ignorerad i git)<br>
+├── app.py                    # Produktions-app (använder guestbook.db)<br>
+├── test_app.py               # ✨ NY: Test-app (använder guestbook_test.db)<br>
+├── database.py               # ✨ UPPDATERAD: Med test_mode support<br>
+├── conftest.py               # ✨ NY: Pytest fixtures<br>
+├── test_guestbook_api.py     # API tester (använder test DB automatiskt)<br>
+├── TEST_DATA_MANAGEMENT.md   # ✨ NY: Dokumentation<br>
+└── .gitignore                # ✨ UPPDATERAD: Ignorerar alla DB-filer
+                    </code>
+                </div>
+            </div>
+
+            <!-- ROADMAP PROGRESS -->
+            <div class="section">
+                <h2><span class="icon">🗺️</span> QA Platform Roadmap Progress</h2>
+
+                <div class="phase-item">
+                    <h3>Quick Wins - Status</h3>
+                    <div class="description">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Förbättring</th>
+                                    <th>Status</th>
+                                    <th>Datum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Test Rapportering</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>2. Test Data Management</td>
+                                    <td><span class="status completed">KLAR</span></td>
+                                    <td>2026-03-06</td>
+                                </tr>
+                                <tr>
+                                    <td>3. API Dokumentation</td>
+                                    <td><span class="status planned">PLANERAD</span></td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>4. Logging & Monitoring</td>
+                                    <td><span class="status planned">PLANERAD</span></td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h3>🎉 Milstolpe Uppnådd!</h3>
+                    <p>2 av 4 Quick Wins är nu implementerade. Vi har en solid grund för test data management som kommer att användas i alla framtida test-faser.</p>
+                </div>
+            </div>
+
+            <!-- NÄSTA STEG -->
+            <div class="section">
+                <h2><span class="icon">👉</span> Nästa Steg</h2>
+
+                <div class="phase-item">
+                    <h3>Rekommenderade Nästa Steg</h3>
+                    <div class="description">
+                        <ol>
+                            <li><strong>Testa Implementationen:</strong>
+                                <ul>
+                                    <li>Kör pytest och verifiera att test DB används</li>
+                                    <li>Starta test_app.py och verifiera separation</li>
+                                    <li>Kontrollera att båda databaserna skapas korrekt</li>
+                                </ul>
+                            </li>
+                            <li><strong>Quick Win #3 - API Dokumentation:</strong>
+                                <ul>
+                                    <li>Implementera Swagger/OpenAPI</li>
+                                    <li>Auto-genererad API dokumentation</li>
+                                    <li>Interaktiv API testing i browser</li>
+                                </ul>
+                            </li>
+                            <li><strong>Quick Win #4 - Logging & Monitoring:</strong>
+                                <ul>
+                                    <li>Strukturerad logging</li>
+                                    <li>Request/response logging</li>
+                                    <li>Error tracking</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAMMANFATTNING -->
+            <div class="section">
+                <h2><span class="icon">📋</span> Sammanfattning</h2>
+                
+                <div class="phase-item">
+                    <h3>Vad Vi Har Uppnått</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ Separata databaser för test och produktion</li>
+                            <li>✅ Automatisk test database setup via pytest fixtures</li>
+                            <li>✅ Test app för manuell testning</li>
+                            <li>✅ Enkel cleanup av testdata</li>
+                            <li>✅ Komplett dokumentation</li>
+                            <li>✅ CI/CD-vänlig implementation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Teknisk Skuld Reducerad</h3>
+                    <div class="description">
+                        <ul>
+                            <li>❌ <strong>Borttaget:</strong> Risk för att förstöra produktionsdata</li>
+                            <li>❌ <strong>Borttaget:</strong> Manuell hantering av testdata</li>
+                            <li>❌ <strong>Borttaget:</strong> Blandning av test och produktionsdata</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Impact</h3>
+                    <p>Denna implementation är en grundläggande byggsten för hela QA-plattformen. Alla framtida test-faser (UI testing, Security testing, Performance testing) kommer att dra nytta av denna separation mellan test och produktionsdata.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills QA Platform</p>
+            <p>Test Data Management - Quick Win #2 ✅</p>
+        </footer>
+    </div>
+</body>
+</html>
