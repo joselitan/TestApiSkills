@@ -13,9 +13,9 @@ BASE_URL = "http://localhost:8080"
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database():
     """Setup test database before all tests"""
-    print("\n🔧 Setting up test database...")
+    print("\nSetting up test database...")
     init_db(test_mode=True)
-    print(f"✅ Test database created: {get_db_path(test_mode=True)}")
+    print(f"Test database created: {get_db_path(test_mode=True)}")
     yield
     # Cleanup after all tests (optional)
     # clear_test_db()

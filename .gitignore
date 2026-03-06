@@ -7,17 +7,38 @@ __pycache__/
 venv/
 env/
 ENV/
+.pytest_cache/
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
+data/
 
 # Logs
 logs/
 *.log
-*.sqlite
-*.sqlite3
+
+# Test Reports & Coverage
+reports/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Allure Reports
+allure-results/
+allure-report/
+.allure/
+
+# pytest-html Reports
+test_report.html
+test-results/
+
+# Locust Reports
+locust_report.html
 
 # IDE
 .vscode/
@@ -29,7 +50,8 @@ logs/
 .DS_Store
 Thumbs.db
 
-guestbook.db
-venv/
-__pycache__/
-*.pyc
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~

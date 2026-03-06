@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Restructure Plan - TestApiSkills</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📁 Project Restructure Plan</h1>
+            <p class="subtitle">Omorganisering av projektstruktur för bättre underhåll</p>
+            <p class="date">Datum: 2026-03-05 | Status: PLANERAD</p>
+        </header>
+
+        <div class="content">
+            <!-- SYFTE -->
+            <section class="section">
+                <h2>🎯 Syfte</h2>
+                <p>Organisera projektet i en tydlig struktur som separerar:</p>
+                <ul>
+                    <li>Application code (src/)</li>
+                    <li>Test code (tests/)</li>
+                    <li>Documentation (docs/)</li>
+                    <li>Generated files (reports/, logs/, data/)</li>
+                    <li>Utility scripts (scripts/)</li>
+                </ul>
+            </section>
+
+            <!-- NUVARANDE STRUKTUR -->
+            <section class="section">
+                <h2>📂 Nuvarande Struktur (Problem)</h2>
+                <div class="code-block">
+                    <pre>
+TestApiSkills/
+├── app.py                        ❌ Root level
+├── database.py                   ❌ Root level
+├── logger_config.py              ❌ Root level
+├── test_guestbook_api.py         ❌ Root level (borde vara i tests/)
+├── test_app.py                   ❌ Root level
+├── seed_data.py                  ❌ Root level
+├── check_setup.py                ❌ Root level
+├── api_test_run.py               ❌ Root level
+├── guestbook.db                  ❌ Root level
+├── guestbook_test.db             ❌ Root level
+├── pagination_guide.html         ❌ Root level (borde vara i docs/)
+├── pagination_guide.css          ❌ Root level
+├── ALLURE_GUIDE.md               ❌ Root level (borde vara i docs/)
+├── LOGGING_GUIDE.md              ❌ Root level
+├── SWAGGER_GUIDE.md              ❌ Root level
+├── TEST_DATA_MANAGEMENT.md       ❌ Root level
+├── FAS1_IMPLEMENTATION.md        ❌ Root level
+├── tests/                        ✅ Bra men behöver subfolders
+├── htmlcov/                      ❌ Borde vara i reports/
+├── featureRequirements/          ❌ Borde vara i docs/
+└── qa_platform_roadmap/          ❌ Borde vara i docs/
+                    </pre>
+                </div>
+            </section>
+
+            <!-- NY STRUKTUR -->
+            <section class="section">
+                <h2>✨ Ny Struktur (Lösning)</h2>
+                <div class="code-block">
+                    <pre>
+TestApiSkills/
+├── src/                          ✅ Application code
+│   ├── app.py
+│   ├── database.py
+│   └── logger_config.py
+│
+├── tests/                        ✅ All test code
+│   ├── api/
+│   │   ├── test_guestbook_api.py
+│   │   ├── test_api_contract.py
+│   │   └── test_negative_cases.py
+│   ├── performance/
+│   │   └── locustfile.py
+│   ├── fixtures/
+│   │   └── factories.py
+│   └── conftest.py
+│
+├── static/                       ✅ Frontend assets
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── login.js
+│       └── guestbook.js
+│
+├── templates/                    ✅ HTML templates
+│   ├── login.html
+│   └── guestbook.html
+│
+├── docs/                         ✅ All documentation
+│   ├── guides/
+│   │   ├── ALLURE_GUIDE.md
+│   │   ├── LOGGING_GUIDE.md
+│   │   ├── SWAGGER_GUIDE.md
+│   │   └── TEST_DATA_MANAGEMENT.md
+│   ├── implementation/
+│   │   └── FAS1_IMPLEMENTATION.md
+│   ├── roadmap/
+│   │   └── qa_platform_roadmap.html
+│   ├── features/
+│   │   └── pagination_guide.html
+│   └── changes/
+│       └── *.html
+│
+├── reports/                      ✅ Test reports (gitignored)
+│   ├── allure-results/
+│   ├── htmlcov/
+│   └── *.html
+│
+├── logs/                         ✅ Application logs (gitignored)
+│   ├── app.log
+│   ├── error.log
+│   └── access.log
+│
+├── scripts/                      ✅ Utility scripts
+│   ├── seed_data.py
+│   ├── check_setup.py
+│   └── test_app.py
+│
+├── data/                         ✅ Database files (gitignored)
+│   ├── guestbook.db
+│   └── guestbook_test.db
+│
+├── .github/                      ✅ CI/CD
+│   └── workflows/
+│       └── test.yml
+│
+├── .gitignore                    ✅ Root files
+├── requirements.txt
+├── pytest.ini
+└── README.md
+                    </pre>
+                </div>
+            </section>
+
+            <!-- STEG-FÖR-STEG PLAN -->
+            <section class="section">
+                <h2>📋 Steg-för-Steg Implementation</h2>
+
+                <h3>Steg 1: Skapa Nya Mappar</h3>
+                <div class="code-block">
+                    <pre>
+mkdir src
+mkdir tests\api
+mkdir tests\performance
+mkdir tests\fixtures
+mkdir static\css
+mkdir static\js
+mkdir docs\guides
+mkdir docs\implementation
+mkdir docs\roadmap
+mkdir docs\features
+mkdir scripts
+mkdir data
+                    </pre>
+                </div>
+
+                <h3>Steg 2: Flytta Application Code</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Från</th>
+                            <th>Till</th>
+                            <th>Ändring Krävs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>app.py</td>
+                            <td>src/app.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                        <tr>
+                            <td>database.py</td>
+                            <td>src/database.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                        <tr>
+                            <td>logger_config.py</td>
+                            <td>src/logger_config.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Steg 3: Flytta Test Files</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Från</th>
+                            <th>Till</th>
+                            <th>Ändring Krävs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>test_guestbook_api.py</td>
+                            <td>tests/api/test_guestbook_api.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                        <tr>
+                            <td>tests/test_api_contract.py</td>
+                            <td>tests/api/test_api_contract.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                        <tr>
+                            <td>tests/test_negative_cases.py</td>
+                            <td>tests/api/test_negative_cases.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                        <tr>
+                            <td>tests/locustfile.py</td>
+                            <td>tests/performance/locustfile.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                        <tr>
+                            <td>tests/factories.py</td>
+                            <td>tests/fixtures/factories.py</td>
+                            <td>❌ Nej</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Steg 4: Flytta Static Files</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Från</th>
+                            <th>Till</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>static/style.css</td>
+                            <td>static/css/style.css</td>
+                        </tr>
+                        <tr>
+                            <td>static/js/login.js</td>
+                            <td>static/js/login.js (redan rätt)</td>
+                        </tr>
+                        <tr>
+                            <td>static/js/guestbook.js</td>
+                            <td>static/js/guestbook.js (redan rätt)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Steg 5: Flytta Documentation</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Från</th>
+                            <th>Till</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ALLURE_GUIDE.md</td>
+                            <td>docs/guides/ALLURE_GUIDE.md</td>
+                        </tr>
+                        <tr>
+                            <td>LOGGING_GUIDE.md</td>
+                            <td>docs/guides/LOGGING_GUIDE.md</td>
+                        </tr>
+                        <tr>
+                            <td>SWAGGER_GUIDE.md</td>
+                            <td>docs/guides/SWAGGER_GUIDE.md</td>
+                        </tr>
+                        <tr>
+                            <td>TEST_DATA_MANAGEMENT.md</td>
+                            <td>docs/guides/TEST_DATA_MANAGEMENT.md</td>
+                        </tr>
+                        <tr>
+                            <td>FAS1_IMPLEMENTATION.md</td>
+                            <td>docs/implementation/FAS1_IMPLEMENTATION.md</td>
+                        </tr>
+                        <tr>
+                            <td>qa_platform_roadmap/</td>
+                            <td>docs/roadmap/</td>
+                        </tr>
+                        <tr>
+                            <td>pagination_guide.html</td>
+                            <td>docs/features/pagination_guide.html</td>
+                        </tr>
+                        <tr>
+                            <td>featureRequirements/</td>
+                            <td>docs/features/</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Steg 6: Flytta Scripts</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Från</th>
+                            <th>Till</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>seed_data.py</td>
+                            <td>scripts/seed_data.py</td>
+                        </tr>
+                        <tr>
+                            <td>check_setup.py</td>
+                            <td>scripts/check_setup.py</td>
+                        </tr>
+                        <tr>
+                            <td>test_app.py</td>
+                            <td>scripts/test_app.py</td>
+                        </tr>
+                        <tr>
+                            <td>api_test_run.py</td>
+                            <td>scripts/api_test_run.py</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Steg 7: Flytta Data & Reports</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Från</th>
+                            <th>Till</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>guestbook.db</td>
+                            <td>data/guestbook.db</td>
+                        </tr>
+                        <tr>
+                            <td>guestbook_test.db</td>
+                            <td>data/guestbook_test.db</td>
+                        </tr>
+                        <tr>
+                            <td>htmlcov/</td>
+                            <td>reports/htmlcov/</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Steg 8: Uppdatera Imports & Paths</h3>
+                <div class="warning-box">
+                    <h4>⚠️ Filer som behöver uppdateras:</h4>
+                    <ul>
+                        <li><strong>conftest.py</strong> - Uppdatera import från factories</li>
+                        <li><strong>src/app.py</strong> - Uppdatera database path</li>
+                        <li><strong>src/database.py</strong> - Uppdatera DB file paths</li>
+                        <li><strong>templates/*.html</strong> - Uppdatera CSS path</li>
+                        <li><strong>.gitignore</strong> - Uppdatera paths</li>
+                    </ul>
+                </div>
+
+                <h3>Steg 9: Testa Allt</h3>
+                <div class="code-block">
+                    <pre>
+# Test 1: Kör alla tester
+pytest tests/ -v
+
+# Test 2: Starta Flask app
+python src/app.py
+
+# Test 3: Verifiera frontend
+# Öppna http://localhost:8080
+
+# Test 4: Kör performance test
+locust -f tests/performance/locustfile.py
+                    </pre>
+                </div>
+            </section>
+
+            <!-- KOD ÄNDRINGAR -->
+            <section class="section">
+                <h2>💻 Kod Ändringar</h2>
+
+                <h3>1. conftest.py</h3>
+                <div class="code-block">
+                    <pre>
+# FÖRE
+from tests.factories import create_guestbook_entry, create_multiple_entries
+
+# EFTER
+from tests.fixtures.factories import create_guestbook_entry, create_multiple_entries
+                    </pre>
+                </div>
+
+                <h3>2. src/database.py</h3>
+                <div class="code-block">
+                    <pre>
+# FÖRE
+DB_PATH = 'guestbook.db'
+TEST_DB_PATH = 'guestbook_test.db'
+
+# EFTER
+DB_PATH = 'data/guestbook.db'
+TEST_DB_PATH = 'data/guestbook_test.db'
+                    </pre>
+                </div>
+
+                <h3>3. templates/guestbook.html & login.html</h3>
+                <div class="code-block">
+                    <pre>
+# FÖRE
+&lt;link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"&gt;
+
+# EFTER
+&lt;link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"&gt;
+                    </pre>
+                </div>
+
+                <h3>4. .gitignore</h3>
+                <div class="code-block">
+                    <pre>
+# Lägg till
+data/*.db
+reports/
+logs/
+htmlcov/
+.coverage
+*.pyc
+__pycache__/
+venv/
+.pytest_cache/
+                    </pre>
+                </div>
+
+                <h3>5. README.md</h3>
+                <div class="code-block">
+                    <pre>
+# Uppdatera kommandon
+python src/app.py                    # Starta app
+pytest tests/ -v                     # Kör tester
+python scripts/seed_data.py          # Seed data
+                    </pre>
+                </div>
+            </section>
+
+            <!-- FÖRDELAR -->
+            <section class="section">
+                <h2>✅ Fördelar med Ny Struktur</h2>
+                <ul>
+                    <li>✅ <strong>Tydlig separation</strong> - App code, tests, docs separerade</li>
+                    <li>✅ <strong>Lättare att hitta</strong> - Allt har sin plats</li>
+                    <li>✅ <strong>Bättre gitignore</strong> - Generated files i egna mappar</li>
+                    <li>✅ <strong>Skalbart</strong> - Lätt att lägga till nya features</li>
+                    <li>✅ <strong>Professionellt</strong> - Följer Python best practices</li>
+                    <li>✅ <strong>CI/CD vänligt</strong> - Tydliga paths för automation</li>
+                </ul>
+            </section>
+
+            <!-- RISKER -->
+            <section class="section">
+                <h2>⚠️ Risker & Mitigering</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Risk</th>
+                            <th>Sannolikhet</th>
+                            <th>Mitigering</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Imports slutar fungera</td>
+                            <td>Låg</td>
+                            <td>Testa efter varje ändring</td>
+                        </tr>
+                        <tr>
+                            <td>Flask hittar inte templates</td>
+                            <td>Mycket Låg</td>
+                            <td>Flask hittar templates/ automatiskt</td>
+                        </tr>
+                        <tr>
+                            <td>CSS path fel</td>
+                            <td>Låg</td>
+                            <td>Uppdatera HTML templates</td>
+                        </tr>
+                        <tr>
+                            <td>Database path fel</td>
+                            <td>Låg</td>
+                            <td>Uppdatera database.py</td>
+                        </tr>
+                        <tr>
+                            <td>GitHub Actions failar</td>
+                            <td>Låg</td>
+                            <td>Uppdatera paths i workflow</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- ROLLBACK PLAN -->
+            <section class="section">
+                <h2>🔄 Rollback Plan</h2>
+                <div class="warning-box">
+                    <h3>Om något går fel:</h3>
+                    <ol>
+                        <li>Git commit innan vi börjar</li>
+                        <li>Om problem: <code>git reset --hard HEAD</code></li>
+                        <li>Alla ändringar är dokumenterade här</li>
+                        <li>Kan manuellt flytta tillbaka filer</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- CHECKLISTA -->
+            <section class="section">
+                <h2>✓ Implementation Checklista</h2>
+                <div class="code-block">
+                    <pre>
+☐ 1. Skapa backup (git commit)
+☐ 2. Skapa nya mappar
+☐ 3. Flytta application code (src/)
+☐ 4. Flytta test files (tests/)
+☐ 5. Flytta static files
+☐ 6. Flytta documentation
+☐ 7. Flytta scripts
+☐ 8. Flytta data & reports
+☐ 9. Uppdatera conftest.py
+☐ 10. Uppdatera database.py
+☐ 11. Uppdatera templates
+☐ 12. Uppdatera .gitignore
+☐ 13. Uppdatera README.md
+☐ 14. Test: pytest tests/ -v
+☐ 15. Test: python src/app.py
+☐ 16. Test: Öppna frontend
+☐ 17. Test: Locust
+☐ 18. Git commit med nya strukturen
+                    </pre>
+                </div>
+            </section>
+
+            <!-- TIDSÅTGÅNG -->
+            <section class="section">
+                <h2>⏱️ Estimerad Tidsåtgång</h2>
+                <ul>
+                    <li>Skapa mappar: 2 minuter</li>
+                    <li>Flytta filer: 5 minuter</li>
+                    <li>Uppdatera kod: 10 minuter</li>
+                    <li>Testa: 10 minuter</li>
+                    <li><strong>Total: ~30 minuter</strong></li>
+                </ul>
+            </section>
+
+            <!-- NÄSTA STEG -->
+            <section class="section success-box">
+                <h2>👉 Nästa Steg</h2>
+                <ol>
+                    <li>Granska denna plan</li>
+                    <li>Godkänn för implementation</li>
+                    <li>Kör implementation steg-för-steg</li>
+                    <li>Verifiera att allt fungerar</li>
+                    <li>Commit till git</li>
+                </ol>
+            </section>
+        </div>
+
+        <footer>
+            <p>Skapad: 2026-03-05 | Status: PLANERAD | Godkänd: VÄNTAR</p>
+        </footer>
+    </div>
+</body>
+</html>
