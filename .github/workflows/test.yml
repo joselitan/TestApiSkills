@@ -35,6 +35,6 @@ jobs:
         sleep 5
 
     - name: Run tests
-      run: pytest test_guestbook_api.py -s -v
+      run: pytest tests/test_guestbook_api.py -s -v
 
 
