@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guest Book</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
@@ -25,6 +25,13 @@
             <h2>Import from Excel</h2>
             <input type="file" id="excelFile" accept=".xlsx,.xls">
             <button onclick="importExcel()">Upload Excel</button>
+        </div>
+
+        <div class="search-section">
+            <h2>Search Entries</h2>
+            <input type="text" id="searchInput" placeholder="Search by name, email, or comment...">
+            <button onclick="searchEntries()">Search</button>
+            <button onclick="clearSearch()">Clear</button>
         </div>
 
         <div class="entries-section">

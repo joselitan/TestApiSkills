@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fas 2: UI Testing - Implementation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🖥️ Fas 2: UI Testing (Frontend)</h1>
+            <p class="subtitle">Komplett Implementation Guide</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: ✅ KLAR | Datum: 2026-03-06</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="success-box">
+                    <h3>✅ Fas 2 Genomförd!</h3>
+                    <p>Komplett UI testing med Playwright. 16 E2E tester täcker login, CRUD, search och pagination.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📦</span> Installerade Dependencies</h2>
+                <div class="code-block">
+                    <code>
+playwright>=1.40.0<br>
+pytest-playwright>=0.4.0
+                    </code>
+                </div>
+                <div class="description">
+                    <strong>Installation:</strong>
+                    <div class="code-block">
+                        <code>
+pip install playwright pytest-playwright<br>
+playwright install
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📁</span> Filstruktur</h2>
+                <div class="code-block">
+                    <code>
+tests/<br>
+└── ui/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── conftest.py              # Playwright fixtures<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_login_ui.py         # 5 login tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_guestbook_ui.py     # 5 CRUD tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_search_ui.py        # 3 search tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── test_pagination_ui.py    # 3 pagination tests<br>
+<br>
+docs/<br>
+├── implementation/<br>
+│   └── FAS2_IMPLEMENTATION.md<br>
+└── guides/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── PLAYWRIGHT_GUIDE.md
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 2.1 End-to-End Testing med Playwright</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ Playwright E2E testing framework</li>
+                            <li>✅ 16 test cases totalt</li>
+                            <li>✅ authenticated_page fixture</li>
+                            <li>✅ Multi-browser support (Chromium, Firefox, WebKit)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔐</span> Login Tests (5 tester)</h2>
+                <div class="phase-item">
+                    <h3>Test Cases</h3>
+                    <div class="description">
+                        <ul>
+                            <li>test_login_page_loads - Verifiera att login sidan laddas</li>
+                            <li>test_successful_login - Testa lyckad inloggning</li>
+                            <li>test_failed_login_wrong_password - Testa fel lösenord</li>
+                            <li>test_failed_login_empty_fields - Testa tomma fält</li>
+                            <li>test_logout - Testa utloggning</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/test_login_ui.py -v
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📝</span> Guestbook CRUD Tests (5 tester)</h2>
+                <div class="phase-item">
+                    <h3>Test Cases</h3>
+                    <div class="description">
+                        <ul>
+                            <li>test_guestbook_page_loads - Verifiera att sidan laddas</li>
+                            <li>test_create_entry - Skapa ny entry via UI</li>
+                            <li>test_edit_entry - Redigera befintlig entry</li>
+                            <li>test_delete_entry - Ta bort entry med bekräftelse</li>
+                            <li>test_form_validation - Testa required field validation</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/test_guestbook_ui.py -v
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔍</span> Search Tests (3 tester)</h2>
+                <div class="phase-item">
+                    <h3>Test Cases</h3>
+                    <div class="description">
+                        <ul>
+                            <li>test_search_entries - Sök efter entries</li>
+                            <li>test_clear_search - Rensa sökresultat</li>
+                            <li>test_search_no_results - Hantera inga resultat</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/test_search_ui.py -v
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📄</span> Pagination Tests (3 tester)</h2>
+                <div class="phase-item">
+                    <h3>Test Cases</h3>
+                    <div class="description">
+                        <ul>
+                            <li>test_pagination_navigation - Navigera mellan sidor</li>
+                            <li>test_pagination_with_search - Pagination med sökning</li>
+                            <li>test_pagination_buttons_disabled - Knappstatus</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/test_pagination_ui.py -v
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔧</span> Fixtures</h2>
+                <div class="phase-item">
+                    <h3>authenticated_page</h3>
+                    <div class="description">
+                        <p>Fixture som ger en redan inloggad sida. Sparar tid genom att inte behöva logga in i varje test.</p>
+                    </div>
+                    <div class="code-block">
+                        <code>
+def test_something(authenticated_page: Page):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Sidan är redan inloggad på /guestbook<br>
+&nbsp;&nbsp;&nbsp;&nbsp;authenticated_page.fill("#name", "Test")
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Hur Man Kör Testerna</h2>
+                <div class="phase-item">
+                    <h3>Alla UI Tester</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/ -v
+                        </code>
+                    </div>
+                    <h3>Med Synlig Browser (Headed Mode)</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/ --headed
+                        </code>
+                    </div>
+                    <h3>Specifik Browser</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/ --browser firefox<br>
+pytest tests/ui/ --browser webkit<br>
+pytest tests/ui/ --browser chromium
+                        </code>
+                    </div>
+                    <h3>Slow Motion (För Debugging)</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/ --headed --slowmo 1000
+                        </code>
+                    </div>
+                    <h3>Med Screenshots</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/ --screenshot only-on-failure
+                        </code>
+                    </div>
+                    <h3>Med Video</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/ --video retain-on-failure
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🌐</span> Cross-Browser Testing</h2>
+                <div class="phase-item">
+                    <h3>Stödda Browsers</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ Chromium (Chrome, Edge)</li>
+                            <li>✅ Firefox</li>
+                            <li>✅ WebKit (Safari)</li>
+                        </ul>
+                    </div>
+                    <h3>Kör På Alla Browsers</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/ui/ --browser chromium --browser firefox --browser webkit
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🐛</span> Debugging</h2>
+                <div class="phase-item">
+                    <h3>Playwright Inspector</h3>
+                    <div class="code-block">
+                        <code>
+set PWDEBUG=1<br>
+pytest tests/ui/test_login_ui.py::test_successful_login
+                        </code>
+                    </div>
+                    <h3>Pause Test</h3>
+                    <div class="code-block">
+                        <code>
+# I test koden:<br>
+page.pause()
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">⚠️</span> Viktigt att Veta</h2>
+                <div class="warning-box">
+                    <h3>Förutsättningar</h3>
+                    <ul>
+                        <li>Flask app måste köra på http://localhost:8080</li>
+                        <li>Playwright browsers måste vara installerade: <code>playwright install</code></li>
+                        <li>Databas måste vara initialiserad med test data</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> Resultat</h2>
+                <div class="info-box">
+                    <h3>Sammanfattning</h3>
+                    <ul>
+                        <li>✅ 16 UI test cases implementerade</li>
+                        <li>✅ Täcker login, CRUD, search, pagination</li>
+                        <li>✅ Multi-browser support</li>
+                        <li>✅ Playwright fixtures för återanvändning</li>
+                        <li>✅ Organiserad struktur (tests/ui/)</li>
+                        <li>✅ Komplett dokumentation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📚</span> Dokumentation</h2>
+                <div class="description">
+                    <ul>
+                        <li><code>docs/implementation/FAS2_IMPLEMENTATION.md</code> - Detaljerad implementation guide</li>
+                        <li><code>docs/guides/PLAYWRIGHT_GUIDE.md</code> - Playwright användning och best practices</li>
+                        <li><code>pytest.ini</code> - Pytest konfiguration med UI marker</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔮</span> Framtida Förbättringar</h2>
+                <div class="phase-item">
+                    <h3>Visual Regression Testing</h3>
+                    <div class="description">
+                        <p>Kan implementeras med Playwright screenshots och pixel comparison.</p>
+                    </div>
+                    <h3>Accessibility Testing</h3>
+                    <div class="description">
+                        <p>Kan implementeras med axe-core integration för WCAG 2.1 compliance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills QA Platform</p>
+            <p>Fas 2: UI Testing ✅ KLAR</p>
+        </footer>
+    </div>
+</body>
+</html>

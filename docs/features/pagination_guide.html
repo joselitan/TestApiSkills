@@ -106,19 +106,80 @@ function prevPage() {
         <div class="step">
             <span class="step-number">Step 04</span>
             <h2>Add Filtering (Search)</h2>
-            <p>To add search, we update the SQL query to use <code>LIKE</code>.</p>
-            <pre><code><span class="comment"># In app.py</span>
-search = request.args.get('search', '')
+            <p>To add search functionality, we need to update both backend and frontend.</p>
+            
+            <h3>Backend (app.py)</h3>
+            <p>Update the SQL query to use <code>LIKE</code> for searching:</p>
+            <pre><code><span class="comment"># In get_all_entries function</span>
+search = request.args.get('search', None, type=str)
+
+<span class="comment"># Build query parts based on search</span>
+base_query = 'FROM guestbook'
+where_clause = ''
+params = []
 
 if search:
-    query = '''
-        SELECT * FROM guestbook 
-        WHERE name LIKE ? OR comment LIKE ?
-        ORDER BY created_at DESC LIMIT ? OFFSET ?
-    '''
-    params = (f'%{search}%', f'%{search}%', limit, offset)
-else:
-    <span class="comment"># ... standard query ...</span></code></pre>
+    where_clause = ' WHERE name LIKE ? OR email LIKE ? OR comment LIKE ?'
+    search_term = f'%{search}%'
+    params.extend([search_term, search_term, search_term])
+
+<span class="comment"># Fetch total count with filter</span>
+count_query = f'SELECT COUNT(*) {base_query}{where_clause}'
+total_count = conn.execute(count_query, params).fetchone()[0]
+
+<span class="comment"># Fetch data with filter</span>
+data_query = f'SELECT * {base_query}{where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?'
+query_params = params + [limit, offset]
+entries = conn.execute(data_query, query_params).fetchall()</code></pre>
+
+            <h3>Frontend - UI (templates/guestbook.html)</h3>
+            <p>Add search input above the table:</p>
+            <pre><code>&lt;div class="search-section"&gt;
+    &lt;input type="text" id="searchInput" placeholder="Search by name, email, or comment..."&gt;
+    &lt;button onclick="searchEntries()"&gt;Search&lt;/button&gt;
+    &lt;button onclick="clearSearch()"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+
+            <h3>Frontend - Logic (static/js/guestbook.js)</h3>
+            <p>Update JavaScript to handle search:</p>
+            <pre><code>let currentPage = 1;
+let currentSearch = '';
+const limit = 5;
+
+<span class="comment">// Update loadEntries to accept search parameter</span>
+async function loadEntries(page = 1, search = '') {
+    const url = `/api/guestbook?page=${page}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
+    const response = await fetch(url, {headers});
+    const result = await response.json();
+    
+    <span class="comment">// ... render entries ...</span>
+    
+    currentPage = result.meta.page;
+}
+
+<span class="comment">// Search function</span>
+function searchEntries() {
+    currentSearch = document.getElementById('searchInput').value;
+    currentPage = 1; <span class="comment">// Reset to page 1 when searching</span>
+    loadEntries(1, currentSearch);
+}
+
+<span class="comment">// Clear search function</span>
+function clearSearch() {
+    currentSearch = '';
+    document.getElementById('searchInput').value = '';
+    currentPage = 1;
+    loadEntries(1);
+}
+
+<span class="comment">// Update pagination to include search</span>
+function nextPage() {
+    loadEntries(currentPage + 1, currentSearch);
+}
+
+function prevPage() {
+    if (currentPage > 1) loadEntries(currentPage - 1, currentSearch);
+}</code></pre>
         </div>
 
         <div class="step">

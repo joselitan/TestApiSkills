@@ -1,0 +1,47 @@
+"""UI Tests for Login Flow"""
+import pytest
+from playwright.sync_api import Page, expect
+
+BASE_URL = "http://localhost:8080"
+
+def test_login_page_loads(page: Page):
+    """Test that login page loads correctly"""
+    page.goto(BASE_URL)
+    expect(page).to_have_title("Login")
+    expect(page.locator("h1")).to_contain_text("Login")
+
+def test_successful_login(page: Page):
+    """Test successful login flow"""
+    page.goto(BASE_URL)
+    page.fill("#username", "admin")
+    page.fill("#password", "password123")
+    page.click("button[type='submit']")
+    page.wait_for_url(f"{BASE_URL}/guestbook")
+    expect(page).to_have_url(f"{BASE_URL}/guestbook")
+    expect(page.locator("h1")).to_contain_text("Guest Book")
+
+def test_failed_login_wrong_password(page: Page):
+    """Test login with wrong password"""
+    page.goto(BASE_URL)
+    page.fill("#username", "admin")
+    page.fill("#password", "wrongpassword")
+    page.click("button[type='submit']")
+    expect(page.locator(".error-message")).to_be_visible()
+
+def test_failed_login_empty_fields(page: Page):
+    """Test login with empty fields"""
+    page.goto(BASE_URL)
+    page.click("button[type='submit']")
+    # HTML5 validation should prevent submission
+    expect(page).to_have_url(BASE_URL)
+
+def test_logout(page: Page):
+    """Test logout functionality"""
+    page.goto(BASE_URL)
+    page.fill("#username", "admin")
+    page.fill("#password", "password123")
+    page.click("button[type='submit']")
+    page.wait_for_url(f"{BASE_URL}/guestbook")
+    page.click(".logout-btn")
+    page.wait_for_url(BASE_URL)
+    expect(page).to_have_url(BASE_URL)

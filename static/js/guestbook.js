@@ -14,12 +14,14 @@ const headers = {
 };
 
 let currentPage = 1;
+let currentSearch = '';
 const limit = 10; // Number of entries per page
 
-async function loadEntries(page = 1) {
-    console.log(`📡 Fetching entries for page ${page}...`);
+async function loadEntries(page = 1, search = '') {
+    console.log(`📡 Fetching entries for page ${page}${search ? ` with search: "${search}"` : ''}...`);
     try {
-        const response = await fetch(`/api/guestbook?page=${page}&limit=${limit}`, {headers});
+        const url = `/api/guestbook?page=${page}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
+        const response = await fetch(url, {headers});
         console.log('Response status:', response.status);
 
         if (!response.ok) {
@@ -37,28 +39,27 @@ async function loadEntries(page = 1) {
         }
 
         if (entries.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No entries found in database</td></tr>';
-            return;
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No entries found</td></tr>';
+        } else {
+            tbody.innerHTML = entries.map(entry => `
+                <tr>
+                    <td>${entry.userId}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.email}</td>
+                    <td>${entry.comment || ''}</td>
+                    <td>${new Date(entry.created_at).toLocaleString()}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editEntry(${entry.userId})">Edit</button>
+                        <button class="delete-btn" onclick="deleteEntry(${entry.userId})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
         }
-
-        tbody.innerHTML = entries.map(entry => `
-            <tr>
-                <td>${entry.userId}</td>
-                <td>${entry.name}</td>
-                <td>${entry.email}</td>
-                <td>${entry.comment || ''}</td>
-                <td>${new Date(entry.created_at).toLocaleString()}</td>
-                <td>
-                    <button class="edit-btn" onclick="editEntry(${entry.userId})">Edit</button>
-                    <button class="delete-btn" onclick="deleteEntry(${entry.userId})">Delete</button>
-                </td>
-            </tr>
-        `).join('');
         
         // Update pagination controls
         const pageInfo = document.getElementById('pageInfo');
         if (pageInfo && result.meta) {
-            pageInfo.innerText = `Page ${result.meta.page} of ${result.meta.pages}`;
+            pageInfo.innerText = `Page ${result.meta.page} of ${result.meta.pages} (${result.meta.total} total)`;
             currentPage = result.meta.page;
         }
         
@@ -69,13 +70,28 @@ async function loadEntries(page = 1) {
     }
 }
 
+function searchEntries() {
+    currentSearch = document.getElementById('searchInput').value;
+    currentPage = 1; // Reset to page 1 when searching
+    console.log(`🔍 Searching for: "${currentSearch}"`);
+    loadEntries(1, currentSearch);
+}
+
+function clearSearch() {
+    currentSearch = '';
+    document.getElementById('searchInput').value = '';
+    currentPage = 1;
+    console.log('🧹 Search cleared');
+    loadEntries(1);
+}
+
 function nextPage(){
-    loadEntries(currentPage + 1);
+    loadEntries(currentPage + 1, currentSearch);
 }
 
 function prevPage(){
     if (currentPage > 1) {
-        loadEntries(currentPage - 1);
+        loadEntries(currentPage - 1, currentSearch);
     }
 }
 
@@ -83,7 +99,7 @@ async function deleteEntry(id) {
     if (confirm('Delete this entry?')) {
         console.log(`🗑️ Deleting entry ${id}...`);
         await fetch(`/api/guestbook/${id}`, {method: 'DELETE', headers});
-        loadEntries();
+        loadEntries(currentPage, currentSearch); // Keep current page and search
     }
 }
 
@@ -102,7 +118,7 @@ async function editEntry(id) {
             headers,
             body: JSON.stringify({name, email, comment: comment || ''})
         });
-        loadEntries();
+        loadEntries(currentPage, currentSearch); // Keep current page and search
     }
 }
 
@@ -126,7 +142,7 @@ async function importExcel() {
     const result = await response.json();
     alert(result.message);
     fileInput.value = '';
-    loadEntries();
+    loadEntries(1); // Go to page 1 after import
 }
 
 function logout() {
@@ -153,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         e.target.reset();
-        loadEntries();
+        loadEntries(1); // Go to page 1 after adding new entry
     });
 
-    loadEntries();
+    loadEntries(1); // Load first page on init
 });

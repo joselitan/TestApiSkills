@@ -2,8 +2,12 @@ import pytest
 import os
 import sys
 import requests
+
+# Add src to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
 from database import init_db, clear_test_db, get_db_path
-from tests.factories import create_guestbook_entry, create_multiple_entries
+from tests.fixtures.factories import create_guestbook_entry, create_multiple_entries
 
 # Sätt test mode environment variable
 os.environ['TEST_MODE'] = '1'

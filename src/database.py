@@ -4,9 +4,9 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 
 def get_db_path(test_mode=False):
-    basedir = os.path.abspath(os.path.dirname(__file__))
+    basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     db_name = 'guestbook_test.db' if test_mode else 'guestbook.db'
-    return os.path.join(basedir, db_name)
+    return os.path.join(basedir, 'data', db_name)
 
 def init_db(test_mode=False):
     conn = sqlite3.connect(get_db_path(test_mode))

@@ -6,8 +6,9 @@ def setup_logger(app):
     """Configure logging for the application"""
     
     # Create logs directory if it doesn't exist
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
     
     # Set log level based on environment
     log_level = logging.DEBUG if app.debug else logging.INFO
@@ -25,7 +26,7 @@ def setup_logger(app):
     
     # File Handler - All logs
     file_handler = RotatingFileHandler(
-        'logs/app.log',
+        os.path.join(log_dir, 'app.log'),
         maxBytes=10*1024*1024,  # 10MB
         backupCount=10
     )
@@ -34,7 +35,7 @@ def setup_logger(app):
     
     # File Handler - Errors only
     error_handler = RotatingFileHandler(
-        'logs/error.log',
+        os.path.join(log_dir, 'error.log'),
         maxBytes=10*1024*1024,  # 10MB
         backupCount=10
     )
@@ -43,7 +44,7 @@ def setup_logger(app):
     
     # File Handler - Access logs
     access_handler = RotatingFileHandler(
-        'logs/access.log',
+        os.path.join(log_dir, 'access.log'),
         maxBytes=10*1024*1024,  # 10MB
         backupCount=10
     )

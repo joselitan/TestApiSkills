@@ -13,8 +13,10 @@ from flasgger import Swagger
 from logger_config import setup_logger
 
 # Explicitly set the static folder path to avoid directory confusion
-basedir = os.path.abspath(os.path.dirname(__file__))
-app = Flask(__name__, static_folder=os.path.join(basedir, 'static'))
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+app = Flask(__name__, 
+            static_folder=os.path.join(basedir, 'static'),
+            template_folder=os.path.join(basedir, 'templates'))
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 
 # Swagger configuration

@@ -15,3 +15,7 @@ td:last-child { white-space: nowrap; width: 1%; }
 td button { width: auto; margin-right: 10px; padding: 5px 15px; display: inline-block; }
 .delete-btn { background: #dc3545; }
 .delete-btn:hover { background: #c82333; }
+
+.search-section button { width: auto; margin-left: 10px; display: inline-block; }
+.import-section button { width: auto; margin-left: 10px; display: inline-block; }
+#pagination button { width: auto; margin: 0 10px; display: inline-block; }
