@@ -19,3 +19,13 @@ td button { width: auto; margin-right: 10px; padding: 5px 15px; display: inline-
 .search-section button { width: auto; margin-left: 10px; display: inline-block; }
 .import-section button { width: auto; margin-left: 10px; display: inline-block; }
 #pagination button { width: auto; margin: 0 10px; display: inline-block; }
+
+/* Modal Styles */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+.modal-content { background-color: white; margin: 15% auto; padding: 20px; border-radius: 8px; width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { margin: 0; color: #333; }
+.close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+.close:hover { color: #000; }
+.modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+.modal-buttons button { width: auto; flex: 1; }

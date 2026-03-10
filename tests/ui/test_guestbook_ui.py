@@ -27,12 +27,23 @@ def test_edit_entry(authenticated_page: Page):
     page.click("#entryForm button[type='submit']")
     page.wait_for_timeout(1000)
     
-    # Edit the entry
-    page.click("button:has-text('Edit'):last-of-type")
+    # Click edit button to open modal
+    edit_button = page.locator('button:has-text("Edit")').first
+    edit_button.scroll_into_view_if_needed()
     page.wait_for_timeout(500)
-    page.fill("#name", "Edited Name")
-    page.click("button:has-text('Save')")
+    edit_button.click()
+    
+    # Wait for modal to appear and fill form
+    expect(page.locator("#editModal")).to_be_visible()
+    page.fill("#editName", "Edited Name")
+    page.fill("#editEmail", "edited@test.com")
+    page.fill("#editComment", "Edited comment")
+    
+    # Submit the edit form
+    page.click("#editForm button[type='submit']")
     page.wait_for_timeout(1000)
+    
+    # Verify the entry was updated
     expect(page.locator("text=Edited Name")).to_be_visible()
 
 def test_delete_entry(authenticated_page: Page):
@@ -50,7 +61,6 @@ def test_delete_entry(authenticated_page: Page):
     page.click("button:has-text('Delete'):last-of-type")
     page.wait_for_timeout(1000)
     expect(page.locator("text=Delete Test")).not_to_be_visible()
-
 def test_form_validation(authenticated_page: Page):
     """Test form validation for required fields"""
     page = authenticated_page

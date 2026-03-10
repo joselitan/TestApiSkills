@@ -107,19 +107,18 @@ async function editEntry(id) {
     const response = await fetch(`/api/guestbook/${id}`, {headers});
     const entry = await response.json();
     
-    const name = prompt('Name:', entry.name);
-    const email = prompt('Email:', entry.email);
-    const comment = prompt('Comment:', entry.comment);
+    // Populate modal with current values
+    document.getElementById('editId').value = id;
+    document.getElementById('editName').value = entry.name;
+    document.getElementById('editEmail').value = entry.email;
+    document.getElementById('editComment').value = entry.comment || '';
     
-    if (name && email) {
-        console.log(`✏️ Updating entry ${id}...`);
-        await fetch(`/api/guestbook/${id}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify({name, email, comment: comment || ''})
-        });
-        loadEntries(currentPage, currentSearch); // Keep current page and search
-    }
+    // Show modal
+    document.getElementById('editModal').style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
 }
 
 async function importExcel() {
@@ -153,6 +152,8 @@ function logout() {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 DOM Content Loaded');
+    
+    // Add entry form handler
     document.getElementById('entryForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         console.log('💾 Submitting new entry...');
@@ -171,6 +172,35 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
         loadEntries(1); // Go to page 1 after adding new entry
     });
+
+    // Edit form handler
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const data = {
+            name: document.getElementById('editName').value,
+            email: document.getElementById('editEmail').value,
+            comment: document.getElementById('editComment').value
+        };
+        
+        console.log(`✏️ Updating entry ${id}...`);
+        await fetch(`/api/guestbook/${id}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(data)
+        });
+        
+        closeEditModal();
+        loadEntries(currentPage, currentSearch);
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target === modal) {
+            closeEditModal();
+        }
+    };
 
     loadEntries(1); // Load first page on init
 });

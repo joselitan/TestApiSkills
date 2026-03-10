@@ -23,6 +23,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Install Playwright Browsers
+      run: playwright install --with-deps
+
     - name: Create data directory
       run: mkdir -p data
 
@@ -38,5 +41,6 @@ jobs:
       run: | 
         pytest tests/api/test_guestbook_api.py -s -v
         pytest tests/api/test_api_contract.py -s -v
+        pytest tests/ui -s -v
 
 

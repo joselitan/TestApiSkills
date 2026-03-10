@@ -53,6 +53,27 @@
                 <button onclick="prevPage()">Previous</button>
                 <span id="pageInfo"></span>
                 <button onclick="nextPage()">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Entry</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <input type="text" id="editName" placeholder="Name" required>
+                <input type="email" id="editEmail" placeholder="Email" required>
+                <textarea id="editComment" placeholder="Comment" rows="3"></textarea>
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
