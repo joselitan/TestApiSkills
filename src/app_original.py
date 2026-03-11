@@ -36,10 +36,10 @@ def validate_filename(filename):
     
     # Additional checks for malicious patterns
     dangerous_patterns = [
-        r'[;&|`$(){}\\[\\]<>]',  # Command injection characters
-        r'\\.\\./',              # Path traversal
-        r'^\\.',                # Hidden files
-        r'\\.(bat|cmd|exe|sh|ps1)$'  # Executable files
+        r'[;&|`$(){}\[\]<>]',  # Command injection characters
+        r'\.\./',              # Path traversal
+        r'^\.',                # Hidden files
+        r'\.(bat|cmd|exe|sh|ps1)$'  # Executable files
     ]
     
     for pattern in dangerous_patterns:
@@ -264,6 +264,45 @@ def guestbook_page():
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    """
+    User login endpoint
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: credentials
+        required: true
+        schema:
+          type: object
+          required:
+            - username
+            - password
+          properties:
+            username:
+              type: string
+              example: "admin"
+            password:
+              type: string
+              example: "password123"
+    responses:
+      200:
+        description: Login successful
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      401:
+        description: Invalid credentials
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Invalid credentials"
+    """
     try:
         data = request.get_json(force=True)
         if not data:
@@ -312,45 +351,70 @@ def login():
 @app.route('/api/guestbook', methods=['POST'])
 @token_required
 def create_entry():
-    try:
-        data = request.get_json(force=True)
-        if not data:
-            return jsonify({'message': 'Invalid JSON payload'}), 400
-            
-        # Validate JSON structure
-        is_valid, message = validate_json_payload(data)
-        if not is_valid:
-            return jsonify({'message': message}), 400
-            
-    except (json.JSONDecodeError, Exception) as e:
-        app.logger.warning(f"Invalid JSON in create entry request: {str(e)}")
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
+    """
+    Create a new guestbook entry
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: entry
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+            - email
+            - comment
+          properties:
+            name:
+              type: string
+              example: "John Doe"
+            email:
+              type: string
+              example: "john@example.com"
+            comment:
+              type: string
+              example: "Great API!"
+    responses:
+      201:
+        description: Entry created successfully
+        schema:
+          type: object
+          properties:
+            userId:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "John Doe"
+            email:
+              type: string
+              example: "john@example.com"
+            comment:
+              type: string
+              example: "Great API!"
+            created_at:
+              type: string
+              example: "2024-03-06 10:30:00"
+      400:
+        description: Bad request - missing required fields
+      401:
+        description: Unauthorized - invalid or missing token
+    """
+    data = request.get_json()
     name = data.get('name')
     email = data.get('email')
     comment = data.get('comment')
     
-    # Input validation
-    if not name or not email or not comment:
-        return jsonify({'message': 'Name, email, and comment are required'}), 400
-    
-    # Data type validation
-    if not isinstance(name, str) or not isinstance(email, str) or not isinstance(comment, str):
-        return jsonify({'message': 'Name, email, and comment must be strings'}), 400
-    
-    # Sanitize inputs to prevent XSS
-    name = sanitize_html(name)
-    email = sanitize_html(email)
-    comment = sanitize_html(comment)
-    
-    # Additional validation
-    if len(name) > 100 or len(email) > 100 or len(comment) > 1000:
-        return jsonify({'message': 'Input too long'}), 400
-    
-    # Basic email validation
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if not re.match(email_pattern, email):
-        return jsonify({'message': 'Invalid email format'}), 400
+    if not name:
+        return jsonify({'message': 'Name is required'}), 400
+    if not email:
+        return jsonify({'message': 'Email is required'}), 400
+    if not comment:
+        return jsonify({'message': 'Comment is required'}), 400
     
     conn = get_db()
     cursor = conn.cursor()
@@ -365,26 +429,74 @@ def create_entry():
 @app.route('/api/guestbook', methods=['GET'])
 @token_required
 def get_all_entries():
-    # Get query parameters with defaults
+    """
+    Get all guestbook entries with pagination and search
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: page
+        type: integer
+        default: 1
+        description: Page number
+      - in: query
+        name: limit
+        type: integer
+        default: 10
+        description: Number of entries per page
+      - in: query
+        name: search
+        type: string
+        description: Search term (searches in name, email, and comment)
+    responses:
+      200:
+        description: List of guestbook entries
+        schema:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  comment:
+                    type: string
+                  created_at:
+                    type: string
+            meta:
+              type: object
+              properties:
+                page:
+                  type: integer
+                limit:
+                  type: integer
+                total:
+                  type: integer
+                pages:
+                  type: integer
+      401:
+        description: Unauthorized
+    """
+    # 1. Get query parameters with defaults
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
     search = request.args.get('search', None, type=str)
 
-    # Sanitize search input to prevent SQL injection
-    if search:
-        search = sanitize_html(search)
-        # Additional validation for SQL injection patterns
-        dangerous_patterns = [r"[';\-\-]", r"\bOR\b", r"\bUNION\b", r"\bSELECT\b", r"\bDROP\b"]
-        for pattern in dangerous_patterns:
-            if re.search(pattern, search, re.IGNORECASE):
-                return jsonify({'message': 'Invalid search query'}), 400
-
-    # Calculate offset for SQL
+    # 2. Calculate offset for SQL
     offset = (page - 1) * limit
 
     conn = get_db()
 
-    # Build query parts based on search
+    # 3. Build query parts based on search
     base_query = 'FROM guestbook'
     where_clause = ''
     params = []
@@ -393,17 +505,17 @@ def get_all_entries():
         search_term = f'%{search}%'
         params.extend([search_term, search_term, search_term])
 
-    # Fetch total count with filter
+    # 4. Fetch total count with filter
     count_query = f'SELECT COUNT(*) {base_query}{where_clause}'
     total_count = conn.execute(count_query, params).fetchone()[0]
 
-    # Fetch specific slice of data with filter
+    # 5. Fetch specific slice of data with filter
     data_query = f'SELECT * {base_query}{where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?'
     query_params = params + [limit, offset]
     entries = conn.execute(data_query, query_params).fetchall()
     conn.close()
     
-    # Return data AND metadata
+    # 6. Return data AND metadata
     return jsonify({
         'data': [dict(entry) for entry in entries],
         'meta': {
@@ -417,6 +529,40 @@ def get_all_entries():
 @app.route('/api/guestbook/<int:user_id>', methods=['GET'])
 @token_required
 def get_entry(user_id):
+    """
+    Get a single guestbook entry by ID
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+        description: The entry ID
+    responses:
+      200:
+        description: Guestbook entry found
+        schema:
+          type: object
+          properties:
+            userId:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+            comment:
+              type: string
+            created_at:
+              type: string
+      404:
+        description: Entry not found
+      401:
+        description: Unauthorized
+    """
     conn = get_db()
     entry = conn.execute('SELECT * FROM guestbook WHERE userId = ?', (user_id,)).fetchone()
     conn.close()
@@ -428,41 +574,72 @@ def get_entry(user_id):
 @app.route('/api/guestbook/<int:user_id>', methods=['PUT'])
 @token_required
 def update_entry(user_id):
-    try:
-        data = request.get_json(force=True)
-        if not data:
-            return jsonify({'message': 'Invalid JSON payload'}), 400
-            
-        # Validate JSON structure
-        is_valid, message = validate_json_payload(data)
-        if not is_valid:
-            return jsonify({'message': message}), 400
-            
-    except (json.JSONDecodeError, Exception) as e:
-        app.logger.warning(f"Invalid JSON in update entry request: {str(e)}")
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
+    """
+    Update a guestbook entry
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+        description: The entry ID to update
+      - in: body
+        name: entry
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+            - email
+            - comment
+          properties:
+            name:
+              type: string
+              example: "Jane Doe"
+            email:
+              type: string
+              example: "jane@example.com"
+            comment:
+              type: string
+              example: "Updated comment"
+    responses:
+      200:
+        description: Entry updated successfully
+        schema:
+          type: object
+          properties:
+            userId:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+            comment:
+              type: string
+            created_at:
+              type: string
+      400:
+        description: Bad request
+      404:
+        description: Entry not found
+      401:
+        description: Unauthorized
+    """
+    data = request.get_json()
     name = data.get('name')
     email = data.get('email')
     comment = data.get('comment')
     
-    # Input validation
-    if not name or not email or not comment:
-        return jsonify({'message': 'Name, email, and comment are required'}), 400
-    
-    # Sanitize inputs to prevent XSS
-    name = sanitize_html(name)
-    email = sanitize_html(email)
-    comment = sanitize_html(comment)
-    
-    # Additional validation
-    if len(name) > 100 or len(email) > 100 or len(comment) > 1000:
-        return jsonify({'message': 'Input too long'}), 400
-    
-    # Basic email validation
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if not re.match(email_pattern, email):
-        return jsonify({'message': 'Invalid email format'}), 400
+    if not name:
+        return jsonify({'message': 'Name is required'}), 400
+    if not email:
+        return jsonify({'message': 'Email is required'}), 400
+    if not comment:
+        return jsonify({'message': 'Comment is required'}), 400
     
     conn = get_db()
     conn.execute('UPDATE guestbook SET name = ?, email = ?, comment = ? WHERE userId = ?', 
@@ -478,6 +655,33 @@ def update_entry(user_id):
 @app.route('/api/guestbook/<int:user_id>', methods=['DELETE'])
 @token_required
 def delete_entry(user_id):
+    """
+    Delete a guestbook entry
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+        description: The entry ID to delete
+    responses:
+      200:
+        description: Entry deleted successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Entry deleted successfully"
+      404:
+        description: Entry not found
+      401:
+        description: Unauthorized
+    """
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM guestbook WHERE userId = ?', (user_id,))
@@ -492,20 +696,45 @@ def delete_entry(user_id):
 @app.route('/api/guestbook/bulk', methods=['DELETE'])
 @token_required
 def bulk_delete_entries():
-    try:
-        data = request.get_json(force=True)
-        if not data:
-            return jsonify({'message': 'Invalid JSON payload'}), 400
-            
-        # Validate JSON structure
-        is_valid, message = validate_json_payload(data)
-        if not is_valid:
-            return jsonify({'message': message}), 400
-            
-    except (json.JSONDecodeError, Exception) as e:
-        app.logger.warning(f"Invalid JSON in bulk delete request: {str(e)}")
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
+    """
+    Delete multiple guestbook entries
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: ids
+        required: true
+        schema:
+          type: object
+          required:
+            - ids
+          properties:
+            ids:
+              type: array
+              items:
+                type: integer
+              example: [1, 2, 3]
+    responses:
+      200:
+        description: Entries deleted successfully
+        schema:
+          type: object
+          properties:
+            deleted:
+              type: integer
+              example: 3
+            message:
+              type: string
+              example: "3 entries deleted successfully"
+      400:
+        description: Bad request - IDs array required
+      401:
+        description: Unauthorized
+    """
+    data = request.get_json()
     ids = data.get('ids', [])
     
     if not ids or not isinstance(ids, list):
@@ -524,6 +753,39 @@ def bulk_delete_entries():
 @app.route('/api/guestbook/cleanup', methods=['DELETE'])
 @token_required
 def cleanup_all_entries():
+    """
+    Delete ALL guestbook entries (cleanup database)
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: test_mode
+        type: boolean
+        default: false
+        description: Whether to cleanup test database (true) or production database (false)
+    responses:
+      200:
+        description: All entries deleted successfully
+        schema:
+          type: object
+          properties:
+            deleted:
+              type: integer
+              example: 25
+            message:
+              type: string
+              example: "25 entries deleted successfully"
+            database:
+              type: string
+              example: "production"
+      401:
+        description: Unauthorized
+      500:
+        description: Database error
+    """
     test_mode = request.args.get('test_mode', 'false').lower() == 'true'
     
     try:
@@ -562,22 +824,48 @@ def cleanup_all_entries():
     except Exception as e:
         app.logger.error(f"Cleanup failed: {str(e)}")
         return jsonify({'message': f'Cleanup failed: {str(e)}'}), 500
+
 @app.route('/api/guestbook/import', methods=['POST'])
 @token_required
 def import_excel():
+    """
+    Import guestbook entries from Excel file
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    consumes:
+      - multipart/form-data
+    parameters:
+      - in: formData
+        name: file
+        type: file
+        required: true
+        description: Excel file with columns 'name', 'email', and optionally 'comment'
+    responses:
+      200:
+        description: Entries imported successfully
+        schema:
+          type: object
+          properties:
+            imported:
+              type: integer
+              example: 5
+            message:
+              type: string
+              example: "5 entries imported successfully"
+      400:
+        description: Bad request - invalid file or format
+      401:
+        description: Unauthorized
+    """
     if 'file' not in request.files:
         return jsonify({'message': 'No file provided'}), 400
     
     file = request.files['file']
     if file.filename == '':
         return jsonify({'message': 'No file selected'}), 400
-    
-    # Validate filename for security
-    is_valid, result = validate_filename(file.filename)
-    if not is_valid:
-        return jsonify({'message': result}), 400
-    
-    secure_name = result
     
     try:
         df = pd.read_excel(file)
@@ -590,9 +878,9 @@ def import_excel():
         imported = 0
         
         for _, row in df.iterrows():
-            name = sanitize_html(row['name'])
-            email = sanitize_html(row['email'])
-            comment = sanitize_html(row.get('comment', ''))
+            name = row['name']
+            email = row['email']
+            comment = row.get('comment', '')
             cursor.execute('INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)', 
                           (name, email, comment))
             imported += 1

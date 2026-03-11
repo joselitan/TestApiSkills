@@ -42,22 +42,22 @@ def test_create_entry(auth_token):
         "email": "emelie@example.com",
         "comment": "Helping my mom"
     }
-    print(f"▶️  POST /api/guestbook")
+    print(f"POST /api/guestbook")
     print(f"    Payload: {json.dumps(payload, indent=2)}")
 
     response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
     
-    print(f"◀️  Response Status Code: {response.status_code}")
+    print(f"Response Status Code: {response.status_code}")
     print(f"    Response JSON: {json.dumps(response.json(), indent=2)}")
     assert response.status_code == 201
     data = response.json()
     
-    print("🔎 Verifying response content...")
+    print("Verifying response content...")
     assert data['name'] == "Emelie User"
     assert data['email'] == "emelie@example.com"
     assert data['comment'] == "Helping my mom"
     assert 'userId' in data
-    print(f"✅ Entry created with ID: {data['userId']}")
+    print(f"Entry created with ID: {data['userId']}")
 
 def test_read_all_entries(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -88,26 +88,26 @@ def test_read_all_with_search(auth_token):
     create_resp1 = requests.post(f"{BASE_URL}/api/guestbook", json=payload1, headers=headers)
     assert create_resp1.status_code == 201
     entry_id1 = create_resp1.json()['userId']
-    print(f"✅ Created entry 1 with ID: {entry_id1}")
+    print(f"Created entry 1 with ID: {entry_id1}")
 
     create_resp2 = requests.post(f"{BASE_URL}/api/guestbook", json=payload2, headers=headers)
     assert create_resp2.status_code == 201
     entry_id2 = create_resp2.json()['userId']
-    print(f"✅ Created entry 2 with ID: {entry_id2}")
+    print(f"Created entry 2 with ID: {entry_id2}")
 
     search_term = "XYZ_UNIQUE"
-    print(f"▶️  GET /api/guestbook?search={search_term}")
+    print(f"GET /api/guestbook?search={search_term}")
     response = requests.get(f"{BASE_URL}/api/guestbook?search={search_term}", headers=headers)
     
     assert response.status_code == 200
     data = response.json()
-    print(f"◀️  Response JSON: {json.dumps(data, indent=2)}")
+    print(f"Response JSON: {json.dumps(data, indent=2)}")
     
-    print("🔎 Verifying search results...")
+    print("Verifying search results...")
     assert len(data['data']) == 1, "Should only find one entry"
     assert data['data'][0]['name'] == "Search Test User One"
     assert data['meta']['total'] == 1, "Metadata total should be 1"
-    print("✅ Search verification successful")
+    print("Search verification successful")
 
 def test_read_single_entry(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -222,12 +222,12 @@ def test_zzz_cleanup_all_test_data(auth_token):
         entries = data.get('data', [])
         
         if entries:
-            print(f"🧹 Found {len(entries)} entries to clean up")
+            print(f"Found {len(entries)} entries to clean up")
             for entry in entries:
                 entry_id = entry['userId']
                 delete_resp = requests.delete(f"{BASE_URL}/api/guestbook/{entry_id}", headers=headers)
                 if delete_resp.status_code == 200:
-                    print(f"   ✅ Deleted entry ID: {entry_id}")
-            print("✅ Cleanup completed - Database is clean")
+                    print(f"   Deleted entry ID: {entry_id}")
+            print("Cleanup completed - Database is clean")
         else:
-            print("✅ No entries to clean up")
+            print("No entries to clean up")

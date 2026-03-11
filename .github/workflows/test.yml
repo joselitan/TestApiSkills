@@ -37,10 +37,16 @@ jobs:
         python src/app.py &
         sleep 5
 
-    - name: Run tests
+    - name: Run security tests
       run: | 
-        pytest tests/api/test_guestbook_api.py -s -v
-        pytest tests/api/test_api_contract.py -s -v
-        pytest tests/ui -s -v
+        pytest tests/security -s -v   
+
+    - name: Run api tests
+      run: | 
+        pytest tests/api -s -v
+    
+    - name: Run ui tests
+      run: | 
+         pytest tests/ui -s -v
 
 

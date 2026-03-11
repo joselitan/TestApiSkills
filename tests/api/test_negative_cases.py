@@ -121,7 +121,7 @@ def test_sql_injection_in_search(auth_token):
     """Test SQL injection in search parameter"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     response = requests.get(f"{BASE_URL}/api/guestbook?search=' OR '1'='1", headers=headers)
-    assert response.status_code == 200
+    assert response.status_code == 400, "Should reject SQL injection in search"
 
 # XSS Tests
 @allure.feature('Security')

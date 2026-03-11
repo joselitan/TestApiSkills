@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fas 3: Security Testing - Implementation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Fas 3: Security Testing</h1>
+            <p class="subtitle">Komplett Implementation Guide</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: ✅ KLAR | Datum: 2026-03-11</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="success-box">
+                    <h3>✅ Fas 3 Genomförd!</h3>
+                    <p>Omfattande säkerhetstestning med OWASP Top 10 coverage, automated scanning och penetration testing. 53 security test cases implementerade.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📦</span> Installerade Dependencies</h2>
+                <div class="code-block">
+                    <code>
+bandit>=1.7.0<br>
+safety>=3.0.0<br>
+flask-talisman>=1.1.0<br>
+flask-limiter>=3.5.0
+                    </code>
+                </div>
+                <div class="description">
+                    <strong>Installation:</strong>
+                    <div class="code-block">
+                        <code>pip install -r requirements.txt</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📁</span> Filstruktur</h2>
+                <div class="code-block">
+                    <code>
+tests/<br>
+└── security/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_injection.py           # 15 injection tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_authentication.py      # 8 auth tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_authorization.py       # 8 access control tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_input_validation.py    # 8 input validation tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_security_headers.py    # 8 header tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── test_penetration.py         # 6 penetration tests<br>
+<br>
+scripts/<br>
+└── security/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── security_scan.py            # Automated scanning<br>
+<br>
+src/<br>
+└── app.py                           # Security headers implemented<br>
+<br>
+docs/<br>
+├── implementation/<br>
+│   └── FAS3_IMPLEMENTATION.md<br>
+└── guides/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── SECURITY_GUIDE.md
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 3.1 OWASP Top 10 Testing</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>A01 - Broken Access Control:</strong> 8 test cases</li>
+                            <li>✅ <strong>A03 - Injection:</strong> 15 test cases (SQL, XSS, Command)</li>
+                            <li>✅ <strong>A07 - Authentication Failures:</strong> 8 test cases</li>
+                            <li>✅ <strong>A08 - Data Integrity Failures:</strong> 8 test cases</li>
+                            <li>✅ <strong>Security Headers & Best Practices:</strong> 8 test cases</li>
+                        </ul>
+                    </div>
+                    <h3>Test Categories</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Injection Testing:</strong> SQL injection, XSS, Command injection, NoSQL, LDAP</li>
+                            <li><strong>Access Control:</strong> Unauthorized access, IDOR, Privilege escalation, Path traversal</li>
+                            <li><strong>Authentication:</strong> Brute force, JWT security, Session management, Account enumeration</li>
+                            <li><strong>Input Validation:</strong> Oversized payloads, Invalid data types, Special characters</li>
+                            <li><strong>Security Headers:</strong> CSP, HSTS, X-Frame-Options, Information disclosure</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Alla security tester<br>
+pytest tests/security/ -v<br>
+<br>
+# Specifika kategorier<br>
+pytest -m security -v<br>
+<br>
+# Med Allure rapportering<br>
+pytest tests/security/ --alluredir=reports/allure-results
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 3.2 Automated Security Scanning</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Bandit:</strong> Python static analysis security scanner</li>
+                            <li>✅ <strong>Safety:</strong> Dependency vulnerability scanner</li>
+                            <li>✅ <strong>Automated Script:</strong> Komplett security scanning pipeline</li>
+                            <li>✅ <strong>Report Generation:</strong> JSON och HTML rapporter</li>
+                        </ul>
+                    </div>
+                    <h3>Scanning Tools</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Bandit:</strong> Hittar säkerhetsproblem i Python kod</li>
+                            <li><strong>Safety:</strong> Identifierar sårbara dependencies</li>
+                            <li><strong>Security Test Suite:</strong> 53 manuella security tester</li>
+                            <li><strong>Summary Generator:</strong> Aggregerad säkerhetsstatus</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Komplett security scan<br>
+python scripts/security/security_scan.py<br>
+<br>
+# Endast Bandit<br>
+bandit -r . -f json -o reports/bandit_report.json<br>
+<br>
+# Endast Safety<br>
+safety check --json --output reports/safety_report.json
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 3.3 Penetration Testing Scenarios</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Advanced Brute Force:</strong> Simulerar sofistikerade brute force attacker</li>
+                            <li>✅ <strong>JWT Token Manipulation:</strong> Algorithm confusion, payload manipulation</li>
+                            <li>✅ <strong>Advanced IDOR:</strong> ID enumeration, cross-method IDOR</li>
+                            <li>✅ <strong>Mass Assignment:</strong> Extra fields injection, privilege escalation</li>
+                            <li>✅ <strong>File Upload Attacks:</strong> Malicious file types, web shells</li>
+                            <li>✅ <strong>CORS Attacks:</strong> Cross-origin request simulation</li>
+                        </ul>
+                    </div>
+                    <h3>Attack Scenarios</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Brute Force:</strong> Password guessing med rate limiting test</li>
+                            <li><strong>Token Manipulation:</strong> JWT algorithm confusion, signature bypass</li>
+                            <li><strong>IDOR:</strong> Sequential ID enumeration, unauthorized access</li>
+                            <li><strong>Mass Assignment:</strong> Admin field injection, privilege escalation</li>
+                            <li><strong>File Upload:</strong> Web shells, executable files, archive bombs</li>
+                            <li><strong>CORS:</strong> Malicious origin testing, credential theft</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Penetration tester<br>
+pytest tests/security/test_penetration.py -v<br>
+<br>
+# Med detaljerad output<br>
+pytest tests/security/test_penetration.py -v -s
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 3.4 Security Headers & Best Practices</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Essential Headers:</strong> 7 kritiska security headers</li>
+                            <li>✅ <strong>CSP Implementation:</strong> Content Security Policy</li>
+                            <li>✅ <strong>HSTS:</strong> HTTP Strict Transport Security</li>
+                            <li>✅ <strong>Clickjacking Protection:</strong> X-Frame-Options</li>
+                            <li>✅ <strong>MIME Protection:</strong> X-Content-Type-Options</li>
+                            <li>✅ <strong>API Security:</strong> Cache-Control för sensitive data</li>
+                        </ul>
+                    </div>
+                    <h3>Implementerade Headers</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>X-Content-Type-Options:</strong> nosniff</li>
+                            <li><strong>X-Frame-Options:</strong> DENY</li>
+                            <li><strong>X-XSS-Protection:</strong> 1; mode=block</li>
+                            <li><strong>Strict-Transport-Security:</strong> max-age=31536000</li>
+                            <li><strong>Content-Security-Policy:</strong> Strict CSP policy</li>
+                            <li><strong>Referrer-Policy:</strong> strict-origin-when-cross-origin</li>
+                            <li><strong>Cache-Control:</strong> no-store för API endpoints</li>
+                        </ul>
+                    </div>
+                    <h3>Flask Implementation</h3>
+                    <div class="code-block">
+                        <code>
+# Security headers middleware i app.py<br>
+def add_security_headers(response):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response.headers['X-Content-Type-Options'] = 'nosniff'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response.headers['X-Frame-Options'] = 'DENY'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response.headers['X-XSS-Protection'] = '1; mode=block'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... och fler headers
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Hur Man Kör Security Tests</h2>
+                <div class="phase-item">
+                    <h3>Alla Security Tester</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/security/ -v
+                        </code>
+                    </div>
+                    <h3>Med Rapporter</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/security/ --html=reports/security_report.html --alluredir=reports/allure-results
+                        </code>
+                    </div>
+                    <h3>Specifika Test Kategorier</h3>
+                    <div class="code-block">
+                        <code>
+# Injection tester<br>
+pytest tests/security/test_injection.py -v<br>
+<br>
+# Authentication tester<br>
+pytest tests/security/test_authentication.py -v<br>
+<br>
+# Penetration tester<br>
+pytest tests/security/test_penetration.py -v
+                        </code>
+                    </div>
+                    <h3>Automated Security Scan</h3>
+                    <div class="code-block">
+                        <code>
+# Komplett security scanning<br>
+python scripts/security/security_scan.py<br>
+<br>
+# Visa security summary<br>
+type reports\security_summary.json
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔍</span> Upptäckta Säkerhetsproblem</h2>
+                <div class="warning-box">
+                    <h3>Identifierade Vulnerabilities</h3>
+                    <ul>
+                        <li><strong>Weak Default Password:</strong> Admin använder "password123"</li>
+                        <li><strong>No Rate Limiting:</strong> Brute force attacks möjliga</li>
+                        <li><strong>Information Disclosure:</strong> Error messages kan läcka information</li>
+                        <li><strong>Missing Input Validation:</strong> Vissa fält valideras inte tillräckligt</li>
+                        <li><strong>CORS Configuration:</strong> Kan behöva striktare policies</li>
+                        <li><strong>No MFA:</strong> Multi-factor authentication saknas</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>Säkerhetsförbättringar Implementerade</h3>
+                    <ul>
+                        <li>✅ Security headers för alla responses</li>
+                        <li>✅ Förbättrad error handling utan information leakage</li>
+                        <li>✅ Input validation för kritiska fält</li>
+                        <li>✅ JWT token security validation</li>
+                        <li>✅ Comprehensive security test coverage</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> Resultat</h2>
+                <div class="info-box">
+                    <h3>Sammanfattning</h3>
+                    <ul>
+                        <li>✅ 53 security test cases implementerade</li>
+                        <li>✅ OWASP Top 10 coverage (A01, A03, A07, A08)</li>
+                        <li>✅ Automated security scanning (Bandit + Safety)</li>
+                        <li>✅ 7 essential security headers implementerade</li>
+                        <li>✅ Penetration testing scenarios</li>
+                        <li>✅ Comprehensive security documentation</li>
+                        <li>✅ CI/CD integration ready</li>
+                    </ul>
+                </div>
+                <div class="phase-item">
+                    <h3>Test Coverage</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Injection Testing:</strong> 15 test cases</li>
+                            <li><strong>Access Control:</strong> 8 test cases</li>
+                            <li><strong>Authentication:</strong> 8 test cases</li>
+                            <li><strong>Input Validation:</strong> 8 test cases</li>
+                            <li><strong>Security Headers:</strong> 8 test cases</li>
+                            <li><strong>Penetration Testing:</strong> 6 test cases</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔧</span> CI/CD Integration</h2>
+                <div class="phase-item">
+                    <h3>GitHub Actions</h3>
+                    <div class="code-block">
+                        <code>
+- name: Run Security Tests<br>
+&nbsp;&nbsp;run: |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pytest tests/security/ -v<br>
+&nbsp;&nbsp;&nbsp;&nbsp;python scripts/security/security_scan.py<br>
+<br>
+- name: Upload Security Reports<br>
+&nbsp;&nbsp;uses: actions/upload-artifact@v3<br>
+&nbsp;&nbsp;with:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name: security-reports<br>
+&nbsp;&nbsp;&nbsp;&nbsp;path: reports/
+                        </code>
+                    </div>
+                    <h3>Security Gates</h3>
+                    <div class="description">
+                        <ul>
+                            <li>Security tests måste passa för deployment</li>
+                            <li>Bandit scan får inte ha HIGH severity issues</li>
+                            <li>Safety scan får inte ha kritiska vulnerabilities</li>
+                            <li>Automated security summary generation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📚</span> Dokumentation</h2>
+                <div class="description">
+                    <ul>
+                        <li><code>docs/implementation/FAS3_IMPLEMENTATION.md</code> - Detaljerad implementation guide</li>
+                        <li><code>docs/guides/SECURITY_GUIDE.md</code> - Security best practices</li>
+                        <li><code>reports/security_summary.json</code> - Automated scan results</li>
+                        <li><code>reports/bandit_report.json</code> - Static analysis results</li>
+                        <li><code>reports/safety_report.json</code> - Dependency vulnerabilities</li>
+                        <li>Allure reports för detaljerade test results</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔮</span> Nästa Steg</h2>
+                <div class="phase-item">
+                    <h3>Rekommenderade Förbättringar</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Rate Limiting:</strong> Implementera Flask-Limiter för brute force protection</li>
+                            <li><strong>Input Sanitization:</strong> Lägg till HTML/XSS sanitization</li>
+                            <li><strong>Password Policies:</strong> Stärk password requirements</li>
+                            <li><strong>MFA Implementation:</strong> Multi-factor authentication</li>
+                            <li><strong>Security Monitoring:</strong> Real-time security event monitoring</li>
+                            <li><strong>WAF Integration:</strong> Web Application Firewall</li>
+                        </ul>
+                    </div>
+                    <h3>Framtida Security Features</h3>
+                    <div class="description">
+                        <ul>
+                            <li>OWASP ZAP integration för dynamic scanning</li>
+                            <li>Container security scanning med Trivy</li>
+                            <li>API security testing med OWASP API Security Top 10</li>
+                            <li>Security chaos engineering</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills QA Platform</p>
+            <p>Fas 3: Security Testing ✅ KLAR</p>
+        </footer>
+    </div>
+</body>
+</html>

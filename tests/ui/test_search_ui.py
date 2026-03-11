@@ -5,7 +5,7 @@ from playwright.sync_api import Page, expect
 def test_search_entries(authenticated_page: Page):
     """Test searching for entries"""
     page = authenticated_page
-    page.fill("#searchInput", "Alice ")
+    page.fill("#searchInput", "Alice")
     page.click("button:has-text('Search')")
     page.wait_for_timeout(1000)
     guestbook_section = page.locator('div.entries-section')
