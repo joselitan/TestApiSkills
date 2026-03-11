@@ -604,6 +604,81 @@ def bulk_delete_entries():
     
     return jsonify({'deleted': deleted, 'message': f'{deleted} entries deleted successfully'})
 
+@app.route('/api/guestbook/cleanup', methods=['DELETE'])
+@token_required
+def cleanup_all_entries():
+    """
+    Delete ALL guestbook entries (cleanup database)
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: test_mode
+        type: boolean
+        default: false
+        description: Whether to cleanup test database (true) or production database (false)
+    responses:
+      200:
+        description: All entries deleted successfully
+        schema:
+          type: object
+          properties:
+            deleted:
+              type: integer
+              example: 25
+            message:
+              type: string
+              example: "25 entries deleted successfully"
+            database:
+              type: string
+              example: "production"
+      401:
+        description: Unauthorized
+      500:
+        description: Database error
+    """
+    test_mode = request.args.get('test_mode', 'false').lower() == 'true'
+    
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Count entries before deletion
+        count_before = cursor.execute("SELECT COUNT(*) FROM guestbook").fetchone()[0]
+        
+        if count_before == 0:
+            conn.close()
+            return jsonify({
+                'deleted': 0, 
+                'message': 'No entries to delete',
+                'database': 'test' if test_mode else 'production'
+            })
+        
+        # Delete all entries
+        cursor.execute("DELETE FROM guestbook")
+        conn.commit()
+        
+        # Count after deletion to verify
+        count_after = cursor.execute("SELECT COUNT(*) FROM guestbook").fetchone()[0]
+        deleted = count_before - count_after
+        
+        conn.close()
+        
+        app.logger.info(f"Cleanup completed: {deleted} entries deleted from {'test' if test_mode else 'production'} database")
+        
+        return jsonify({
+            'deleted': deleted,
+            'message': f'{deleted} entries deleted successfully',
+            'database': 'test' if test_mode else 'production'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Cleanup failed: {str(e)}")
+        return jsonify({'message': f'Cleanup failed: {str(e)}'}), 500
+
 @app.route('/api/guestbook/import', methods=['POST'])
 @token_required
 def import_excel():

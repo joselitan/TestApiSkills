@@ -5,10 +5,12 @@ from playwright.sync_api import Page, expect
 def test_search_entries(authenticated_page: Page):
     """Test searching for entries"""
     page = authenticated_page
-    page.fill("#searchInput", "Alice")
+    page.fill("#searchInput", "Alice ")
     page.click("button:has-text('Search')")
     page.wait_for_timeout(1000)
-    expect(page.locator("text=Alice")).to_be_visible()
+    guestbook_section = page.locator('div.entries-section')
+    guestbook_section.scroll_into_view_if_needed()
+    expect(page.locator("text=Alice Smith")).to_be_visible()
 
 def test_clear_search(authenticated_page: Page):
     """Test clearing search results"""

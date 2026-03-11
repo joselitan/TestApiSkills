@@ -9,6 +9,24 @@ if (loginForm) {
 
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('error');
+        
+        // Clear previous errors
+        errorDiv.textContent = '';
+        
+        // Validate required fields
+        if (!username && !password) {
+            errorDiv.textContent = 'Please enter both username and password';
+            return;
+        }
+        if (!username) {
+            errorDiv.textContent = 'Please enter your username';
+            return;
+        }
+        if (!password) {
+            errorDiv.textContent = 'Please enter your password';
+            return;
+        }
         
         try {
             console.log('📡 Sending request to /api/login...');
@@ -26,11 +44,11 @@ if (loginForm) {
                 console.log('🎉 Login successful, redirecting...');
                 window.location.href = '/guestbook';
             } else {
-                document.getElementById('error').textContent = 'Invalid credentials';
+                errorDiv.textContent = 'Invalid credentials';
             }
         } catch (error) {
             console.error('❌ Error during login:', error);
-            document.getElementById('error').textContent = 'Login failed';
+            errorDiv.textContent = 'Login failed';
         }
     });
 } else {

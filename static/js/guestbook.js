@@ -58,9 +58,20 @@ async function loadEntries(page = 1, search = '') {
         
         // Update pagination controls
         const pageInfo = document.getElementById('pageInfo');
+        const prevBtn = document.querySelector('button[onclick="prevPage()"]');
+        const nextBtn = document.querySelector('button[onclick="nextPage()"]');
+        
         if (pageInfo && result.meta) {
             pageInfo.innerText = `Page ${result.meta.page} of ${result.meta.pages} (${result.meta.total} total)`;
             currentPage = result.meta.page;
+            
+            // Enable/disable pagination buttons
+            if (prevBtn) {
+                prevBtn.disabled = currentPage <= 1;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = currentPage >= result.meta.pages;
+            }
         }
         
         console.log('✅ Table updated successfully');

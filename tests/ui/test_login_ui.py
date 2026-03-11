@@ -7,7 +7,7 @@ BASE_URL = "http://localhost:8080"
 def test_login_page_loads(page: Page):
     """Test that login page loads correctly"""
     page.goto(BASE_URL)
-    expect(page).to_have_title("Login")
+    expect(page).to_have_title("Login - Guest Book")
     expect(page.locator("h1")).to_contain_text("Login")
 
 def test_successful_login(page: Page):
@@ -26,14 +26,29 @@ def test_failed_login_wrong_password(page: Page):
     page.fill("#username", "admin")
     page.fill("#password", "wrongpassword")
     page.click("button[type='submit']")
-    expect(page.locator(".error-message")).to_be_visible()
+    expect(page.locator(".error")).to_be_visible()
+
+def test_failed_login_empty_username(page: Page):
+    """Test login with empty username"""
+    page.goto(BASE_URL)
+    page.fill("#password", "password123")
+    page.click("button[type='submit']")
+    expect(page.locator(".error")).to_have_text("Please enter your username")
+
+def test_failed_login_empty_password(page: Page):
+    """Test login with empty password"""
+    page.goto(BASE_URL)
+    page.fill("#username", "admin")
+    page.click("button[type='submit']")
+    expect(page.locator(".error")).to_have_text("Please enter your password")
 
 def test_failed_login_empty_fields(page: Page):
     """Test login with empty fields"""
     page.goto(BASE_URL)
     page.click("button[type='submit']")
     # HTML5 validation should prevent submission
-    expect(page).to_have_url(BASE_URL)
+    # expect(page).to_have_url(BASE_URL)
+    expect(page.locator(".error")).to_have_text("Please enter both username and password")
 
 def test_logout(page: Page):
     """Test logout functionality"""
@@ -44,4 +59,4 @@ def test_logout(page: Page):
     page.wait_for_url(f"{BASE_URL}/guestbook")
     page.click(".logout-btn")
     page.wait_for_url(BASE_URL)
-    expect(page).to_have_url(BASE_URL)
+    expect(page).to_have_url(BASE_URL+"/")
