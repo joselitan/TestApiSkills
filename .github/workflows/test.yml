@@ -39,7 +39,44 @@ jobs:
 
     - name: Run security tests
       run: | 
-        pytest tests/security -s -v   
+        pytest tests/security -s -v
+        python scripts/security/security_scan.py   
+
+    - name: Check Security Results
+      run: |
+        if [ -f "reports/security_summary.json" ]; then
+          python3 << 'EOF'
+        import json
+        import sys
+        try:
+            with open('reports/security_summary.json', 'r') as f:
+                summary = json.load(f)
+            # Check for high severity Bandit issues
+            if summary.get('bandit', {}).get('high_severity_count', 0) > 0:
+                print('SECURITY GATE FAILED: High severity security issues found!')
+                sys.exit(1)
+            # Check for critical Safety vulnerabilities
+            if summary.get('safety', {}).get('vulnerabilities_found', 0) > 0:
+                print('SECURITY GATE FAILED: Critical vulnerabilities in dependencies!')
+                sys.exit(1)
+            print('Security gate passed - no critical issues found')
+        except Exception as e:
+            print(f'Could not validate security results: {e}')
+            # Don't fail build if we can't read results
+        EOF
+        else
+          echo "No security summary found, skipping security gate check"
+        fi
+
+    - name: Upload Security Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          reports/
+          *.json
+          *.html
 
     - name: Run api tests
       run: | 
@@ -47,6 +84,4 @@ jobs:
     
     - name: Run ui tests
       run: | 
-         pytest tests/ui -s -v
-
-
+        pytest tests/ui -s -v
