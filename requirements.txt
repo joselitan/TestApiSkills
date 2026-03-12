@@ -21,3 +21,8 @@ bandit>=1.7.0
 safety>=3.0.0
 flask-talisman>=1.1.0
 flask-limiter>=3.5.0
+
+# Performance Testing Dependencies (Fas 4)
+psutil>=5.9.0
+pytest-benchmark>=4.0.0
+memory-profiler>=0.61.0

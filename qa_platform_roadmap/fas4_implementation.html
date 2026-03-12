@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fas 4: Performance Testing - Implementation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Fas 4: Performance Testing</h1>
+            <p class="subtitle">Komplett Implementation Guide</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: ✅ KLAR | Datum: 2026-03-11</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="success-box">
+                    <h3>✅ Fas 4 Genomförd!</h3>
+                    <p>Omfattande performance testing med 19 test cases, load testing, stress testing, volume testing, spike testing och endurance testing. Performance monitoring och CI/CD integration implementerad.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📦</span> Installerade Dependencies</h2>
+                <div class="code-block">
+                    <code>
+locust>=2.20.0<br>
+psutil>=5.9.0<br>
+pytest-benchmark>=4.0.0<br>
+memory-profiler>=0.61.0
+                    </code>
+                </div>
+                <div class="description">
+                    <strong>Installation:</strong>
+                    <div class="code-block">
+                        <code>pip install -r requirements.txt</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📁</span> Filstruktur</h2>
+                <div class="code-block">
+                    <code>
+tests/<br>
+└── performance/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── locustfile.py               # Existing Locust file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_load_testing.py        # 3 load tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_stress_testing.py      # 4 stress tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_volume_testing.py      # 4 volume tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── test_spike_testing.py       # 4 spike tests<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── test_endurance_testing.py   # 4 endurance tests<br>
+<br>
+scripts/<br>
+└── performance/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── performance_monitor.py      # Monitoring script<br>
+<br>
+reports/<br>
+└── performance/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── performance_report_*.json   # Generated reports
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 4.1 Load Testing</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Concurrent Read Load:</strong> 10 användare, 5 requests var</li>
+                            <li>✅ <strong>Mixed Operations Load:</strong> 8 användare, 70% läsning, 30% skrivning</li>
+                            <li>✅ <strong>Pagination Load:</strong> 5 användare, 10 sidor var</li>
+                        </ul>
+                    </div>
+                    <h3>Test Scenarios</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Concurrent Read:</strong> Simulerar normal användning med samtidiga läsoperationer</li>
+                            <li><strong>Mixed Operations:</strong> Realistisk mix av läs- och skrivoperationer</li>
+                            <li><strong>Pagination:</strong> Testar prestanda för paginerade resultat</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Load testing<br>
+pytest tests/performance/test_load_testing.py -v<br>
+<br>
+# Med detaljerad output<br>
+pytest tests/performance/test_load_testing.py -v -s
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 4.2 Stress Testing</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>High Concurrency Stress:</strong> 50 användare samtidigt</li>
+                            <li>✅ <strong>Rapid Fire Requests:</strong> 100 requests så snabbt som möjligt</li>
+                            <li>✅ <strong>Large Payload Stress:</strong> 10 användare, 5KB payloads</li>
+                            <li>✅ <strong>Recovery Testing:</strong> Stress följt av återhämtningstest</li>
+                        </ul>
+                    </div>
+                    <h3>Stress Scenarios</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>High Concurrency:</strong> Testar systemets gränser med många samtidiga användare</li>
+                            <li><strong>Rapid Fire:</strong> Maximalt antal requests utan paus</li>
+                            <li><strong>Large Payloads:</strong> Testar med stora datamängder per request</li>
+                            <li><strong>Recovery:</strong> Verifierar att systemet återhämtar sig efter stress</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Stress testing<br>
+pytest tests/performance/test_stress_testing.py -v<br>
+<br>
+# Med timeout för långa tester<br>
+pytest tests/performance/test_stress_testing.py -v --timeout=300
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 4.3 Volume Testing</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Large Dataset Retrieval:</strong> 100+ entries, retrieval performance</li>
+                            <li>✅ <strong>Pagination Volume:</strong> Olika sidstorlekar med stora dataset</li>
+                            <li>✅ <strong>Search Performance:</strong> Sökningar i stora datamängder</li>
+                            <li>✅ <strong>Bulk Operations:</strong> Massoperationer, 10-50 entries</li>
+                        </ul>
+                    </div>
+                    <h3>Volume Scenarios</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Large Datasets:</strong> Testar prestanda med stora mängder data</li>
+                            <li><strong>Pagination:</strong> Olika sidstorlekar (10, 25, 50, 100)</li>
+                            <li><strong>Search:</strong> Sökfunktionalitet med stora datasets</li>
+                            <li><strong>Bulk Operations:</strong> Skapande av många entries samtidigt</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Volume testing<br>
+pytest tests/performance/test_volume_testing.py -v<br>
+<br>
+# Med längre timeout för stora datasets<br>
+pytest tests/performance/test_volume_testing.py -v --timeout=600
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 4.4 Spike Testing</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Sudden User Spike:</strong> 1 till 30 användare plötsligt</li>
+                            <li>✅ <strong>Traffic Burst Pattern:</strong> Upprepade belastningstoppar</li>
+                            <li>✅ <strong>Gradual Spike Buildup:</strong> Gradvis ökning till topp</li>
+                            <li>✅ <strong>Mixed Operation Spike:</strong> Blandade operationer under spike</li>
+                        </ul>
+                    </div>
+                    <h3>Spike Scenarios</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Sudden Spike:</strong> Plötslig ökning från normal till hög belastning</li>
+                            <li><strong>Traffic Bursts:</strong> Cykliska belastningstoppar</li>
+                            <li><strong>Gradual Buildup:</strong> Stegvis ökning för att hitta brytpunkt</li>
+                            <li><strong>Mixed Operations:</strong> Realistiska operationer under spike</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Spike testing<br>
+pytest tests/performance/test_spike_testing.py -v<br>
+<br>
+# Med detaljerad spike analys<br>
+pytest tests/performance/test_spike_testing.py -v -s
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 4.5 Endurance Testing</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Sustained Load Endurance:</strong> Långvarig måttlig belastning</li>
+                            <li>✅ <strong>Memory Leak Detection:</strong> Upptäck minnesläckor</li>
+                            <li>✅ <strong>Connection Pool Endurance:</strong> Anslutningspool stabilitet</li>
+                            <li>✅ <strong>Gradual Load Increase:</strong> Stegvis ökande belastning</li>
+                        </ul>
+                    </div>
+                    <h3>Endurance Scenarios</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Sustained Load:</strong> Konstant belastning över längre tid</li>
+                            <li><strong>Memory Leak:</strong> Övervakning av minnesanvändning över tid</li>
+                            <li><strong>Connection Pool:</strong> Stabilitet av databasanslutningar</li>
+                            <li><strong>Gradual Increase:</strong> Långsam ökning för att testa stabilitet</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Endurance testing<br>
+pytest tests/performance/test_endurance_testing.py -v<br>
+<br>
+# Med längre timeout för endurance tester<br>
+pytest tests/performance/test_endurance_testing.py -v --timeout=900
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">✅</span> 4.6 Performance Monitoring</h2>
+                <div class="phase-item">
+                    <h3>Implementerat</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>Real-time Metrics:</strong> Response time, throughput, success rate</li>
+                            <li>✅ <strong>System Monitoring:</strong> CPU, minne, disk användning</li>
+                            <li>✅ <strong>Report Generation:</strong> JSON rapporter med analys</li>
+                            <li>✅ <strong>Performance Analysis:</strong> Automatiska rekommendationer</li>
+                        </ul>
+                    </div>
+                    <h3>Monitoring Features</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Metrics Collection:</strong> Samlar in prestanda-metrics i realtid</li>
+                            <li><strong>System Resources:</strong> Övervakar CPU, minne och disk</li>
+                            <li><strong>Analysis:</strong> Automatisk analys av prestanda-data</li>
+                            <li><strong>Recommendations:</strong> Förslag på förbättringar</li>
+                        </ul>
+                    </div>
+                    <h3>Användning</h3>
+                    <div class="code-block">
+                        <code>
+# Performance monitoring<br>
+python scripts/performance/performance_monitor.py --duration 60 --users 5<br>
+<br>
+# Med custom parametrar<br>
+python scripts/performance/performance_monitor.py --duration 120 --users 10 --requests 20
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Hur Man Kör Performance Tests</h2>
+                <div class="phase-item">
+                    <h3>Alla Performance Tester</h3>
+                    <div class="code-block">
+                        <code>
+pytest tests/performance/ -v
+                        </code>
+                    </div>
+                    <h3>Specifika Test Kategorier</h3>
+                    <div class="code-block">
+                        <code>
+# Load testing<br>
+pytest tests/performance/test_load_testing.py -v<br>
+<br>
+# Stress testing<br>
+pytest tests/performance/test_stress_testing.py -v<br>
+<br>
+# Volume testing<br>
+pytest tests/performance/test_volume_testing.py -v<br>
+<br>
+# Spike testing<br>
+pytest tests/performance/test_spike_testing.py -v<br>
+<br>
+# Endurance testing<br>
+pytest tests/performance/test_endurance_testing.py -v
+                        </code>
+                    </div>
+                    <h3>Med Performance Monitoring</h3>
+                    <div class="code-block">
+                        <code>
+# Starta Flask app först<br>
+python src/app.py &<br>
+<br>
+# Kör performance monitoring<br>
+python scripts/performance/performance_monitor.py --duration 60 --users 5<br>
+<br>
+# Kör Locust load testing<br>
+locust -f tests/performance/locustfile.py --host=http://localhost:5000
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> Performance Thresholds</h2>
+                <div class="phase-item">
+                    <h3>Definierade Gränsvärden</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Load Testing:</strong> < 2.0s average, < 5.0s max, 95%+ success rate</li>
+                            <li><strong>Stress Testing:</strong> 60%+ success rate under extrema förhållanden</li>
+                            <li><strong>Volume Testing:</strong> < 5.0s average, < 10.0s max med stora datasets</li>
+                            <li><strong>Spike Testing:</strong> 70%+ success rate under plötsliga toppar</li>
+                            <li><strong>Endurance Testing:</strong> < 3.0s average, 95%+ success rate över tid</li>
+                        </ul>
+                    </div>
+                    <h3>Throughput Targets</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Minimum:</strong> 5 req/sec</li>
+                            <li><strong>Good:</strong> 10+ req/sec</li>
+                            <li><strong>Excellent:</strong> 20+ req/sec</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📈</span> Performance Metrics</h2>
+                <div class="phase-item">
+                    <h3>Samlade Metrics</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Response Time:</strong> Min, Max, Average, Median, 95th percentile, 99th percentile</li>
+                            <li><strong>Throughput:</strong> Requests per second under olika belastningsscenarier</li>
+                            <li><strong>Success Rate:</strong> Procentandel framgångsrika requests</li>
+                            <li><strong>Error Analysis:</strong> Kategorisering och analys av fel</li>
+                            <li><strong>System Resources:</strong> CPU, minne och disk användning</li>
+                            <li><strong>Concurrency:</strong> Prestanda under samtidiga användare</li>
+                            <li><strong>Scalability:</strong> Systemets förmåga att hantera ökad belastning</li>
+                            <li><strong>Stability:</strong> Prestanda över tid och under stress</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> Resultat</h2>
+                <div class="info-box">
+                    <h3>Sammanfattning</h3>
+                    <ul>
+                        <li>✅ 19 performance test cases implementerade</li>
+                        <li>✅ 5 test kategorier (Load, Stress, Volume, Spike, Endurance)</li>
+                        <li>✅ Performance monitoring script med real-time metrics</li>
+                        <li>✅ System resource monitoring (CPU, minne, disk)</li>
+                        <li>✅ Automated report generation med analys</li>
+                        <li>✅ CI/CD integration i GitHub Actions</li>
+                        <li>✅ Comprehensive performance documentation</li>
+                    </ul>
+                </div>
+                <div class="phase-item">
+                    <h3>Test Coverage</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>Load Testing:</strong> 3 test cases</li>
+                            <li><strong>Stress Testing:</strong> 4 test cases</li>
+                            <li><strong>Volume Testing:</strong> 4 test cases</li>
+                            <li><strong>Spike Testing:</strong> 4 test cases</li>
+                            <li><strong>Endurance Testing:</strong> 4 test cases</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔧</span> CI/CD Integration</h2>
+                <div class="phase-item">
+                    <h3>GitHub Actions</h3>
+                    <div class="code-block">
+                        <code>
+- name: Run performance tests<br>
+&nbsp;&nbsp;run: |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pytest tests/performance/test_load_testing.py -s -v<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pytest tests/performance/test_stress_testing.py -s -v<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pytest tests/performance/test_volume_testing.py -s -v<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pytest tests/performance/test_spike_testing.py -s -v<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pytest tests/performance/test_endurance_testing.py -s -v<br>
+<br>
+- name: Run performance monitoring<br>
+&nbsp;&nbsp;run: |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;python scripts/performance/performance_monitor.py --duration 30 --users 3 --requests 5<br>
+<br>
+- name: Upload Performance Reports<br>
+&nbsp;&nbsp;uses: actions/upload-artifact@v4<br>
+&nbsp;&nbsp;with:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name: performance-reports<br>
+&nbsp;&nbsp;&nbsp;&nbsp;path: |<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reports/performance/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*.json
+                        </code>
+                    </div>
+                    <h3>Performance Gates</h3>
+                    <div class="description">
+                        <ul>
+                            <li>Performance tests måste passa för deployment</li>
+                            <li>Response times måste vara inom definierade gränser</li>
+                            <li>Success rates måste uppfylla minimum krav</li>
+                            <li>Automated performance report generation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📚</span> Dokumentation</h2>
+                <div class="description">
+                    <ul>
+                        <li><code>qa_platform_roadmap/fas4_implementation.html</code> - Denna implementation guide</li>
+                        <li><code>tests/performance/</code> - Alla performance test filer</li>
+                        <li><code>scripts/performance/performance_monitor.py</code> - Monitoring script</li>
+                        <li><code>reports/performance/</code> - Generated performance reports</li>
+                        <li><code>requirements.txt</code> - Performance testing dependencies</li>
+                        <li><code>.github/workflows/test.yml</code> - CI/CD integration</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔮</span> Nästa Steg</h2>
+                <div class="phase-item">
+                    <h3>Fas 5: Advanced Automation & Reporting</h3>
+                    <div class="description">
+                        <p>Nu när performance testing är komplett, är nästa steg att implementera avancerad automation och rapportering för att skapa en komplett QA plattform.</p>
+                        <ul>
+                            <li><strong>Test Management Dashboard:</strong> Central dashboard för alla test-resultat</li>
+                            <li><strong>Advanced CI/CD Pipeline:</strong> Multi-stage pipeline med matrix testing</li>
+                            <li><strong>Automated Test Generation:</strong> AI-powered test case generation</li>
+                            <li><strong>Cross-browser Testing:</strong> Selenium Grid integration</li>
+                            <li><strong>Mobile Testing:</strong> Appium integration för mobile apps</li>
+                            <li><strong>API Contract Testing:</strong> Advanced contract testing med Pact</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererad av Amazon Q Developer | TestApiSkills QA Platform</p>
+            <p>Fas 4: Performance Testing ✅ KLAR</p>
+        </footer>
+    </div>
+</body>
+</html>

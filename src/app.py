@@ -264,6 +264,45 @@ def guestbook_page():
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    """
+    User login endpoint
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: credentials
+        required: true
+        schema:
+          type: object
+          required:
+            - username
+            - password
+          properties:
+            username:
+              type: string
+              example: "admin"
+            password:
+              type: string
+              example: "password123"
+    responses:
+      200:
+        description: Login successful
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      401:
+        description: Invalid credentials
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Invalid credentials"
+    """
     try:
         data = request.get_json(force=True)
         if not data:
@@ -312,6 +351,59 @@ def login():
 @app.route('/api/guestbook', methods=['POST'])
 @token_required
 def create_entry():
+    """
+    Create a new guestbook entry
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: entry
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+            - email
+            - comment
+          properties:
+            name:
+              type: string
+              example: "John Doe"
+            email:
+              type: string
+              example: "john@example.com"
+            comment:
+              type: string
+              example: "Great API!"
+    responses:
+      201:
+        description: Entry created successfully
+        schema:
+          type: object
+          properties:
+            userId:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "John Doe"
+            email:
+              type: string
+              example: "john@example.com"
+            comment:
+              type: string
+              example: "Great API!"
+            created_at:
+              type: string
+              example: "2026-03-06 10:30:00"
+      400:
+        description: Bad request - missing required fields
+      401:
+        description: Unauthorized - invalid or missing token
+    """
     try:
         data = request.get_json(force=True)
         if not data:
@@ -365,6 +457,63 @@ def create_entry():
 @app.route('/api/guestbook', methods=['GET'])
 @token_required
 def get_all_entries():
+    """
+    Get all guestbook entries with pagination and search
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: page
+        type: integer
+        default: 1
+        description: Page number
+      - in: query
+        name: limit
+        type: integer
+        default: 10
+        description: Number of entries per page
+      - in: query
+        name: search
+        type: string
+        description: Search term (searches in name, email, and comment)
+    responses:
+      200:
+        description: List of guestbook entries
+        schema:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  comment:
+                    type: string
+                  created_at:
+                    type: string
+            meta:
+              type: object
+              properties:
+                page:
+                  type: integer
+                limit:
+                  type: integer
+                total:
+                  type: integer
+                pages:
+                  type: integer
+      401:
+        description: Unauthorized
+    """
     # Get query parameters with defaults
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
@@ -417,6 +566,40 @@ def get_all_entries():
 @app.route('/api/guestbook/<int:user_id>', methods=['GET'])
 @token_required
 def get_entry(user_id):
+    """
+    Get a single guestbook entry by ID
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+        description: The entry ID
+    responses:
+      200:
+        description: Guestbook entry found
+        schema:
+          type: object
+          properties:
+            userId:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+            comment:
+              type: string
+            created_at:
+              type: string
+      404:
+        description: Entry not found
+      401:
+        description: Unauthorized
+    """
     conn = get_db()
     entry = conn.execute('SELECT * FROM guestbook WHERE userId = ?', (user_id,)).fetchone()
     conn.close()
@@ -428,6 +611,61 @@ def get_entry(user_id):
 @app.route('/api/guestbook/<int:user_id>', methods=['PUT'])
 @token_required
 def update_entry(user_id):
+    """
+    Update a guestbook entry
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+        description: The entry ID to update
+      - in: body
+        name: entry
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+            - email
+            - comment
+          properties:
+            name:
+              type: string
+              example: "Jane Doe"
+            email:
+              type: string
+              example: "jane@example.com"
+            comment:
+              type: string
+              example: "Updated comment"
+    responses:
+      200:
+        description: Entry updated successfully
+        schema:
+          type: object
+          properties:
+            userId:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+            comment:
+              type: string
+            created_at:
+              type: string
+      400:
+        description: Bad request
+      404:
+        description: Entry not found
+      401:
+        description: Unauthorized
+    """
     try:
         data = request.get_json(force=True)
         if not data:
@@ -478,6 +716,33 @@ def update_entry(user_id):
 @app.route('/api/guestbook/<int:user_id>', methods=['DELETE'])
 @token_required
 def delete_entry(user_id):
+    """
+    Delete a guestbook entry
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+        description: The entry ID to delete
+    responses:
+      200:
+        description: Entry deleted successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Entry deleted successfully"
+      404:
+        description: Entry not found
+      401:
+        description: Unauthorized
+    """
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM guestbook WHERE userId = ?', (user_id,))
@@ -492,6 +757,44 @@ def delete_entry(user_id):
 @app.route('/api/guestbook/bulk', methods=['DELETE'])
 @token_required
 def bulk_delete_entries():
+    """
+    Delete multiple guestbook entries
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: ids
+        required: true
+        schema:
+          type: object
+          required:
+            - ids
+          properties:
+            ids:
+              type: array
+              items:
+                type: integer
+              example: [1, 2, 3]
+    responses:
+      200:
+        description: Entries deleted successfully
+        schema:
+          type: object
+          properties:
+            deleted:
+              type: integer
+              example: 3
+            message:
+              type: string
+              example: "3 entries deleted successfully"
+      400:
+        description: Bad request - IDs array required
+      401:
+        description: Unauthorized
+    """
     try:
         data = request.get_json(force=True)
         if not data:
@@ -524,6 +827,39 @@ def bulk_delete_entries():
 @app.route('/api/guestbook/cleanup', methods=['DELETE'])
 @token_required
 def cleanup_all_entries():
+    """
+    Delete ALL guestbook entries (cleanup database)
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: test_mode
+        type: boolean
+        default: false
+        description: Whether to cleanup test database (true) or production database (false)
+    responses:
+      200:
+        description: All entries deleted successfully
+        schema:
+          type: object
+          properties:
+            deleted:
+              type: integer
+              example: 25
+            message:
+              type: string
+              example: "25 entries deleted successfully"
+            database:
+              type: string
+              example: "production"
+      401:
+        description: Unauthorized
+      500:
+        description: Database error
+    """
     test_mode = request.args.get('test_mode', 'false').lower() == 'true'
     
     try:
@@ -565,6 +901,38 @@ def cleanup_all_entries():
 @app.route('/api/guestbook/import', methods=['POST'])
 @token_required
 def import_excel():
+    """
+    Import guestbook entries from Excel file
+    ---
+    tags:
+      - Guestbook
+    security:
+      - Bearer: []
+    consumes:
+      - multipart/form-data
+    parameters:
+      - in: formData
+        name: file
+        type: file
+        required: true
+        description: Excel file with columns 'name', 'email', and optionally 'comment'
+    responses:
+      200:
+        description: Entries imported successfully
+        schema:
+          type: object
+          properties:
+            imported:
+              type: integer
+              example: 5
+            message:
+              type: string
+              example: "5 entries imported successfully"
+      400:
+        description: Bad request - invalid file or format
+      401:
+        description: Unauthorized
+    """
     if 'file' not in request.files:
         return jsonify({'message': 'No file provided'}), 400
     

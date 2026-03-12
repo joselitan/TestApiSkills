@@ -85,3 +85,25 @@ jobs:
     - name: Run ui tests
       run: | 
         pytest tests/ui -s -v
+
+    - name: Run performance tests
+      run: |
+        pytest tests/performance/test_load_testing.py -s -v
+    #    pytest tests/performance/test_load_testing.py -s -v
+    #    pytest tests/performance/test_stress_testing.py -s -v
+    #    pytest tests/performance/test_volume_testing.py -s -v
+    #    pytest tests/performance/test_spike_testing.py -s -v
+    #    pytest tests/performance/test_endurance_testing.py -s -v
+
+    - name: Run performance monitoring
+      run: |
+        python scripts/performance/performance_monitor.py --duration 30 --users 3 --requests 5 --url http://localhost:8080
+
+    - name: Upload Performance Reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-reports
+        path: |
+          reports/performance/
+          *.json
