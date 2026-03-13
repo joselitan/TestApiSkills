@@ -92,9 +92,7 @@ jobs:
       
       - name: Run API tests
         run: |
-          pytest tests/api/test_api_contract.py -v --tb=short
-          pytest test_guestbook_api.py -v --html=reports/api_report.html --self-contained-html
-          pytest tests/api/ -v --tb=short
+          pytest tests/api/ -v --html=reports/api_report.html --self-contained-html --tb=short
       
       - name: Upload API test reports
         uses: actions/upload-artifact@v4
