@@ -1,8 +1,9 @@
 """Security Tests - Injection Attacks (OWASP A03)"""
 
+import allure
 import pytest
 import requests
-import allure
+
 from tests.fixtures.factories import create_user_credentials
 
 BASE_URL = "http://localhost:8080"

@@ -1,11 +1,12 @@
 """Load Testing - Test system performance under normal expected load"""
 
+import json
+import statistics
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import pytest
 import requests
-import time
-import statistics
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import json
 
 
 class TestLoadTesting:

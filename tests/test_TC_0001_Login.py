@@ -1,6 +1,7 @@
-import requests
 import json
+
 import pytest
+import requests
 
 
 def test_1_verify_invalid_login():

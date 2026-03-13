@@ -1,11 +1,12 @@
 """Stress Testing - Test system behavior under extreme load and recovery"""
 
+import statistics
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import pytest
 import requests
-import time
-import statistics
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 
 
 class TestStressTesting:

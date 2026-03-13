@@ -1,12 +1,14 @@
 """Security Tests - Penetration Testing Scenarios"""
 
-import pytest
-import requests
-import allure
-import time
-import jwt
 import base64
 import json
+import time
+
+import allure
+import jwt
+import pytest
+import requests
+
 from tests.fixtures.factories import create_guestbook_entry
 
 BASE_URL = "http://localhost:8080"

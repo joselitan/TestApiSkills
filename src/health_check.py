@@ -3,10 +3,11 @@ Health Check Module for QA Test Platform
 Provides comprehensive health monitoring for CI/CD pipeline
 """
 
-import time
-import psutil
 import sqlite3
+import time
 from datetime import datetime
+
+import psutil
 from flask import jsonify
 
 

@@ -7,13 +7,15 @@ import os
 
 os.environ["TEST_MODE"] = "1"
 
-from flask import Flask, request, jsonify, render_template
-from werkzeug.security import check_password_hash
-import jwt
 import datetime
 from functools import wraps
-from database import init_db, get_db
+
+import jwt
 import pandas as pd
+from flask import Flask, jsonify, render_template, request
+from werkzeug.security import check_password_hash
+
+from database import get_db, init_db
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__, static_folder=os.path.join(basedir, "static"))

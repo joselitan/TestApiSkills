@@ -1,9 +1,11 @@
 """Security Tests - Authentication Failures (OWASP A07)"""
 
+import time
+
+import allure
 import pytest
 import requests
-import allure
-import time
+
 from tests.fixtures.factories import create_user_credentials
 
 BASE_URL = "http://localhost:8080"

@@ -1,7 +1,8 @@
-import requests
-import pytest
-import os
 import json
+import os
+
+import pytest
+import requests
 
 BASE_URL = "http://localhost:8080"
 token = None

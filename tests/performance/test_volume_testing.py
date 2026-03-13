@@ -1,10 +1,11 @@
 """Volume Testing - Test system performance with large amounts of data"""
 
+import statistics
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 import requests
-import time
-import statistics
-from concurrent.futures import ThreadPoolExecutor
 
 
 class TestVolumeTesting:

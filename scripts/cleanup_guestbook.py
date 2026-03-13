@@ -1,7 +1,7 @@
 """Cleanup script - Remove all guestbook entries"""
 
-import sqlite3
 import os
+import sqlite3
 import sys
 
 # Add src to path

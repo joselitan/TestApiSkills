@@ -1,6 +1,7 @@
-import requests
 import json
+
 import pytest
+import requests
 
 
 def test_api_email_exists():

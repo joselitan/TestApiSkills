@@ -1,14 +1,15 @@
 """Performance Monitoring and Reporting Script"""
 
-import requests
-import time
-import json
-import statistics
-import psutil
-import os
-from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
 import argparse
+import json
+import os
+import statistics
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+
+import psutil
+import requests
 
 
 class PerformanceMonitor:

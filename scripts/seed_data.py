@@ -1,7 +1,8 @@
-import requests
+import os
 import random
 import sys
-import os
+
+import requests
 
 # Add src to path for database imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))

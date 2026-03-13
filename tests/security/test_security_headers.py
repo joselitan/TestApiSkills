@@ -1,8 +1,8 @@
 """Security Tests - Security Headers & Best Practices"""
 
+import allure
 import pytest
 import requests
-import allure
 
 BASE_URL = "http://localhost:8080"
 

@@ -1,7 +1,8 @@
 """Performance Testing - Load testing with Locust"""
 
-from locust import HttpUser, task, between
 import json
+
+from locust import HttpUser, between, task
 
 
 class GuestbookUser(HttpUser):

@@ -1,11 +1,12 @@
 """Spike Testing - Test system behavior during sudden load spikes"""
 
+import statistics
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import pytest
 import requests
-import time
-import statistics
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 
 
 class TestSpikeTesting:

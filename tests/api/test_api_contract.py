@@ -1,9 +1,9 @@
 """API Contract Testing - Validate API responses against schemas"""
 
-import requests
-import pytest
 import allure
-from jsonschema import validate, ValidationError
+import pytest
+import requests
+from jsonschema import ValidationError, validate
 
 BASE_URL = "http://localhost:8080"
 

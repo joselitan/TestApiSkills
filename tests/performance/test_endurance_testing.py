@@ -1,12 +1,13 @@
 """Endurance Testing - Test system performance over extended periods"""
 
+import statistics
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+
 import pytest
 import requests
-import time
-import statistics
-from concurrent.futures import ThreadPoolExecutor
-import threading
-from datetime import datetime, timedelta
 
 
 class TestEnduranceTesting:

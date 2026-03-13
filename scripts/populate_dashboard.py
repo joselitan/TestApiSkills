@@ -4,13 +4,13 @@ Test Data Populator for Dashboard
 Populates the dashboard database with sample test data and real results from existing tests
 """
 
-import sqlite3
 import json
-import subprocess
 import os
+import random
+import sqlite3
+import subprocess
 import sys
 from datetime import datetime, timedelta
-import random
 
 # Add the src directory to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))

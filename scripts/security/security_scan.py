@@ -1,8 +1,8 @@
 """Automated Security Scanning Script"""
 
-import subprocess
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime
 

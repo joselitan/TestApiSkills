@@ -4,13 +4,14 @@ Alerting system för QA Platform
 Övervakar health status och skickar varningar
 """
 
-import requests
-import time
 import json
-import smtplib
-from email.mime.text import MIMEText
-from datetime import datetime
 import logging
+import smtplib
+import time
+from datetime import datetime
+from email.mime.text import MIMEText
+
+import requests
 
 
 class HealthMonitor:

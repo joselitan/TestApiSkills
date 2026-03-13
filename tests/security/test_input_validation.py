@@ -1,9 +1,11 @@
 """Security Tests - Data Integrity Failures (OWASP A08)"""
 
+import json
+
+import allure
 import pytest
 import requests
-import allure
-import json
+
 from tests.fixtures.factories import create_guestbook_entry
 
 BASE_URL = "http://localhost:8080"

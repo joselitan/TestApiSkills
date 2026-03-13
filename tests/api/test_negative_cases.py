@@ -1,8 +1,8 @@
 """Negative Testing - Test error handling and security"""
 
-import requests
-import pytest
 import allure
+import pytest
+import requests
 
 BASE_URL = "http://localhost:8080"
 
