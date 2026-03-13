@@ -1,9 +1,9 @@
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-static_dir = os.path.join(basedir, 'static')
-js_dir = os.path.join(static_dir, 'js')
-login_js = os.path.join(js_dir, 'login.js')
+static_dir = os.path.join(basedir, "static")
+js_dir = os.path.join(static_dir, "js")
+login_js = os.path.join(js_dir, "login.js")
 
 print(f"Checking for file at: {login_js}")
 

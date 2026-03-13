@@ -1,8 +1,10 @@
 """Playwright fixtures for UI testing"""
+
 import pytest
 from playwright.sync_api import Page
 
 BASE_URL = "http://localhost:8080"
+
 
 @pytest.fixture(scope="function")
 def authenticated_page(page: Page):

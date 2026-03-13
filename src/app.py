@@ -15,6 +15,8 @@ import html
 import json
 from flasgger import Swagger
 from logger_config import setup_logger
+
+
 # Input validation and sanitization functions
 def sanitize_html(text):
     """Sanitize HTML content to prevent XSS attacks"""
@@ -22,48 +24,50 @@ def sanitize_html(text):
         return text
     return html.escape(str(text))
 
+
 def validate_filename(filename):
     """Validate and sanitize filename to prevent command injection"""
     if not filename:
         return False, "Filename is required"
-    
+
     # Remove path traversal attempts
     filename = os.path.basename(filename)
-    
+
     # Use werkzeug's secure_filename
     secure_name = secure_filename(filename)
-    
+
     # Additional checks for malicious patterns
     dangerous_patterns = [
-        r'[;&|`$(){}\\[\\]<>]',  # Command injection characters
-        r'\\.\\./',              # Path traversal
-        r'^\\.',                # Hidden files
-        r'\\.(bat|cmd|exe|sh|ps1)$'  # Executable files
+        r"[;&|`$(){}\\[\\]<>]",  # Command injection characters
+        r"\\.\\./",  # Path traversal
+        r"^\\.",  # Hidden files
+        r"\\.(bat|cmd|exe|sh|ps1)$",  # Executable files
     ]
-    
+
     for pattern in dangerous_patterns:
         if re.search(pattern, secure_name, re.IGNORECASE):
             return False, f"Filename contains invalid characters: {filename}"
-    
+
     # Check file extension whitelist
-    allowed_extensions = {'.xlsx', '.xls', '.csv'}
+    allowed_extensions = {".xlsx", ".xls", ".csv"}
     file_ext = os.path.splitext(secure_name)[1].lower()
     if file_ext not in allowed_extensions:
         return False, f"File type not allowed: {file_ext}"
-    
+
     return True, secure_name
+
 
 def validate_json_payload(data):
     """Validate JSON payload structure and content"""
     if not isinstance(data, dict):
         return False, "Invalid JSON structure"
-    
+
     # Check for NoSQL injection patterns
     def check_nosql_injection(obj):
         if isinstance(obj, dict):
             for key, value in obj.items():
                 # Check for MongoDB operators
-                if isinstance(key, str) and key.startswith('$'):
+                if isinstance(key, str) and key.startswith("$"):
                     return True
                 if check_nosql_injection(value):
                     return True
@@ -72,61 +76,72 @@ def validate_json_payload(data):
                 if check_nosql_injection(item):
                     return True
         return False
-    
+
     if check_nosql_injection(data):
         return False, "Invalid JSON content detected"
-    
+
     return True, "Valid"
+
 
 def security_test_bypass():
     """Check if request is from security testing and should bypass auth"""
     # Only allow bypass for specific test endpoints and when explicitly requested
-    test_header = request.headers.get('X-Security-Test')
-    return test_header == 'bypass-auth' and request.path.startswith('/api/')
+    test_header = request.headers.get("X-Security-Test")
+    return test_header == "bypass-auth" and request.path.startswith("/api/")
+
 
 # Security headers middleware
 def add_security_headers(response):
     """Add security headers to all responses"""
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000; includeSubDomains"
+    )
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    )
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
     # API-specific headers
-    if request.path.startswith('/api/'):
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-    
+    if request.path.startswith("/api/"):
+        response.headers["Cache-Control"] = (
+            "no-store, no-cache, must-revalidate, private"
+        )
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
     return response
 
+
 # Explicitly set the static folder path to avoid directory confusion
-basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-app = Flask(__name__, 
-            static_folder=os.path.join(basedir, 'static'),
-            template_folder=os.path.join(basedir, 'templates'))
-app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+app = Flask(
+    __name__,
+    static_folder=os.path.join(basedir, "static"),
+    template_folder=os.path.join(basedir, "templates"),
+)
+app.config["SECRET_KEY"] = "your-secret-key-change-in-production"
 
 # Database configuration from environment
-app.config['DATABASE_URL'] = os.getenv('DATABASE_URL', 'sqlite:///data/guestbook.db')
-app.config['ENVIRONMENT'] = os.getenv('ENVIRONMENT', 'development')
+app.config["DATABASE_URL"] = os.getenv("DATABASE_URL", "sqlite:///data/guestbook.db")
+app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
 
 # Swagger configuration
 swagger_config = {
     "headers": [],
     "specs": [
         {
-            "endpoint": 'apispec',
-            "route": '/apispec.json',
+            "endpoint": "apispec",
+            "route": "/apispec.json",
             "rule_filter": lambda rule: True,
             "model_filter": lambda tag: True,
         }
     ],
     "static_url_path": "/flasgger_static",
     "swagger_ui": True,
-    "specs_route": "/apidocs/"
+    "specs_route": "/apidocs/",
 }
 
 swagger_template = {
@@ -137,70 +152,76 @@ swagger_template = {
         "version": "1.0.0",
         "contact": {
             "name": "TestApiSkills",
-        }
+        },
     },
     "securityDefinitions": {
         "Bearer": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
-            "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+            "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
         }
     },
-    "security": [
-        {"Bearer": []}
-    ]
+    "security": [{"Bearer": []}],
 }
 
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
 # Import and setup health check routes
 from health_check import setup_health_routes
+
 setup_health_routes(app)
 
 # Setup logging
 access_logger = setup_logger(app)
 
+
 # Request logging middleware
 @app.before_request
 def before_request():
     g.start_time = time.time()
-    g.request_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+    g.request_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+
 
 @app.after_request
 def after_request(response):
-    if hasattr(g, 'start_time'):
+    if hasattr(g, "start_time"):
         elapsed = (time.time() - g.start_time) * 1000
-        
+
         # Get user from token if available
-        user = 'anonymous'
-        token = request.headers.get('Authorization')
+        user = "anonymous"
+        token = request.headers.get("Authorization")
         if token:
             try:
-                token = token.split()[1] if token.startswith('Bearer ') else token
-                payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-                user = payload.get('user', 'unknown')
+                token = token.split()[1] if token.startswith("Bearer ") else token
+                payload = jwt.decode(
+                    token, app.config["SECRET_KEY"], algorithms=["HS256"]
+                )
+                user = payload.get("user", "unknown")
             except:
                 pass
-        
+
         # Log the request
         log_msg = f"{request.method} {request.path} | User: {user} | IP: {request.remote_addr} | Status: {response.status_code} | Time: {elapsed:.0f}ms"
-        
+
         if response.status_code >= 500:
             app.logger.error(log_msg)
         elif response.status_code >= 400:
             app.logger.warning(log_msg)
         else:
             access_logger.info(log_msg)
-        
+
         # Warn on slow requests
         if elapsed > 500:
-            app.logger.warning(f"Slow request detected: {request.path} took {elapsed:.0f}ms")
-    
+            app.logger.warning(
+                f"Slow request detected: {request.path} took {elapsed:.0f}ms"
+            )
+
     # Add security headers to all responses
     response = add_security_headers(response)
-    
+
     return response
+
 
 # Error handlers
 @app.errorhandler(Exception)
@@ -209,39 +230,46 @@ def handle_exception(e):
     app.logger.error(traceback.format_exc())
     # Don't expose internal error details in production
     if app.debug:
-        return jsonify({'message': 'Internal server error', 'error': str(e)}), 500
+        return jsonify({"message": "Internal server error", "error": str(e)}), 500
     else:
-        return jsonify({'message': 'Internal server error'}), 500
+        return jsonify({"message": "Internal server error"}), 500
+
 
 @app.errorhandler(404)
 def not_found(e):
     app.logger.warning(f"404 Not Found: {request.path}")
-    return jsonify({'message': 'Resource not found'}), 404
+    return jsonify({"message": "Resource not found"}), 404
+
 
 @app.errorhandler(500)
 def internal_error(e):
     app.logger.error(f"500 Internal Server Error: {str(e)}")
-    return jsonify({'message': 'Internal server error'}), 500
+    return jsonify({"message": "Internal server error"}), 500
+
 
 @app.errorhandler(400)
 def bad_request(e):
     app.logger.warning(f"400 Bad Request: {request.path} - {str(e)}")
-    return jsonify({'message': 'Bad request'}), 400
+    return jsonify({"message": "Bad request"}), 400
+
 
 @app.errorhandler(401)
 def unauthorized(e):
     app.logger.warning(f"401 Unauthorized: {request.path} - {str(e)}")
-    return jsonify({'message': 'Unauthorized'}), 401
+    return jsonify({"message": "Unauthorized"}), 401
+
 
 @app.errorhandler(403)
 def forbidden(e):
     app.logger.warning(f"403 Forbidden: {request.path} - {str(e)}")
-    return jsonify({'message': 'Forbidden'}), 403
+    return jsonify({"message": "Forbidden"}), 403
+
 
 @app.errorhandler(429)
 def rate_limit_exceeded(e):
     app.logger.warning(f"429 Rate Limit Exceeded: {request.path} - {str(e)}")
-    return jsonify({'message': 'Rate limit exceeded'}), 429
+    return jsonify({"message": "Rate limit exceeded"}), 429
+
 
 def token_required(f):
     @wraps(f)
@@ -249,27 +277,31 @@ def token_required(f):
         # Allow security test bypass
         if security_test_bypass():
             return f(*args, **kwargs)
-            
-        token = request.headers.get('Authorization')
+
+        token = request.headers.get("Authorization")
         if not token:
-            return jsonify({'message': 'Token is missing'}), 401
+            return jsonify({"message": "Token is missing"}), 401
         try:
-            token = token.split()[1] if token.startswith('Bearer ') else token
-            jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            token = token.split()[1] if token.startswith("Bearer ") else token
+            jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
         except:
-            return jsonify({'message': 'Token is invalid'}), 401
+            return jsonify({"message": "Token is invalid"}), 401
         return f(*args, **kwargs)
+
     return decorated
 
-@app.route('/')
+
+@app.route("/")
 def index():
-    return render_template('login.html')
+    return render_template("login.html")
 
-@app.route('/guestbook')
+
+@app.route("/guestbook")
 def guestbook_page():
-    return render_template('guestbook.html')
+    return render_template("guestbook.html")
 
-@app.route('/api/login', methods=['POST'])
+
+@app.route("/api/login", methods=["POST"])
 def login():
     """
     User login endpoint
@@ -313,49 +345,58 @@ def login():
     try:
         data = request.get_json(force=True)
         if not data:
-            return jsonify({'message': 'Invalid JSON payload'}), 400
-            
+            return jsonify({"message": "Invalid JSON payload"}), 400
+
         # Validate JSON structure
         is_valid, message = validate_json_payload(data)
         if not is_valid:
-            return jsonify({'message': message}), 400
-            
+            return jsonify({"message": message}), 400
+
     except (json.JSONDecodeError, Exception) as e:
         app.logger.warning(f"Invalid JSON in login request: {str(e)}")
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
-    username = data.get('username')
-    password = data.get('password')
-    
+        return jsonify({"message": "Invalid JSON payload"}), 400
+
+    username = data.get("username")
+    password = data.get("password")
+
     # Input validation
     if not username or not password:
-        return jsonify({'message': 'Username and password are required'}), 400
-    
+        return jsonify({"message": "Username and password are required"}), 400
+
     # Sanitize inputs to prevent injection
     username = sanitize_html(username)
-    
+
     # Additional validation for suspicious patterns
     if len(username) > 100 or len(password) > 100:
-        return jsonify({'message': 'Input too long'}), 400
-    
-    app.logger.info(f"Login attempt for user: {username} from IP: {request.remote_addr}")
-    
-    conn = get_db()
-    user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
-    conn.close()
-    
-    if user and check_password_hash(user['password'], password):
-        token = jwt.encode({
-            'user': username,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-        }, app.config['SECRET_KEY'], algorithm='HS256')
-        app.logger.info(f"Login successful for user: {username}")
-        return jsonify({'token': token})
-    
-    app.logger.warning(f"Login failed for user: {username} - Invalid credentials")
-    return jsonify({'message': 'Invalid credentials'}), 401
+        return jsonify({"message": "Input too long"}), 400
 
-@app.route('/api/guestbook', methods=['POST'])
+    app.logger.info(
+        f"Login attempt for user: {username} from IP: {request.remote_addr}"
+    )
+
+    conn = get_db()
+    user = conn.execute(
+        "SELECT * FROM users WHERE username = ?", (username,)
+    ).fetchone()
+    conn.close()
+
+    if user and check_password_hash(user["password"], password):
+        token = jwt.encode(
+            {
+                "user": username,
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24),
+            },
+            app.config["SECRET_KEY"],
+            algorithm="HS256",
+        )
+        app.logger.info(f"Login successful for user: {username}")
+        return jsonify({"token": token})
+
+    app.logger.warning(f"Login failed for user: {username} - Invalid credentials")
+    return jsonify({"message": "Invalid credentials"}), 401
+
+
+@app.route("/api/guestbook", methods=["POST"])
 @token_required
 def create_entry():
     """
@@ -414,54 +455,64 @@ def create_entry():
     try:
         data = request.get_json(force=True)
         if not data:
-            return jsonify({'message': 'Invalid JSON payload'}), 400
-            
+            return jsonify({"message": "Invalid JSON payload"}), 400
+
         # Validate JSON structure
         is_valid, message = validate_json_payload(data)
         if not is_valid:
-            return jsonify({'message': message}), 400
-            
+            return jsonify({"message": message}), 400
+
     except (json.JSONDecodeError, Exception) as e:
         app.logger.warning(f"Invalid JSON in create entry request: {str(e)}")
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
-    name = data.get('name')
-    email = data.get('email')
-    comment = data.get('comment')
-    
+        return jsonify({"message": "Invalid JSON payload"}), 400
+
+    name = data.get("name")
+    email = data.get("email")
+    comment = data.get("comment")
+
     # Input validation
     if not name or not email or not comment:
-        return jsonify({'message': 'Name, email, and comment are required'}), 400
-    
+        return jsonify({"message": "Name, email, and comment are required"}), 400
+
     # Data type validation
-    if not isinstance(name, str) or not isinstance(email, str) or not isinstance(comment, str):
-        return jsonify({'message': 'Name, email, and comment must be strings'}), 400
-    
+    if (
+        not isinstance(name, str)
+        or not isinstance(email, str)
+        or not isinstance(comment, str)
+    ):
+        return jsonify({"message": "Name, email, and comment must be strings"}), 400
+
     # Sanitize inputs to prevent XSS
     name = sanitize_html(name)
     email = sanitize_html(email)
     comment = sanitize_html(comment)
-    
+
     # Additional validation
     if len(name) > 100 or len(email) > 100 or len(comment) > 1000:
-        return jsonify({'message': 'Input too long'}), 400
-    
+        return jsonify({"message": "Input too long"}), 400
+
     # Basic email validation
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_pattern, email):
-        return jsonify({'message': 'Invalid email format'}), 400
-    
+        return jsonify({"message": "Invalid email format"}), 400
+
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)', (name, email, comment))
+    cursor.execute(
+        "INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)",
+        (name, email, comment),
+    )
     conn.commit()
     entry_id = cursor.lastrowid
-    entry = conn.execute('SELECT * FROM guestbook WHERE userId = ?', (entry_id,)).fetchone()
+    entry = conn.execute(
+        "SELECT * FROM guestbook WHERE userId = ?", (entry_id,)
+    ).fetchone()
     conn.close()
-    
+
     return jsonify(dict(entry)), 201
 
-@app.route('/api/guestbook', methods=['GET'])
+
+@app.route("/api/guestbook", methods=["GET"])
 @token_required
 def get_all_entries():
     """
@@ -522,18 +573,24 @@ def get_all_entries():
         description: Unauthorized
     """
     # Get query parameters with defaults
-    page = request.args.get('page', 1, type=int)
-    limit = request.args.get('limit', 10, type=int)
-    search = request.args.get('search', None, type=str)
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    search = request.args.get("search", None, type=str)
 
     # Sanitize search input to prevent SQL injection
     if search:
         search = sanitize_html(search)
         # Additional validation for SQL injection patterns
-        dangerous_patterns = [r"[';\-\-]", r"\bOR\b", r"\bUNION\b", r"\bSELECT\b", r"\bDROP\b"]
+        dangerous_patterns = [
+            r"[';\-\-]",
+            r"\bOR\b",
+            r"\bUNION\b",
+            r"\bSELECT\b",
+            r"\bDROP\b",
+        ]
         for pattern in dangerous_patterns:
             if re.search(pattern, search, re.IGNORECASE):
-                return jsonify({'message': 'Invalid search query'}), 400
+                return jsonify({"message": "Invalid search query"}), 400
 
     # Calculate offset for SQL
     offset = (page - 1) * limit
@@ -541,36 +598,41 @@ def get_all_entries():
     conn = get_db()
 
     # Build query parts based on search
-    base_query = 'FROM guestbook'
-    where_clause = ''
+    base_query = "FROM guestbook"
+    where_clause = ""
     params = []
     if search:
-        where_clause = ' WHERE name LIKE ? OR email LIKE ? OR comment LIKE ?'
-        search_term = f'%{search}%'
+        where_clause = " WHERE name LIKE ? OR email LIKE ? OR comment LIKE ?"
+        search_term = f"%{search}%"
         params.extend([search_term, search_term, search_term])
 
     # Fetch total count with filter
-    count_query = f'SELECT COUNT(*) {base_query}{where_clause}'
+    count_query = f"SELECT COUNT(*) {base_query}{where_clause}"
     total_count = conn.execute(count_query, params).fetchone()[0]
 
     # Fetch specific slice of data with filter
-    data_query = f'SELECT * {base_query}{where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?'
+    data_query = (
+        f"SELECT * {base_query}{where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    )
     query_params = params + [limit, offset]
     entries = conn.execute(data_query, query_params).fetchall()
     conn.close()
-    
-    # Return data AND metadata
-    return jsonify({
-        'data': [dict(entry) for entry in entries],
-        'meta': {
-            'page': page,
-            'limit': limit,
-            'total': total_count,
-            'pages': (total_count + limit - 1) // limit if limit > 0 else 0
-        }
-    })
 
-@app.route('/api/guestbook/<int:user_id>', methods=['GET'])
+    # Return data AND metadata
+    return jsonify(
+        {
+            "data": [dict(entry) for entry in entries],
+            "meta": {
+                "page": page,
+                "limit": limit,
+                "total": total_count,
+                "pages": (total_count + limit - 1) // limit if limit > 0 else 0,
+            },
+        }
+    )
+
+
+@app.route("/api/guestbook/<int:user_id>", methods=["GET"])
 @token_required
 def get_entry(user_id):
     """
@@ -608,14 +670,17 @@ def get_entry(user_id):
         description: Unauthorized
     """
     conn = get_db()
-    entry = conn.execute('SELECT * FROM guestbook WHERE userId = ?', (user_id,)).fetchone()
+    entry = conn.execute(
+        "SELECT * FROM guestbook WHERE userId = ?", (user_id,)
+    ).fetchone()
     conn.close()
-    
+
     if entry:
         return jsonify(dict(entry))
-    return jsonify({'message': 'Entry not found'}), 404
+    return jsonify({"message": "Entry not found"}), 404
 
-@app.route('/api/guestbook/<int:user_id>', methods=['PUT'])
+
+@app.route("/api/guestbook/<int:user_id>", methods=["PUT"])
 @token_required
 def update_entry(user_id):
     """
@@ -676,51 +741,56 @@ def update_entry(user_id):
     try:
         data = request.get_json(force=True)
         if not data:
-            return jsonify({'message': 'Invalid JSON payload'}), 400
-            
+            return jsonify({"message": "Invalid JSON payload"}), 400
+
         # Validate JSON structure
         is_valid, message = validate_json_payload(data)
         if not is_valid:
-            return jsonify({'message': message}), 400
-            
+            return jsonify({"message": message}), 400
+
     except (json.JSONDecodeError, Exception) as e:
         app.logger.warning(f"Invalid JSON in update entry request: {str(e)}")
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
-    name = data.get('name')
-    email = data.get('email')
-    comment = data.get('comment')
-    
+        return jsonify({"message": "Invalid JSON payload"}), 400
+
+    name = data.get("name")
+    email = data.get("email")
+    comment = data.get("comment")
+
     # Input validation
     if not name or not email or not comment:
-        return jsonify({'message': 'Name, email, and comment are required'}), 400
-    
+        return jsonify({"message": "Name, email, and comment are required"}), 400
+
     # Sanitize inputs to prevent XSS
     name = sanitize_html(name)
     email = sanitize_html(email)
     comment = sanitize_html(comment)
-    
+
     # Additional validation
     if len(name) > 100 or len(email) > 100 or len(comment) > 1000:
-        return jsonify({'message': 'Input too long'}), 400
-    
+        return jsonify({"message": "Input too long"}), 400
+
     # Basic email validation
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_pattern, email):
-        return jsonify({'message': 'Invalid email format'}), 400
-    
+        return jsonify({"message": "Invalid email format"}), 400
+
     conn = get_db()
-    conn.execute('UPDATE guestbook SET name = ?, email = ?, comment = ? WHERE userId = ?', 
-                 (name, email, comment, user_id))
+    conn.execute(
+        "UPDATE guestbook SET name = ?, email = ?, comment = ? WHERE userId = ?",
+        (name, email, comment, user_id),
+    )
     conn.commit()
-    entry = conn.execute('SELECT * FROM guestbook WHERE userId = ?', (user_id,)).fetchone()
+    entry = conn.execute(
+        "SELECT * FROM guestbook WHERE userId = ?", (user_id,)
+    ).fetchone()
     conn.close()
-    
+
     if entry:
         return jsonify(dict(entry))
-    return jsonify({'message': 'Entry not found'}), 404
+    return jsonify({"message": "Entry not found"}), 404
 
-@app.route('/api/guestbook/<int:user_id>', methods=['DELETE'])
+
+@app.route("/api/guestbook/<int:user_id>", methods=["DELETE"])
 @token_required
 def delete_entry(user_id):
     """
@@ -752,16 +822,17 @@ def delete_entry(user_id):
     """
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM guestbook WHERE userId = ?', (user_id,))
+    cursor.execute("DELETE FROM guestbook WHERE userId = ?", (user_id,))
     conn.commit()
     deleted = cursor.rowcount
     conn.close()
-    
-    if deleted:
-        return jsonify({'message': 'Entry deleted successfully'})
-    return jsonify({'message': 'Entry not found'}), 404
 
-@app.route('/api/guestbook/bulk', methods=['DELETE'])
+    if deleted:
+        return jsonify({"message": "Entry deleted successfully"})
+    return jsonify({"message": "Entry not found"}), 404
+
+
+@app.route("/api/guestbook/bulk", methods=["DELETE"])
 @token_required
 def bulk_delete_entries():
     """
@@ -805,33 +876,36 @@ def bulk_delete_entries():
     try:
         data = request.get_json(force=True)
         if not data:
-            return jsonify({'message': 'Invalid JSON payload'}), 400
-            
+            return jsonify({"message": "Invalid JSON payload"}), 400
+
         # Validate JSON structure
         is_valid, message = validate_json_payload(data)
         if not is_valid:
-            return jsonify({'message': message}), 400
-            
+            return jsonify({"message": message}), 400
+
     except (json.JSONDecodeError, Exception) as e:
         app.logger.warning(f"Invalid JSON in bulk delete request: {str(e)}")
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
-    ids = data.get('ids', [])
-    
+        return jsonify({"message": "Invalid JSON payload"}), 400
+
+    ids = data.get("ids", [])
+
     if not ids or not isinstance(ids, list):
-        return jsonify({'message': 'IDs array is required'}), 400
-    
+        return jsonify({"message": "IDs array is required"}), 400
+
     conn = get_db()
     cursor = conn.cursor()
-    placeholders = ','.join('?' * len(ids))
-    cursor.execute(f'DELETE FROM guestbook WHERE userId IN ({placeholders})', ids)
+    placeholders = ",".join("?" * len(ids))
+    cursor.execute(f"DELETE FROM guestbook WHERE userId IN ({placeholders})", ids)
     conn.commit()
     deleted = cursor.rowcount
     conn.close()
-    
-    return jsonify({'deleted': deleted, 'message': f'{deleted} entries deleted successfully'})
 
-@app.route('/api/guestbook/cleanup', methods=['DELETE'])
+    return jsonify(
+        {"deleted": deleted, "message": f"{deleted} entries deleted successfully"}
+    )
+
+
+@app.route("/api/guestbook/cleanup", methods=["DELETE"])
 @token_required
 def cleanup_all_entries():
     """
@@ -867,45 +941,53 @@ def cleanup_all_entries():
       500:
         description: Database error
     """
-    test_mode = request.args.get('test_mode', 'false').lower() == 'true'
-    
+    test_mode = request.args.get("test_mode", "false").lower() == "true"
+
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
+
         # Count entries before deletion
         count_before = cursor.execute("SELECT COUNT(*) FROM guestbook").fetchone()[0]
-        
+
         if count_before == 0:
             conn.close()
-            return jsonify({
-                'deleted': 0, 
-                'message': 'No entries to delete',
-                'database': 'test' if test_mode else 'production'
-            })
-        
+            return jsonify(
+                {
+                    "deleted": 0,
+                    "message": "No entries to delete",
+                    "database": "test" if test_mode else "production",
+                }
+            )
+
         # Delete all entries
         cursor.execute("DELETE FROM guestbook")
         conn.commit()
-        
+
         # Count after deletion to verify
         count_after = cursor.execute("SELECT COUNT(*) FROM guestbook").fetchone()[0]
         deleted = count_before - count_after
-        
+
         conn.close()
-        
-        app.logger.info(f"Cleanup completed: {deleted} entries deleted from {'test' if test_mode else 'production'} database")
-        
-        return jsonify({
-            'deleted': deleted,
-            'message': f'{deleted} entries deleted successfully',
-            'database': 'test' if test_mode else 'production'
-        })
-        
+
+        app.logger.info(
+            f"Cleanup completed: {deleted} entries deleted from {'test' if test_mode else 'production'} database"
+        )
+
+        return jsonify(
+            {
+                "deleted": deleted,
+                "message": f"{deleted} entries deleted successfully",
+                "database": "test" if test_mode else "production",
+            }
+        )
+
     except Exception as e:
         app.logger.error(f"Cleanup failed: {str(e)}")
-        return jsonify({'message': f'Cleanup failed: {str(e)}'}), 500
-@app.route('/api/guestbook/import', methods=['POST'])
+        return jsonify({"message": f"Cleanup failed: {str(e)}"}), 500
+
+
+@app.route("/api/guestbook/import", methods=["POST"])
 @token_required
 def import_excel():
     """
@@ -940,45 +1022,56 @@ def import_excel():
       401:
         description: Unauthorized
     """
-    if 'file' not in request.files:
-        return jsonify({'message': 'No file provided'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'message': 'No file selected'}), 400
-    
+    if "file" not in request.files:
+        return jsonify({"message": "No file provided"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"message": "No file selected"}), 400
+
     # Validate filename for security
     is_valid, result = validate_filename(file.filename)
     if not is_valid:
-        return jsonify({'message': result}), 400
-    
+        return jsonify({"message": result}), 400
+
     secure_name = result
-    
+
     try:
         df = pd.read_excel(file)
-        required_columns = ['name', 'email']
+        required_columns = ["name", "email"]
         if not all(col in df.columns for col in required_columns):
-            return jsonify({'message': 'Excel must contain name and email columns'}), 400
-        
+            return (
+                jsonify({"message": "Excel must contain name and email columns"}),
+                400,
+            )
+
         conn = get_db()
         cursor = conn.cursor()
         imported = 0
-        
+
         for _, row in df.iterrows():
-            name = sanitize_html(row['name'])
-            email = sanitize_html(row['email'])
-            comment = sanitize_html(row.get('comment', ''))
-            cursor.execute('INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)', 
-                          (name, email, comment))
+            name = sanitize_html(row["name"])
+            email = sanitize_html(row["email"])
+            comment = sanitize_html(row.get("comment", ""))
+            cursor.execute(
+                "INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)",
+                (name, email, comment),
+            )
             imported += 1
-        
+
         conn.commit()
         conn.close()
-        
-        return jsonify({'imported': imported, 'message': f'{imported} entries imported successfully'})
-    except Exception as e:
-        return jsonify({'message': f'Error processing file: {str(e)}'}), 400
 
-if __name__ == '__main__':
+        return jsonify(
+            {
+                "imported": imported,
+                "message": f"{imported} entries imported successfully",
+            }
+        )
+    except Exception as e:
+        return jsonify({"message": f"Error processing file: {str(e)}"}), 400
+
+
+if __name__ == "__main__":
     init_db()
     app.run(debug=True, port=8080)

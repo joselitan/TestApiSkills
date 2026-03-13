@@ -1,6 +1,8 @@
 """UI Tests for Search Functionality"""
+
 import pytest
 from playwright.sync_api import Page, expect
+
 
 def test_search_entries(authenticated_page: Page):
     """Test searching for entries"""
@@ -8,9 +10,10 @@ def test_search_entries(authenticated_page: Page):
     page.fill("#searchInput", "Alice")
     page.click("button:has-text('Search')")
     page.wait_for_timeout(1000)
-    guestbook_section = page.locator('div.entries-section')
+    guestbook_section = page.locator("div.entries-section")
     guestbook_section.scroll_into_view_if_needed()
     expect(page.locator("text=Alice Smith")).to_be_visible()
+
 
 def test_clear_search(authenticated_page: Page):
     """Test clearing search results"""
@@ -21,6 +24,7 @@ def test_clear_search(authenticated_page: Page):
     page.click("button:has-text('Clear')")
     page.wait_for_timeout(1000)
     expect(page.locator("#searchInput")).to_have_value("")
+
 
 def test_search_no_results(authenticated_page: Page):
     """Test search with no matching results"""
