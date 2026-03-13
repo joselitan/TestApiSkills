@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qa-platform
+  labels:
+    app: qa-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qa-platform
+  template:
+    metadata:
+      labels:
+        app: qa-platform
+    spec:
+      containers:
+      - name: qa-platform
+        image: qa-platform:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        - name: DATABASE_URL
+          value: "sqlite:///data/guestbook.db"
+        
+        # Liveness probe - kontrollerar om containern lever
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Readiness probe - kontrollerar om containern är redo att ta emot trafik
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        # Startup probe - ger extra tid för applikationen att starta
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: logs-volume
+          mountPath: /app/logs
+      
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: qa-platform-data
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: qa-platform-logs
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qa-platform-service
+spec:
+  selector:
+    app: qa-platform
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer

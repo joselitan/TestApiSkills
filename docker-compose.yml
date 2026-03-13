@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  qa-platform:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=sqlite:///data/guestbook.db
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  test-runner:
+    build: .
+    command: >
+      sh -c "
+        python database.py &&
+        python app.py &
+        sleep 15 &&
+        pytest test_guestbook_api.py -v --html=reports/test_report.html --self-contained-html &&
+        pytest tests/api/ -v &&
+        pytest tests/security/ -v &&
+        pkill -f python
+      "
+    volumes:
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+    depends_on:
+      - qa-platform
+
+  performance-test:
+    build: .
+    command: >
+      sh -c "
+        python database.py &&
+        python app.py &
+        sleep 15 &&
+        pytest tests/performance/test_load_testing.py -v &&
+        pkill -f python
+      "
+    volumes:
+      - ./reports:/app/reports
+    depends_on:
+      - qa-platform
+
+networks:
+  default:
+    name: qa-platform-network

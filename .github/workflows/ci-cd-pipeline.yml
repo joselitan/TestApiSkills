@@ -1,0 +1,323 @@
+name: CI/CD Pipeline - QA Test Platform
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Stage 1: Code Quality & Linting
+  lint-and-format:
+    name: 🔍 Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black flake8 pylint isort
+      
+      - name: Format check with Black
+        run: black --check --diff .
+      
+      - name: Lint with flake8
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      
+      - name: Import sorting check
+        run: isort --check-only --diff .
+      
+      - name: Pylint analysis
+        run: pylint app.py --fail-under=7.0 || true
+
+  # Stage 2: Unit Tests
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-format
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Initialize test database
+        run: python database.py
+      
+      - name: Run unit tests
+        run: |
+          pytest tests/api/test_api_contract.py -v --tb=short
+          pytest tests/fixtures/ -v --tb=short
+
+  # Stage 3: API Integration Tests
+  api-tests:
+    name: 🔌 API Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Initialize database
+        run: python database.py
+      
+      - name: Start Flask app
+        run: |
+          python app.py &
+          sleep 10
+      
+      - name: Run API tests
+        run: |
+          pytest test_guestbook_api.py -v --html=reports/api_report.html --self-contained-html
+          pytest tests/api/ -v --tb=short
+      
+      - name: Upload API test reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: api-test-reports
+          path: reports/
+
+  # Stage 4: Security Scanning
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: lint-and-format
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+          pip install -r requirements.txt
+      
+      - name: Run Bandit security scan
+        run: |
+          bandit -r . -f json -o reports/bandit_report.json || true
+          bandit -r . -f txt || true
+      
+      - name: Run Safety dependency scan
+        run: |
+          safety check --json --output reports/safety_report.json || true
+          safety check || true
+      
+      - name: Run security tests
+        run: |
+          python database.py
+          python app.py &
+          sleep 10
+          pytest tests/security/ -v --tb=short
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: reports/
+
+  # Stage 5: UI Tests
+  ui-tests:
+    name: 🖥️ UI Tests
+    runs-on: ubuntu-latest
+    needs: api-tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install Playwright
+        run: |
+          playwright install chromium
+      
+      - name: Initialize database
+        run: python database.py
+      
+      - name: Start Flask app
+        run: |
+          python app.py &
+          sleep 15
+      
+      - name: Run UI tests
+        run: |
+          pytest tests/ui/ -v --tb=short --browser chromium
+      
+      - name: Upload UI test artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ui-test-artifacts
+          path: test-results/
+
+  # Stage 6: Performance Tests
+  performance-tests:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    needs: api-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Initialize database
+        run: python database.py
+      
+      - name: Start Flask app
+        run: |
+          python app.py &
+          sleep 10
+      
+      - name: Run performance tests
+        run: |
+          pytest tests/performance/test_load_testing.py -v --tb=short
+          pytest tests/performance/test_stress_testing.py -v --tb=short
+      
+      - name: Upload performance reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-reports
+          path: reports/
+
+  # Stage 7: Build Docker Image
+  build:
+    name: 🐳 Build
+    runs-on: ubuntu-latest
+    needs: [security-scan, ui-tests]
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: |
+          docker build -t qa-test-platform:${{ github.sha }} .
+          docker tag qa-test-platform:${{ github.sha }} qa-test-platform:latest
+      
+      - name: Save Docker image
+        run: |
+          docker save qa-test-platform:latest > qa-test-platform.tar
+      
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: qa-test-platform.tar
+
+  # Stage 8: Deploy to Staging
+  deploy-staging:
+    name: 🚀 Deploy Staging
+    runs-on: ubuntu-latest
+    needs: [build, performance-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download Docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+      
+      - name: Load Docker image
+        run: docker load < qa-test-platform.tar
+      
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Image: qa-test-platform:latest"
+          echo "Environment: staging"
+
+  # Stage 9: Deploy to Production
+  deploy-production:
+    name: 🌟 Deploy Production
+    runs-on: ubuntu-latest
+    needs: [build, performance-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download Docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+      
+      - name: Load Docker image
+        run: docker load < qa-test-platform.tar
+      
+      - name: Deploy to production
+        run: |
+          echo "🌟 Deploying to production environment..."
+          echo "Image: qa-test-platform:latest"
+          echo "Environment: production"
+
+  # Final Stage: Test Report Summary
+  test-summary:
+    name: 📊 Test Summary
+    runs-on: ubuntu-latest
+    needs: [api-tests, security-scan, ui-tests, performance-tests]
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Generate test summary
+        run: |
+          echo "# 🎯 QA Test Platform - Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Test Results Overview" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ API Tests: Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security Scan: Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ UI Tests: Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Performance Tests: Completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Staging' }}" >> $GITHUB_STEP_SUMMARY

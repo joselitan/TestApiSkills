@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Test Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .success { color: #28a745; }
+        .danger { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .test-types-table {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            margin: 50px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🚀 QA Test Dashboard</h1>
+            <p>Real-time Test Metrics & Performance Monitoring</p>
+        </div>
+        
+        <div id="loading" class="loading">
+            Laddar dashboard data...
+        </div>
+        
+        <div id="dashboard-content" style="display: none;">
+            <!-- Metrics Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div id="total-tests" class="metric-value info">0</div>
+                    <div class="metric-label">Totala Tester Idag</div>
+                </div>
+                <div class="metric-card">
+                    <div id="passed-tests" class="metric-value success">0</div>
+                    <div class="metric-label">Godkända Tester</div>
+                </div>
+                <div class="metric-card">
+                    <div id="failed-tests" class="metric-value danger">0</div>
+                    <div class="metric-label">Misslyckade Tester</div>
+                </div>
+                <div class="metric-card">
+                    <div id="coverage" class="metric-value warning">0%</div>
+                    <div class="metric-label">Code Coverage</div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Test Trends (7 dagar)</div>
+                    <canvas id="trendsChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Performance Metrics</div>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Test Types Table -->
+            <div class="test-types-table">
+                <div class="chart-title">Test Types Breakdown</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Test Type</th>
+                            <th>Runs</th>
+                            <th>Success Rate</th>
+                            <th>Avg Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="test-types-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <button class="refresh-btn" onclick="loadDashboard()">🔄 Uppdatera</button>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:6001/api';
+        let trendsChart, performanceChart;
+
+        async function loadDashboard() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboard-content').style.display = 'none';
+            
+            try {
+                // Load summary data
+                const summaryResponse = await fetch(`${API_BASE}/dashboard/summary`);
+                const summary = await summaryResponse.json();
+                
+                // Update metrics cards
+                document.getElementById('total-tests').textContent = summary.today.total_tests;
+                document.getElementById('passed-tests').textContent = summary.today.passed_tests;
+                document.getElementById('failed-tests').textContent = summary.today.failed_tests;
+                document.getElementById('coverage').textContent = summary.today.coverage + '%';
+                
+                // Load test types
+                const testTypesResponse = await fetch(`${API_BASE}/dashboard/test-types`);
+                const testTypes = await testTypesResponse.json();
+                updateTestTypesTable(testTypes);
+                
+                // Load performance data
+                const performanceResponse = await fetch(`${API_BASE}/dashboard/performance`);
+                const performance = await performanceResponse.json();
+                
+                // Update charts
+                updateTrendsChart(summary.trends);
+                updatePerformanceChart(performance);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('loading').innerHTML = 'Fel vid laddning av data. Kontrollera att backend körs på port 6001.';
+            }
+        }
+
+        function updateTrendsChart(trends) {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            
+            if (trendsChart) {
+                trendsChart.destroy();
+            }
+            
+            trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trends.map(t => t.date),
+                    datasets: [{
+                        label: 'Godkända',
+                        data: trends.map(t => t.passed),
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Misslyckade',
+                        data: trends.map(t => t.failed),
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePerformanceChart(performance) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+            
+            performanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: performance.map(p => p.endpoint),
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: performance.map(p => p.avg_response_time * 1000),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Response Time (ms)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTestTypesTable(testTypes) {
+            const tbody = document.getElementById('test-types-body');
+            tbody.innerHTML = '';
+            
+            testTypes.forEach(type => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${type.type}</td>
+                    <td>${type.runs}</td>
+                    <td><span class="${type.success_rate >= 90 ? 'success' : type.success_rate >= 70 ? 'warning' : 'danger'}">${type.success_rate}%</span></td>
+                    <td>${type.avg_duration}s</td>
+                `;
+            });
+        }
+
+        // Load dashboard on page load
+        window.addEventListener('load', loadDashboard);
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

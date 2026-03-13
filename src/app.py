@@ -15,7 +15,6 @@ import html
 import json
 from flasgger import Swagger
 from logger_config import setup_logger
-
 # Input validation and sanitization functions
 def sanitize_html(text):
     """Sanitize HTML content to prevent XSS attacks"""
@@ -110,6 +109,10 @@ app = Flask(__name__,
             template_folder=os.path.join(basedir, 'templates'))
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 
+# Database configuration from environment
+app.config['DATABASE_URL'] = os.getenv('DATABASE_URL', 'sqlite:///data/guestbook.db')
+app.config['ENVIRONMENT'] = os.getenv('ENVIRONMENT', 'development')
+
 # Swagger configuration
 swagger_config = {
     "headers": [],
@@ -150,6 +153,10 @@ swagger_template = {
 }
 
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
+
+# Import and setup health check routes
+from health_check import setup_health_routes
+setup_health_routes(app)
 
 # Setup logging
 access_logger = setup_logger(app)
