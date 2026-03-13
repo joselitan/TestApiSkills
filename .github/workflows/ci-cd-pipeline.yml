@@ -97,7 +97,7 @@ jobs:
           pytest tests/api/ -v --tb=short
       
       - name: Upload API test reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: api-test-reports
@@ -140,7 +140,7 @@ jobs:
           pytest tests/security/ -v --tb=short
       
       - name: Upload security reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-reports
@@ -181,7 +181,7 @@ jobs:
           pytest tests/ui/ -v --tb=short --browser chromium
       
       - name: Upload UI test artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ui-test-artifacts
@@ -220,7 +220,7 @@ jobs:
           pytest tests/performance/test_stress_testing.py -v --tb=short
       
       - name: Upload performance reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: performance-reports
@@ -245,7 +245,7 @@ jobs:
           docker save qa-test-platform:latest > qa-test-platform.tar
       
       - name: Upload Docker image
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: qa-test-platform.tar
@@ -261,7 +261,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Download Docker image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docker-image
       
@@ -285,7 +285,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Download Docker image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docker-image
       
@@ -306,7 +306,7 @@ jobs:
     if: always()
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       
       - name: Generate test summary
         run: |
