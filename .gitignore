@@ -55,3 +55,6 @@ Thumbs.db
 *.bak
 *.swp
 *~
+
+# FrontEnd react
+node_modules/

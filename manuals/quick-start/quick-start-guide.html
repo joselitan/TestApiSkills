@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Test Platform - Quick Start Guide</title>
+    <link rel="stylesheet" href="../assets/manual-style.css">
+    <style>
+        /* Dark mode variables */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #e2e8f0;
+            --code-bg: #f3f4f6;
+            --toc-bg: #f8fafc;
+            --success-bg: #f0fdf4;
+            --success-border: #22c55e;
+            --warning-bg: #fffbeb;
+            --warning-border: #f59e0b;
+            --checklist-bg: #f8fafc;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e5e7eb;
+            --border-color: #374151;
+            --code-bg: #2d3748;
+            --toc-bg: #2d3748;
+            --success-bg: #064e3b;
+            --success-border: #10b981;
+            --warning-bg: #451a03;
+            --warning-border: #f59e0b;
+            --checklist-bg: #2d3748;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .toc {
+            background-color: var(--toc-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            text-decoration: none;
+            color: #2563eb;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .step-number {
+            background-color: #2563eb;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .success-box {
+            background-color: var(--success-bg);
+            border: 1px solid var(--success-border);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning-box {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .checklist {
+            background-color: var(--checklist-bg);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        /* Code blocks dark mode */
+        pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        code {
+            background-color: var(--code-bg);
+        }
+        
+        /* Links in dark mode */
+        [data-theme="dark"] a {
+            color: #60a5fa;
+        }
+        
+        /* Headers in dark mode */
+        [data-theme="dark"] h1,
+        [data-theme="dark"] h2,
+        [data-theme="dark"] h3 {
+            color: #60a5fa;
+        }
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Dark mode toggle button -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+        <span id="theme-icon">🌙</span>
+    </button>
+    <h1><span class="emoji">🚀</span>QA Test Platform - Quick Start Guide</h1>
+    <p><strong>Kom igång på 30 minuter</strong></p>
+
+    <div class="toc">
+        <h3>📋 Innehållsförteckning</h3>
+        <ul>
+            <li><a href="#systemkrav">🖥️ Systemkrav</a></li>
+            <li><a href="#installation">📦 Installation</a></li>
+            <li><a href="#första-körning">🎯 Första körning</a></li>
+            <li><a href="#kör-dina-första-tester">🧪 Kör dina första tester</a></li>
+            <li><a href="#dashboard-overview">📊 Dashboard overview</a></li>
+            <li><a href="#cicd-setup">🔄 CI/CD setup</a></li>
+            <li><a href="#nästa-steg">🎓 Nästa steg</a></li>
+        </ul>
+    </div>
+
+    <h2 id="systemkrav"><span class="emoji">🖥️</span>Systemkrav</h2>
+    
+    <h3>Minimum Requirements</h3>
+    <ul>
+        <li><strong>OS:</strong> Windows 10/11, macOS 10.15+, Ubuntu 18.04+</li>
+        <li><strong>Python:</strong> 3.11 eller senare</li>
+        <li><strong>RAM:</strong> 4GB (8GB rekommenderat)</li>
+        <li><strong>Disk:</strong> 2GB ledigt utrymme</li>
+        <li><strong>Internet:</strong> Krävs för installation och CI/CD</li>
+    </ul>
+
+    <h3>Verktyg som behövs</h3>
+    <ul>
+        <li><strong>Git</strong> - För versionshantering</li>
+        <li><strong>Docker</strong> (valfritt) - För containerized deployment</li>
+        <li><strong>Web browser</strong> - Chrome/Firefox/Edge för UI-tester</li>
+    </ul>
+
+    <h2 id="installation"><span class="emoji">📦</span>Installation</h2>
+
+    <h3><span class="step-number">1</span>Klona Repository</h3>
+    <pre><code>git clone https://github.com/yourusername/qa-test-platform.git
+cd qa-test-platform</code></pre>
+
+    <h3><span class="step-number">2</span>Skapa Virtual Environment</h3>
+    <pre><code># Windows
+python -m venv venv
+venv\Scripts\activate
+
+# macOS/Linux  
+python3 -m venv venv
+source venv/bin/activate</code></pre>
+
+    <h3><span class="step-number">3</span>Installera Dependencies</h3>
+    <pre><code>pip install --upgrade pip
+pip install -r requirements.txt</code></pre>
+
+    <h3><span class="step-number">4</span>Installera Playwright Browsers</h3>
+    <pre><code>playwright install chromium</code></pre>
+
+    <h3><span class="step-number">5</span>Verifiera Installation</h3>
+    <pre><code>python scripts/check_setup.py</code></pre>
+
+    <div class="success-box">
+        <strong>✅ Om allt är OK ser du:</strong>
+        <pre><code>✓ Python version: 3.11.x
+✓ All dependencies installed
+✓ Database connection: OK
+✓ Playwright browsers: OK
+✓ Installation complete!</code></pre>
+    </div>
+
+    <h2 id="första-körning"><span class="emoji">🎯</span>Första Körning</h2>
+
+    <h3>Starta Applikationen</h3>
+    <pre><code>cd src
+python app.py</code></pre>
+
+    <p><strong>Du bör se:</strong></p>
+    <pre><code>* Running on http://localhost:8080
+* Debug mode: on</code></pre>
+
+    <h3>Testa i Browser</h3>
+    <ol>
+        <li>Öppna: <a href="http://localhost:8080">http://localhost:8080</a></li>
+        <li>Logga in med:
+            <ul>
+                <li><strong>Username:</strong> admin</li>
+                <li><strong>Password:</strong> password123</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="success-box">
+        <strong>✅ Success!</strong> Du ser nu Guestbook-applikationen.
+    </div>
+
+    <h2 id="kör-dina-första-tester"><span class="emoji">🧪</span>Kör Dina Första Tester</h2>
+
+    <h3>API-tester (Rekommenderat att börja här)</h3>
+    <pre><code># Starta appen i en terminal
+cd src && python app.py
+
+# Öppna ny terminal och kör tester
+pytest tests/api/test_guestbook_api.py -v</code></pre>
+
+    <div class="success-box">
+        <strong>Förväntat resultat:</strong>
+        <pre><code>tests/api/test_guestbook_api.py::test_login_success PASSED
+tests/api/test_guestbook_api.py::test_create_entry PASSED
+tests/api/test_guestbook_api.py::test_read_all_entries PASSED
+...
+========================= 8 passed in 12.34s =========================</code></pre>
+    </div>
+
+    <h3>UI-tester</h3>
+    <pre><code>pytest tests/ui/test_guestbook_ui.py -v --browser chromium</code></pre>
+
+    <h3>Säkerhetstester</h3>
+    <pre><code>pytest tests/security/test_security_headers.py -v</code></pre>
+
+    <h3>Performance-tester</h3>
+    <pre><code>pytest tests/performance/test_load_testing.py -v</code></pre>
+
+    <h2 id="dashboard-overview"><span class="emoji">📊</span>Dashboard Overview</h2>
+
+    <h3>Starta Dashboard</h3>
+    <pre><code>cd dashboard/backend
+python app.py</code></pre>
+
+    <p>Dashboard körs på: <a href="http://localhost:6001">http://localhost:6001</a></p>
+
+    <h3>Dashboard Features</h3>
+    <ul>
+        <li><strong>📈 Test Results</strong> - Senaste test-körningar</li>
+        <li><strong>⚡ Performance Metrics</strong> - Response times, success rates</li>
+        <li><strong>🏥 Health Status</strong> - System health monitoring</li>
+        <li><strong>📊 Trends</strong> - Test trends över tid</li>
+    </ul>
+
+    <h3>Populera Dashboard med Data</h3>
+    <pre><code>python scripts/populate_dashboard.py</code></pre>
+
+    <h2 id="cicd-setup"><span class="emoji">🔄</span>CI/CD Setup</h2>
+
+    <h3>GitHub Repository Setup</h3>
+
+    <h4><span class="step-number">1</span>Skapa GitHub Repository</h4>
+    <pre><code>git remote add origin https://github.com/yourusername/your-qa-project.git
+git push -u origin main</code></pre>
+
+    <h4><span class="step-number">2</span>Konfigurera GitHub Secrets</h4>
+    <ul>
+        <li>Gå till: Settings → Secrets and variables → Actions</li>
+        <li>Lägg till secrets (om du har externa services)</li>
+    </ul>
+
+    <h4><span class="step-number">3</span>Aktivera GitHub Actions</h4>
+    <ul>
+        <li>CI/CD pipeline startar automatiskt vid push</li>
+        <li>Se status under "Actions" tab</li>
+    </ul>
+
+    <h3>Pipeline Stages</h3>
+    <ol>
+        <li><strong>🔍 Code Quality</strong> - Black, flake8, pylint</li>
+        <li><strong>🧪 Unit Tests</strong> - Grundläggande tester</li>
+        <li><strong>🔌 API Tests</strong> - Integration tester</li>
+        <li><strong>🔒 Security Scan</strong> - Säkerhetsanalys</li>
+        <li><strong>🖥️ UI Tests</strong> - Browser automation</li>
+        <li><strong>⚡ Performance Tests</strong> - Load testing</li>
+        <li><strong>🐳 Build</strong> - Docker image</li>
+        <li><strong>🚀 Deploy</strong> - Staging & Production</li>
+    </ol>
+
+    <h2 id="nästa-steg"><span class="emoji">🎓</span>Nästa Steg</h2>
+
+    <h3>För Studenter</h3>
+    <ol>
+        <li><strong>Läs Student Learning Manual</strong> - Djupare förståelse</li>
+        <li><strong>Experimentera</strong> - Ändra tester, lägg till nya</li>
+        <li><strong>Skapa egna tester</strong> - Använd templates</li>
+        <li><strong>Utforska CI/CD</strong> - Förstå pipeline</li>
+    </ol>
+
+    <h3>För Instruktörer</h3>
+    <ol>
+        <li><strong>Läs Instructor Guide</strong> - Lektionsplaner och övningar</li>
+        <li><strong>Anpassa miljön</strong> - Konfigurera för din kurs</li>
+        <li><strong>Använd Troubleshooting Guide</strong> - Vanliga problem</li>
+    </ol>
+
+    <h3>Avancerade Användare</h3>
+    <ol>
+        <li><strong>Technical Reference Manual</strong> - Djup teknisk dokumentation</li>
+        <li><strong>Anpassa plattformen</strong> - Lägg till egna features</li>
+        <li><strong>Integrera med andra verktyg</strong> - Jenkins, SonarQube, etc.</li>
+    </ol>
+
+    <h2><span class="emoji">🆘</span>Behöver Hjälp?</h2>
+
+    <h3>Snabb Hjälp</h3>
+    <ul>
+        <li><strong>Health Check:</strong> <a href="http://localhost:8080/health">http://localhost:8080/health</a></li>
+        <li><strong>Logs:</strong> Kolla <code>logs/app.log</code></li>
+        <li><strong>Database:</strong> <code>data/guestbook.db</code></li>
+    </ul>
+
+    <h3>Vanliga Problem</h3>
+    <ul>
+        <li><strong>Port redan används:</strong> Ändra port i <code>src/app.py</code></li>
+        <li><strong>Database locked:</strong> Stäng alla connections</li>
+        <li><strong>Tests failar:</strong> Kontrollera att appen körs</li>
+    </ul>
+
+    <h3>Support</h3>
+    <ul>
+        <li><strong>Troubleshooting Guide</strong> - Detaljerade lösningar</li>
+        <li><strong>GitHub Issues</strong> - Rapportera bugs</li>
+        <li><strong>Documentation</strong> - Fullständig dokumentation</li>
+    </ul>
+
+    <div class="checklist">
+        <h2><span class="emoji">✅</span>Checklista - Du är redo när:</h2>
+        <ul style="list-style-type: none;">
+            <li><input type="checkbox"> Installation verifierad med <code>check_setup.py</code></li>
+            <li><input type="checkbox"> Applikation startar på http://localhost:8080</li>
+            <li><input type="checkbox"> Kan logga in med admin/password123</li>
+            <li><input type="checkbox"> API-tester kör utan fel</li>
+            <li><input type="checkbox"> Dashboard visar data på http://localhost:6001</li>
+            <li><input type="checkbox"> GitHub Actions pipeline är grön</li>
+            <li><input type="checkbox"> Förstår grundläggande test-struktur</li>
+        </ul>
+    </div>
+
+    <div class="success-box">
+        <h2><span class="emoji">🎉</span>Grattis! Du har nu en fullt fungerande QA Test Platform!</h2>
+    </div>
+
+    <hr>
+    <p><em>QA Test Platform v1.0 - Skapad för QA-studenter och professionella testare</em></p>
+
+    <script>
+        // Dark mode functionality
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+            } else {
+                themeIcon.textContent = '🌙';
+            }
+        });
+        
+        // Keyboard shortcut: Ctrl+D for dark mode toggle
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                toggleTheme();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -15,6 +15,7 @@ const headers = {
 
 let currentPage = 1;
 let currentSearch = '';
+let deleteEntryId = null; // Store ID of entry to delete
 const limit = 10; // Number of entries per page
 
 async function loadEntries(page = 1, search = '') {
@@ -107,11 +108,42 @@ function prevPage(){
 }
 
 async function deleteEntry(id) {
-    if (confirm('Delete this entry?')) {
-        console.log(`🗑️ Deleting entry ${id}...`);
-        await fetch(`/api/guestbook/${id}`, {method: 'DELETE', headers});
-        loadEntries(currentPage, currentSearch); // Keep current page and search
+    // Fetch entry details to show in modal
+    try {
+        const response = await fetch(`/api/guestbook/${id}`, {headers});
+        const entry = await response.json();
+        
+        // Store the ID for later use
+        deleteEntryId = id;
+        
+        // Populate modal with entry details
+        document.getElementById('deleteEntryName').textContent = entry.name;
+        document.getElementById('deleteEntryEmail').textContent = entry.email;
+        document.getElementById('deleteEntryComment').textContent = entry.comment || 'No comment';
+        
+        // Show modal
+        document.getElementById('deleteModal').style.display = 'block';
+    } catch (error) {
+        console.error('❌ Error fetching entry for delete:', error);
     }
+}
+
+async function confirmDelete() {
+    if (deleteEntryId) {
+        console.log(`🗑️ Deleting entry ${deleteEntryId}...`);
+        try {
+            await fetch(`/api/guestbook/${deleteEntryId}`, {method: 'DELETE', headers});
+            closeDeleteModal();
+            loadEntries(currentPage, currentSearch); // Keep current page and search
+        } catch (error) {
+            console.error('❌ Error deleting entry:', error);
+        }
+    }
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteEntryId = null;
 }
 
 async function editEntry(id) {
@@ -207,9 +239,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Close modal when clicking outside
     window.onclick = function(event) {
-        const modal = document.getElementById('editModal');
-        if (event.target === modal) {
+        const editModal = document.getElementById('editModal');
+        const deleteModal = document.getElementById('deleteModal');
+        
+        if (event.target === editModal) {
             closeEditModal();
+        }
+        if (event.target === deleteModal) {
+            closeDeleteModal();
         }
     };
 

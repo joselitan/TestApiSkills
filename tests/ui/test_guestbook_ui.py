@@ -52,7 +52,7 @@ def test_edit_entry(authenticated_page: Page):
 
 
 def test_delete_entry(authenticated_page: Page):
-    """Test deleting an entry"""
+    """Test deleting an entry using the delete modal"""
     page = authenticated_page
     # Create entry first
     page.fill("#name", "Delete Test")
@@ -61,11 +61,86 @@ def test_delete_entry(authenticated_page: Page):
     page.click("#entryForm button[type='submit']")
     page.wait_for_timeout(1000)
 
-    # Delete the entry
-    page.on("dialog", lambda dialog: dialog.accept())
-    page.click("button:has-text('Delete'):last-of-type")
+    # Click delete button to open modal
+    delete_button = page.locator('button:has-text("Delete")').first
+    delete_button.scroll_into_view_if_needed()
+    page.wait_for_timeout(500)
+    delete_button.click()
+
+    # Wait for delete modal to appear
+    expect(page.locator("#deleteModal")).to_be_visible()
+    
+    # Verify entry details are shown in modal
+    expect(page.locator("#deleteEntryName")).to_contain_text("Delete Test")
+    expect(page.locator("#deleteEntryEmail")).to_contain_text("delete@test.com")
+    expect(page.locator("#deleteEntryComment")).to_contain_text("Will be deleted")
+    
+    # Confirm deletion
+    page.click(".delete-confirm-btn")
     page.wait_for_timeout(1000)
+    
+    # Verify the entry was deleted
     expect(page.locator("text=Delete Test")).not_to_be_visible()
+
+
+def test_delete_entry_cancel(authenticated_page: Page):
+    """Test canceling delete operation"""
+    page = authenticated_page
+    # Create entry first
+    page.fill("#name", "Cancel Delete Test")
+    page.fill("#email", "canceldelete@test.com")
+    page.fill("#comment", "Should not be deleted")
+    page.click("#entryForm button[type='submit']")
+    page.wait_for_timeout(1000)
+
+    # Click delete button to open modal
+    delete_button = page.locator('button:has-text("Delete")').first
+    delete_button.scroll_into_view_if_needed()
+    page.wait_for_timeout(500)
+    delete_button.click()
+
+    # Wait for delete modal to appear
+    expect(page.locator("#deleteModal")).to_be_visible()
+    
+    # Cancel deletion
+    # page.click("button:has-text('Cancel')")
+    page.click("#deleteModal button:has-text('Cancel')")
+    page.wait_for_timeout(500)
+    
+    # Verify modal is closed
+    expect(page.locator("#deleteModal")).not_to_be_visible()
+    
+    # Verify the entry still exists
+    expect(page.locator("#entriesTable td:has-text('Cancel Delete Test')")).to_be_visible()
+
+def test_delete_modal_close_x(authenticated_page: Page):
+    """Test closing delete modal with X button"""
+    page = authenticated_page
+    # Create entry first
+    page.fill("#name", "Close X Test")
+    page.fill("#email", "closex@test.com")
+    page.fill("#comment", "Test closing with X")
+    page.click("#entryForm button[type='submit']")
+    page.wait_for_timeout(1000)
+
+    # Click delete button to open modal
+    delete_button = page.locator('button:has-text("Delete")').first
+    delete_button.scroll_into_view_if_needed()
+    page.wait_for_timeout(500)
+    delete_button.click()
+
+    # Wait for delete modal to appear
+    expect(page.locator("#deleteModal")).to_be_visible()
+    
+    # Close with X button
+    page.click("#deleteModal .close")
+    page.wait_for_timeout(500)
+    
+    # Verify modal is closed
+    expect(page.locator("#deleteModal")).not_to_be_visible()
+    
+    # Verify the entry still exists
+    expect(page.locator("#entriesTable td:has-text('Close X Test')")).to_be_visible()
 
 
 def test_form_validation(authenticated_page: Page):

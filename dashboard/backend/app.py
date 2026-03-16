@@ -1,19 +1,39 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import sqlite3
 import json
 from datetime import datetime, timedelta
 import os
 
+# Import new API blueprints
+from test_cases_api import test_cases_bp
+from bug_tracking_api import bug_tracking_bp
+from ai_testing_api import ai_testing_bp
+from models import DatabaseManager
+
 app = Flask(__name__)
 CORS(app)
 
-DATABASE_PATH = "dashboard/database/test_results.db"
+# Register API blueprints
+app.register_blueprint(test_cases_bp, url_prefix='/api')
+app.register_blueprint(bug_tracking_bp, url_prefix='/api')
+app.register_blueprint(ai_testing_bp, url_prefix='/api')
+
+DATABASE_PATH = "dashboard/database/test_dashboard.db"
+db_manager = DatabaseManager("dashboard/database/test_dashboard.db")
+
+
+@app.route('/')
+def serve_frontend():
+    """Serve the frontend HTML dashboard"""
+    return send_from_directory('../frontend', 'index.html')
 
 
 def init_db():
     """Initialize the test results database"""
-    os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir:  # Only create directory if path has a directory component
+        os.makedirs(db_dir, exist_ok=True)
 
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
@@ -185,6 +205,12 @@ def get_performance_metrics():
 def add_test_run():
     """Add a new test run result"""
     data = request.json
+    
+    # Check if this is a partial update (real-time individual test)
+    if data.get('is_partial'):
+        # For partial updates, just update the latest run or create a temporary one
+        # This gives real-time feedback without creating duplicate runs
+        return jsonify({"success": True, "partial": True})
 
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
@@ -233,6 +259,98 @@ def add_test_run():
     return jsonify({"success": True, "run_id": run_id})
 
 
+@app.route("/api/dashboard/enhanced-summary")
+def get_enhanced_dashboard_summary():
+    """Get enhanced dashboard summary with Fas 6 features"""
+    try:
+        analytics = db_manager.get_dashboard_analytics()
+        
+        # Get original summary
+        conn = sqlite3.connect(DATABASE_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT 
+                SUM(total_tests) as total,
+                SUM(passed_tests) as passed,
+                SUM(failed_tests) as failed,
+                AVG(coverage_percentage) as coverage
+            FROM test_runs 
+            WHERE DATE(timestamp) = DATE('now')
+        """)
+        
+        today_stats = cursor.fetchone()
+        conn.close()
+        
+        return jsonify({
+            "test_execution": {
+                "total_tests": today_stats[0] or 0,
+                "passed_tests": today_stats[1] or 0,
+                "failed_tests": today_stats[2] or 0,
+                "coverage": round(today_stats[3] or 0, 2),
+            },
+            "test_management": analytics["test_cases"],
+            "bug_tracking": analytics["bugs"],
+            "ai_insights": analytics["ai_suggestions"]
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route("/api/integrations/settings", methods=["GET", "POST"])
+def manage_integration_settings():
+    """Manage integration settings"""
+    if request.method == "GET":
+        try:
+            conn = sqlite3.connect(DATABASE_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT service_name, config_data, is_active FROM integration_settings")
+            settings = cursor.fetchall()
+            conn.close()
+            
+            return jsonify([
+                {
+                    "service": row[0],
+                    "config": json.loads(row[1]),
+                    "active": bool(row[2])
+                } for row in settings
+            ])
+            
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    elif request.method == "POST":
+        data = request.json
+        
+        if not data.get('service_name') or not data.get('config'):
+            return jsonify({'error': 'Service name and config are required'}), 400
+        
+        try:
+            conn = sqlite3.connect(DATABASE_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                INSERT OR REPLACE INTO integration_settings (service_name, config_data, is_active)
+                VALUES (?, ?, ?)
+            """, (
+                data['service_name'],
+                json.dumps(data['config']),
+                data.get('is_active', True)
+            ))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({'success': True})
+            
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+
 if __name__ == "__main__":
     init_db()
+    # Initialize enhanced database
+    db_manager.init_enhanced_db()
     app.run(debug=True, port=6001)

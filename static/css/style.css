@@ -30,3 +30,11 @@ td button { width: auto; margin-right: 10px; padding: 5px 15px; display: inline-
 .close:hover { color: #000; }
 .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
 .modal-buttons button { width: auto; flex: 1; }
+
+/* Delete Modal Specific Styles */
+.modal-body { margin: 20px 0; }
+.entry-preview { background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #007bff; }
+.entry-preview strong { color: #495057; }
+.warning-text { color: #dc3545; font-weight: bold; margin-top: 15px; font-size: 0.9em; }
+.delete-confirm-btn { background: #dc3545 !important; }
+.delete-confirm-btn:hover { background: #c82333 !important; }

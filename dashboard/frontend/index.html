@@ -141,6 +141,66 @@
             font-size: 1.2em;
             margin: 50px 0;
         }
+        
+        .ai-suggestion-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+        }
+        
+        .ai-suggestion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .ai-suggestion-title {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .ai-confidence {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .confidence-high { background: #d4edda; color: #155724; }
+        .confidence-medium { background: #fff3cd; color: #856404; }
+        .confidence-low { background: #f8d7da; color: #721c24; }
+        
+        .ai-actions {
+            margin-top: 10px;
+        }
+        
+        .ai-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+            font-size: 0.9em;
+        }
+        
+        .ai-btn-approve { background: #28a745; color: white; }
+        .ai-btn-reject { background: #dc3545; color: white; }
+        .ai-btn-view { background: #17a2b8; color: white; }
+        
+        .ai-code-preview {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -184,6 +244,16 @@
                 <div class="chart-card">
                     <div class="chart-title">Performance Metrics</div>
                     <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- AI Insights Section -->
+            <div class="chart-card" style="margin-bottom: 30px;">
+                <div class="chart-title">🤖 AI Test-förslag</div>
+                <div id="ai-suggestions-container">
+                    <div id="ai-loading" style="text-align: center; padding: 20px; color: #666;">
+                        Laddar AI-förslag...
+                    </div>
                 </div>
             </div>
             
@@ -239,6 +309,9 @@
                 // Update charts
                 updateTrendsChart(summary.trends);
                 updatePerformanceChart(performance);
+                
+                // Load AI suggestions
+                loadAISuggestions();
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('dashboard-content').style.display = 'block';
@@ -339,6 +412,97 @@
         
         // Auto-refresh every 30 seconds
         setInterval(loadDashboard, 30000);
+        
+        // AI Suggestions Functions
+        async function loadAISuggestions() {
+            try {
+                const response = await fetch(`${API_BASE}/ai/suggestions`);
+                const suggestions = await response.json();
+                
+                const container = document.getElementById('ai-suggestions-container');
+                
+                if (suggestions.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Inga AI-förslag tillgängliga ännu. Kör tester med failures för att generera förslag.</p>';
+                    return;
+                }
+                
+                let html = '';
+                suggestions.forEach(suggestion => {
+                    const confidenceClass = suggestion.confidence_score >= 0.8 ? 'confidence-high' : 
+                                           suggestion.confidence_score >= 0.6 ? 'confidence-medium' : 'confidence-low';
+                    const confidenceText = suggestion.confidence_score >= 0.8 ? 'Hög' : 
+                                          suggestion.confidence_score >= 0.6 ? 'Medium' : 'Låg';
+                    
+                    html += `
+                        <div class="ai-suggestion-card">
+                            <div class="ai-suggestion-header">
+                                <div class="ai-suggestion-title">${suggestion.test_name}</div>
+                                <div class="ai-confidence ${confidenceClass}">${confidenceText} (${Math.round(suggestion.confidence_score * 100)}%)</div>
+                            </div>
+                            <div style="font-size: 0.9em; color: #666; margin-bottom: 8px;">
+                                Typ: ${suggestion.test_type} | Genererat från: ${suggestion.generated_from} | Status: ${suggestion.status}
+                            </div>
+                            <div class="ai-actions">
+                                <button class="ai-btn ai-btn-view" onclick="toggleCode(${suggestion.id})">Visa Kod</button>
+                                ${suggestion.status === 'pending' ? `
+                                    <button class="ai-btn ai-btn-approve" onclick="approveSuggestion(${suggestion.id})">Godkänn</button>
+                                    <button class="ai-btn ai-btn-reject" onclick="rejectSuggestion(${suggestion.id})">Avvisa</button>
+                                ` : ''}
+                            </div>
+                            <div id="code-${suggestion.id}" class="ai-code-preview">${suggestion.test_code}</div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading AI suggestions:', error);
+                document.getElementById('ai-suggestions-container').innerHTML = 
+                    '<p style="text-align: center; color: #dc3545; padding: 20px;">Fel vid laddning av AI-förslag</p>';
+            }
+        }
+        
+        function toggleCode(suggestionId) {
+            const codeDiv = document.getElementById(`code-${suggestionId}`);
+            codeDiv.style.display = codeDiv.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        async function approveSuggestion(suggestionId) {
+            try {
+                const response = await fetch(`${API_BASE}/ai/suggestions/${suggestionId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ generate_file: false })
+                });
+                
+                if (response.ok) {
+                    alert('AI-förslag godkänt!');
+                    loadAISuggestions(); // Reload suggestions
+                } else {
+                    alert('Fel vid godkännande');
+                }
+            } catch (error) {
+                alert('Fel vid godkännande: ' + error.message);
+            }
+        }
+        
+        async function rejectSuggestion(suggestionId) {
+            try {
+                const response = await fetch(`${API_BASE}/ai/suggestions/${suggestionId}/reject`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert('AI-förslag avvisat');
+                    loadAISuggestions(); // Reload suggestions
+                } else {
+                    alert('Fel vid avvisning');
+                }
+            } catch (error) {
+                alert('Fel vid avvisning: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>
