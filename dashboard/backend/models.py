@@ -69,7 +69,7 @@ class DatabaseManager:
         
         # Test Cases Management Table
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS test_cases (
+            CREATE TABLE IF NOT EXISTS managed_test_cases (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
                 description TEXT,
@@ -97,7 +97,7 @@ class DatabaseManager:
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 assigned_to TEXT,
-                FOREIGN KEY (test_case_id) REFERENCES test_cases (id)
+                FOREIGN KEY (test_case_id) REFERENCES managed_test_cases (id)
             )
         """)
         
@@ -126,7 +126,7 @@ class DatabaseManager:
                 error_message TEXT,
                 stack_trace TEXT,
                 executed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (test_case_id) REFERENCES test_cases (id),
+                FOREIGN KEY (test_case_id) REFERENCES managed_test_cases (id),
                 FOREIGN KEY (run_id) REFERENCES test_runs (id)
             )
         """)
@@ -152,7 +152,7 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         cursor.execute("""
-            INSERT INTO test_cases (name, description, test_type, priority, status, tags, created_by)
+            INSERT INTO manged_test_cases (name, description, test_type, priority, status, tags, created_by)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             test_case.name,
@@ -174,7 +174,7 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        query = "SELECT * FROM test_cases WHERE 1=1"
+        query = "SELECT * FROM manged_test_cases WHERE 1=1"
         params = []
         
         if filters:
@@ -202,7 +202,7 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         set_clause = ", ".join([f"{key} = ?" for key in updates.keys()])
-        query = f"UPDATE test_cases SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+        query = f"UPDATE manged_test_cases SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
         
         params = list(updates.values()) + [test_case_id]
         cursor.execute(query, params)
@@ -217,7 +217,7 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute("DELETE FROM test_cases WHERE id = ?", (test_case_id,))
+        cursor.execute("DELETE FROM managed_test_cases WHERE id = ?", (test_case_id,))
         success = cursor.rowcount > 0
         
         conn.commit()
@@ -339,7 +339,7 @@ class DatabaseManager:
                     COUNT(*) as total_cases,
                     SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_cases,
                     SUM(CASE WHEN priority = 'critical' THEN 1 ELSE 0 END) as critical_cases
-                FROM test_cases
+                FROM managed_test_cases
             """)
             test_stats = cursor.fetchone()
         except sqlite3.OperationalError:

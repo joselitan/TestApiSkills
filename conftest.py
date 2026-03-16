@@ -39,33 +39,42 @@ class DashboardReporter:
         
         # Determine test type based on test file paths
         test_type = 'integration'  # default
-        
+        detected_types = set()
+
         if hasattr(session, 'items') and session.items:
-            # Check the first few test items to determine type
-            for item in session.items[:5]:  # Check first 5 tests
-                test_path = str(item.fspath).lower()
-                
-                if 'tests/ui' in test_path or 'tests\\ui' in test_path:
-                    test_type = 'ui'
+            # Scan all collected test items to avoid missing the actual test folder
+            from pathlib import Path
+
+            for item in session.items:
+                path = Path(str(item.fspath))
+                parts = [p.lower() for p in path.parts]
+
+                if 'tests' in parts:
+                    idx = parts.index('tests')
+                    if idx + 1 < len(parts):
+                        candidate = parts[idx + 1]
+                        if candidate in ('ui', 'api', 'performance', 'security'):
+                            detected_types.add(candidate)
+
+                # Fall back to substring matching for odd cases
+                joined = str(path).lower().replace('\\', '/')
+                if '/ui/' in joined:
+                    detected_types.add('ui')
+                if '/api/' in joined:
+                    detected_types.add('api')
+                if '/performance/' in joined:
+                    detected_types.add('performance')
+                if '/security/' in joined:
+                    detected_types.add('security')
+
+            # Select the most specific type (UI > API > Performance > Security > Integration)
+            for t in ('ui', 'api', 'performance', 'security'):
+                if t in detected_types:
+                    test_type = t
                     break
-                elif 'tests/api' in test_path or 'tests\\api' in test_path:
-                    test_type = 'api'
-                    break
-                elif 'tests/performance' in test_path or 'tests\\performance' in test_path:
-                    test_type = 'performance'
-                    break
-                elif 'tests/security' in test_path or 'tests\\security' in test_path:
-                    test_type = 'security'
-                    break
-                elif 'ui' in test_path:
-                    test_type = 'ui'
-                    break
-                elif 'api' in test_path:
-                    test_type = 'api'
-                    break
-        
+
         self.session_data['test_type'] = test_type
-        print(f"Detekterad test-typ: {test_type}")
+        print(f"Detekterad test-typ: {test_type} (sanity check: found {sorted(detected_types)})")
 
     def pytest_runtest_logreport(self, report):
         if report.when == 'call':

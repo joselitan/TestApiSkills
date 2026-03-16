@@ -19,7 +19,8 @@ app.register_blueprint(test_cases_bp, url_prefix='/api')
 app.register_blueprint(bug_tracking_bp, url_prefix='/api')
 app.register_blueprint(ai_testing_bp, url_prefix='/api')
 
-DATABASE_PATH = "dashboard/database/test_dashboard.db"
+#DATABASE_PATH = "dashboard/database/test_dashboard.db"
+DATABASE_PATH = os.path.join(os.path.dirname(__file__), "../database/test_dashboard.db")
 db_manager = DatabaseManager("dashboard/database/test_dashboard.db")
 
 
@@ -81,6 +82,26 @@ def init_db():
     """)
 
     conn.commit()
+
+    # Ensure schema is compatible (migrations)
+    cursor.execute("PRAGMA table_info(test_cases)")
+    columns = {row[1] for row in cursor.fetchall()}
+
+    # Add missing columns if needed (backward-compatibility)
+    required_columns = {
+        "run_id": "INTEGER",
+        "test_name": "TEXT",
+        "test_file": "TEXT",
+        "status": "TEXT",
+        "duration": "REAL",
+        "error_message": "TEXT",
+    }
+
+    for col, col_type in required_columns.items():
+        if col not in columns:
+            cursor.execute(f"ALTER TABLE test_cases ADD COLUMN {col} {col_type}")
+            conn.commit()
+
     conn.close()
 
 
