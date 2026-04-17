@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fas 2: Prestanda och Användarupplevelse - QA Platform v2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Fas 2: Prestanda och Användarupplevelse</h1>
+            <p class="subtitle">Version 2 - Medel Prioritet Implementation</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: 📋 PLANERAD | Datum: 2026-04-04</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="info-box">
+                    <h3>🎯 Syfte</h3>
+                    <p>Denna fas förbättrar prestanda, användarupplevelse och systemets effektivitet genom optimeringar och nya funktioner.</p>
+                </div>
+                <div class="description">
+                    <strong>Prioritet:</strong> Medel - Bygger på grunderna från Fas 1 för bättre användarupplevelse.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📦</span> Nya Dependencies</h2>
+                <div class="code-block">
+                    <code>
+redis>=5.0.0                  # Caching<br>
+flask-caching>=2.1.0           # Flask caching<br>
+rq>=1.15.0                    # Job queues<br>
+graphene>=3.3.0               # GraphQL<br>
+websockets>=12.0.0            # WebSocket support
+                    </code>
+                </div>
+                <div class="description">
+                    <strong>Installation:</strong>
+                    <div class="code-block">
+                        <code>pip install redis flask-caching rq graphene websockets</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📁</span> Uppdaterad Filstruktur</h2>
+                <div class="code-block">
+                    <code>
+src/<br>
+├── cache.py                   # Redis caching<br>
+├── graphql_api.py             # GraphQL endpoint<br>
+└── websocket.py               # Real-time updates<br>
+<br>
+dashboard/backend/<br>
+├── paginated_api.py           # API pagination<br>
+└── async_tasks.py             # Background jobs<br>
+<br>
+requirements.txt               # Uppdaterade deps<br>
+redis.conf                     # Redis config
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📄</span> 2.1 API-Paginering</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Implementera paginering för stora dataset för att förbättra laddningstider och användarupplevelse.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# dashboard/backend/paginated_api.py<br>
+from flask import request<br>
+<br>
+@app.route('/test-cases')<br>
+def get_test_cases():<br>
+    page = int(request.args.get('page', 1))<br>
+    per_page = int(request.args.get('per_page', 20))<br>
+    <br>
+    # Query with pagination<br>
+    test_cases = TestCase.query.paginate(page=page, per_page=per_page)<br>
+    <br>
+    return {<br>
+        'data': [tc.to_dict() for tc in test_cases.items],<br>
+        'pagination': {<br>
+            'page': page,<br>
+            'per_page': per_page,<br>
+            'total': test_cases.total,<br>
+            'pages': test_cases.pages<br>
+        }<br>
+    }
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Snabbare laddningstider</li>
+                        <li>Mindre minnesanvändning</li>
+                        <li>Bättre användarupplevelse</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">💾</span> 2.2 Caching-strategi</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Implementera Redis-caching för frekventa queries och förbättra responstider.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/cache.py<br>
+from flask_caching import Cache<br>
+import redis<br>
+<br>
+cache = Cache(config={'CACHE_TYPE': 'redis', 'CACHE_REDIS_URL': 'redis://localhost:6379/0'})<br>
+cache.init_app(app)<br>
+<br>
+@app.route('/dashboard/metrics')<br>
+@cache.cached(timeout=300)  # Cache for 5 minutes<br>
+def get_dashboard_metrics():<br>
+    # Expensive query<br>
+    return calculate_metrics()<br>
+<br>
+# Manual cache management<br>
+cache.set('key', 'value', timeout=3600)<br>
+value = cache.get('key')
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Snabbare responser</li>
+                        <li>Minskad databasbelastning</li>
+                        <li>Skalbarhet</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔄</span> 2.3 Asynkron Bearbetning</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Använd RQ/Celery för långa operationer som bulk-import och rapportgenerering.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# dashboard/backend/async_tasks.py<br>
+from rq import Queue<br>
+from redis import Redis<br>
+<br>
+redis_conn = Redis()<br>
+queue = Queue(connection=redis_conn)<br>
+<br>
+def process_bulk_import(file_path):<br>
+    # Long-running import logic<br>
+    pass<br>
+<br>
+@app.route('/bulk-import', methods=['POST'])<br>
+def start_bulk_import():<br>
+    job = queue.enqueue(process_bulk_import, request.files['file'].filename)<br>
+    return {'job_id': job.id, 'status': 'queued'}<br>
+<br>
+@app.route('/job-status/&lt;job_id&gt;')<br>
+def get_job_status(job_id):<br>
+    job = queue.fetch_job(job_id)<br>
+    return {'status': job.get_status(), 'result': job.result}
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Icke-blockerande operationer</li>
+                        <li>Bättre användarupplevelse</li>
+                        <li>Skalbar bakgrundsbearbetning</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">⚠️</span> 2.4 Enhetlig Felhantering</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Standardisera felresponsformat över alla API:er för bättre konsistens.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/error_handlers.py<br>
+from flask import jsonify<br>
+<br>
+class APIError(Exception):<br>
+    def __init__(self, message, status_code=400, payload=None):<br>
+        self.message = message<br>
+        self.status_code = status_code<br>
+        self.payload = payload<br>
+<br>
+@app.errorhandler(APIError)<br>
+def handle_api_error(error):<br>
+    response = {<br>
+        'error': {<br>
+            'code': error.status_code,<br>
+            'message': error.message,<br>
+            'details': error.payload<br>
+        }<br>
+    }<br>
+    return jsonify(response), error.status_code<br>
+<br>
+# Usage<br>
+raise APIError('Invalid input', 400, {'field': 'email'})
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Konsekventa felmeddelanden</li>
+                        <li>Bättre klienthantering</li>
+                        <li>Enklare debugging</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔐</span> 2.5 Data Kryptering</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Kryptera känsliga data i databasen för bättre säkerhet.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/encryption.py<br>
+from cryptography.fernet import Fernet<br>
+<br>
+key = Fernet.generate_key()<br>
+cipher = Fernet(key)<br>
+<br>
+def encrypt_data(data):<br>
+    return cipher.encrypt(data.encode()).decode()<br>
+<br>
+def decrypt_data(encrypted_data):<br>
+    return cipher.decrypt(encrypted_data.encode()).decode()<br>
+<br>
+# Usage in models<br>
+class User(db.Model):<br>
+    email = db.Column(db.String, nullable=False)<br>
+    <br>
+    @property<br>
+    def encrypted_email(self):<br>
+        return encrypt_data(self.email)<br>
+    <br>
+    @encrypted_email.setter<br>
+    def encrypted_email(self, value):<br>
+        self.email = decrypt_data(value)
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Skydd av känslig data</li>
+                        <li>Compliance med dataskyddsregler</li>
+                        <li>Möjlighet att hantera krypterade backups</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Implementation Plan</h2>
+                <div class="warning-box">
+                    <h3>📅 Tidsplan</h3>
+                    <ul>
+                        <li><strong>Veck 1-2:</strong> API-paginering och caching</li>
+                        <li><strong>Veck 3-4:</strong> Asynkron bearbetning</li>
+                        <li><strong>Veck 5-6:</strong> Felhantering och kryptering</li>
+                        <li><strong>Veck 7-8:</strong> Testing och optimering</li>
+                    </ul>
+                </div>
+                <div class="success-box">
+                    <h3>✅ Förväntade Resultat</h3>
+                    <p>Efter denna fas kommer plattformen att ha betydligt bättre prestanda och användarupplevelse.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 QA Platform v2 - Fas 2 Implementation Guide</p>
+        </footer>
+    </div>
+</body>
+</html>

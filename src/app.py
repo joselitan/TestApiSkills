@@ -4,15 +4,19 @@ import json
 import logging
 import os
 import re
+import smtplib
 import time
 import traceback
+import uuid
+from email.message import EmailMessage
 from functools import wraps
 
 import jwt
 import pandas as pd
 from flasgger import Swagger
-from flask import Flask, g, jsonify, render_template, request
-from werkzeug.security import check_password_hash
+from flask import Flask, g, jsonify, render_template, request, redirect
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 from database import get_db, init_db
@@ -92,6 +96,108 @@ def security_test_bypass():
     return test_header == "bypass-auth" and request.path.startswith("/api/")
 
 
+def is_valid_email(email):
+    if not isinstance(email, str):
+        return False
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email))
+
+
+def normalize_email(email):
+    if not email or not isinstance(email, str):
+        return None
+    return sanitize_html(email.strip().lower())
+
+
+def send_email(to, subject, body):
+    if not app.config["EMAIL_HOST"] or not app.config["EMAIL_USERNAME"]:
+        app.logger.warning("Email configuration missing, skipping send_email")
+        if app.config["EMAIL_DEBUG"]:
+            app.logger.info(
+                f"EMAIL_DEBUG enabled - email to {to}\nSubject: {subject}\n\n{body}"
+            )
+            return True
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = app.config["EMAIL_FROM"]
+    message["To"] = to
+    message.set_content(body)
+
+    try:
+        if app.config["EMAIL_USE_SSL"]:
+            smtp = smtplib.SMTP_SSL(
+                app.config["EMAIL_HOST"], app.config["EMAIL_PORT"]
+            )
+        else:
+            smtp = smtplib.SMTP(
+                app.config["EMAIL_HOST"], app.config["EMAIL_PORT"]
+            )
+            if app.config["EMAIL_USE_TLS"]:
+                smtp.starttls()
+
+        smtp.login(app.config["EMAIL_USERNAME"], app.config["EMAIL_PASSWORD"])
+        smtp.send_message(message)
+        smtp.quit()
+        return True
+    except Exception as exc:
+        app.logger.error(f"Failed to send email to {to}: {exc}")
+        return False
+
+
+def send_verification_email(email, token):
+    verification_url = (
+        f"{app.config['APP_BASE_URL']}/api/verify-email?token={token}"
+    )
+    subject = "Verify your QA Platform account"
+    body = (
+        f"Welcome to QA Platform!\n\n"
+        f"Click the link below to verify your account:\n\n{verification_url}\n\n"
+        f"This link is valid for {app.config['VERIFICATION_TOKEN_EXPIRATION_HOURS']} hours."
+    )
+    return send_email(email, subject, body)
+
+
+def send_password_reset_email(email, token):
+    reset_url = (
+        f"{app.config['APP_BASE_URL']}/reset-password?token={token}"
+    )
+    subject = "Reset your QA Platform password"
+    body = (
+        f"A password reset was requested for your account.\n\n"
+        f"Click the link below to reset your password:\n\n{reset_url}\n\n"
+        f"This link expires in {app.config['PASSWORD_RESET_TOKEN_EXPIRATION_HOURS']} hours."
+    )
+    send_email(email, subject, body)
+
+
+def get_user_by_email_or_username(identifier):
+    conn = get_db()
+    if not identifier:
+        return None
+
+    identifier = identifier.strip()
+    if is_valid_email(identifier):
+        user = conn.execute(
+            "SELECT * FROM users WHERE email = ?", (normalize_email(identifier),)
+        ).fetchone()
+    else:
+        user = conn.execute(
+            "SELECT * FROM users WHERE username = ?", (sanitize_html(identifier),)
+        ).fetchone()
+    conn.close()
+    return user
+
+
+def get_user_by_email(email):
+    if not email:
+        return None
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (normalize_email(email),)).fetchone()
+    conn.close()
+    return user
+
+
 # Security headers middleware
 def add_security_headers(response):
     """Add security headers to all responses"""
@@ -124,11 +230,43 @@ app = Flask(
     static_folder=os.path.join(basedir, "static"),
     template_folder=os.path.join(basedir, "templates"),
 )
-app.config["SECRET_KEY"] = "your-secret-key-change-in-production"
-
-# Database configuration from environment
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+app.config["APP_BASE_URL"] = os.getenv("APP_BASE_URL", "http://localhost:8080")
+app.config["ENABLE_SELF_REGISTRATION"] = os.getenv(
+    "ENABLE_SELF_REGISTRATION", "true"
+).lower() in ("1", "true", "yes")
+app.config["VERIFICATION_TOKEN_EXPIRATION_HOURS"] = int(
+    os.getenv("VERIFICATION_TOKEN_EXPIRATION_HOURS", "24")
+)
+app.config["PASSWORD_RESET_TOKEN_EXPIRATION_HOURS"] = int(
+    os.getenv("PASSWORD_RESET_TOKEN_EXPIRATION_HOURS", "2")
+)
+app.config["EMAIL_HOST"] = os.getenv("EMAIL_HOST")
+app.config["EMAIL_PORT"] = int(os.getenv("EMAIL_PORT", "587"))
+app.config["EMAIL_USERNAME"] = os.getenv("EMAIL_USERNAME")
+app.config["EMAIL_PASSWORD"] = os.getenv("EMAIL_PASSWORD")
+app.config["EMAIL_FROM"] = os.getenv("EMAIL_FROM", "noreply@example.com")
+app.config["EMAIL_USE_TLS"] = os.getenv("EMAIL_USE_TLS", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+app.config["EMAIL_USE_SSL"] = os.getenv("EMAIL_USE_SSL", "false").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+app.config["EMAIL_DEBUG"] = os.getenv("EMAIL_DEBUG", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 app.config["DATABASE_URL"] = os.getenv("DATABASE_URL", "sqlite:///data/guestbook.db")
 app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
+app.config["ALLOWED_ROLES"] = ["member", "tester"]
+app.config["DEFAULT_ROLE"] = "member"
+
+serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 
 # Swagger configuration
 swagger_config = {
@@ -273,6 +411,19 @@ def rate_limit_exceeded(e):
     return jsonify({"message": "Rate limit exceeded"}), 429
 
 
+def is_user_authenticated():
+    """Check if the current request contains a valid JWT token"""
+    token = request.headers.get("Authorization")
+    if not token:
+        return False
+    try:
+        token = token.split()[1] if token.startswith("Bearer ") else token
+        jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        return True
+    except:
+        return False
+
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -317,9 +468,11 @@ def login():
         schema:
           type: object
           required:
-            - username
             - password
           properties:
+            email:
+              type: string
+              example: "user@example.com"
             username:
               type: string
               example: "admin"
@@ -343,59 +496,509 @@ def login():
             message:
               type: string
               example: "Invalid credentials"
+      403:
+        description: Account not active
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Account not active. Verify your email."
     """
     try:
         data = request.get_json(force=True)
         if not data:
             return jsonify({"message": "Invalid JSON payload"}), 400
 
-        # Validate JSON structure
         is_valid, message = validate_json_payload(data)
         if not is_valid:
             return jsonify({"message": message}), 400
-
     except (json.JSONDecodeError, Exception) as e:
         app.logger.warning(f"Invalid JSON in login request: {str(e)}")
         return jsonify({"message": "Invalid JSON payload"}), 400
 
+    email = normalize_email(data.get("email"))
     username = data.get("username")
     password = data.get("password")
 
-    # Input validation
-    if not username or not password:
-        return jsonify({"message": "Username and password are required"}), 400
+    if not password or (not email and not username):
+        return jsonify({"message": "Email or username and password are required"}), 400
 
-    # Sanitize inputs to prevent injection
-    username = sanitize_html(username)
+    if username:
+        username = sanitize_html(username)
+        if len(username) > 100:
+            return jsonify({"message": "Input too long"}), 400
 
-    # Additional validation for suspicious patterns
-    if len(username) > 100 or len(password) > 100:
+    if email and len(email) > 320:
+        return jsonify({"message": "Input too long"}), 400
+    if not password or len(password) > 100:
         return jsonify({"message": "Input too long"}), 400
 
+    identifier = email if email else username
     app.logger.info(
-        f"Login attempt for user: {username} from IP: {request.remote_addr}"
+        f"Login attempt for identifier: {identifier} from IP: {request.remote_addr}"
     )
+
+    user = get_user_by_email_or_username(identifier)
+    if not user:
+        app.logger.warning(
+            f"Login failed for identifier: {identifier} - Invalid credentials"
+        )
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    if not check_password_hash(user["password"], password):
+        app.logger.warning(
+            f"Login failed for identifier: {identifier} - Invalid credentials"
+        )
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    if not user["is_active"]:
+        app.logger.warning(
+            f"Login rejected for identifier: {identifier} - account inactive"
+        )
+        return jsonify({"message": "Account not active. Verify your email."}), 403
+
+    token = jwt.encode(
+        {
+            "user": user["email"] or user["username"],
+            "role": user["role"],
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24),
+        },
+        app.config["SECRET_KEY"],
+        algorithm="HS256",
+    )
+    app.logger.info(f"Login successful for identifier: {identifier}")
+    return jsonify({"token": token})
+
+
+@app.route("/api/register", methods=["POST"])
+def register():
+    """
+    User registration endpoint
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: registration
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - password
+            - confirm_password
+          properties:
+            email:
+              type: string
+              example: "user@example.com"
+            password:
+              type: string
+              example: "Password123!"
+            confirm_password:
+              type: string
+              example: "Password123!"
+            username:
+              type: string
+              example: "newuser"
+            role:
+              type: string
+              example: "member"
+    responses:
+      201:
+        description: Registration successful, verification email sent or queued
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Verification email sent. Check your inbox."
+      400:
+        description: Validation failed or invalid request
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      403:
+        description: Self registration disabled
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      409:
+        description: Email already registered
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
+    if not app.config["ENABLE_SELF_REGISTRATION"]:
+        return jsonify({"message": "Self registration is disabled."}), 403
+
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({"message": "Invalid JSON payload"}), 400
+
+        is_valid, message = validate_json_payload(data)
+        if not is_valid:
+            return jsonify({"message": message}), 400
+    except (json.JSONDecodeError, Exception) as e:
+        app.logger.warning(f"Invalid JSON in register request: {str(e)}")
+        return jsonify({"message": "Invalid JSON payload"}), 400
+
+    email = normalize_email(data.get("email"))
+    password = data.get("password")
+    confirm_password = data.get("confirm_password")
+    role = data.get("role", app.config["DEFAULT_ROLE"])
+    username = data.get("username")
+
+    if username:
+        username = sanitize_html(username.strip())
+
+    if not username and email:
+        base_username = email.split("@")[0] or "user"
+        username = sanitize_html(base_username)
+
+    if not email or not password or not confirm_password:
+        return jsonify({"message": "Email, password and confirm_password are required"}), 400
+    if not is_valid_email(email):
+        return jsonify({"message": "Invalid email address"}), 400
+    if password != confirm_password:
+        return jsonify({"message": "Passwords do not match"}), 400
+    if len(password) < 8:
+        return jsonify({"message": "Password must be at least 8 characters"}), 400
+    if role not in app.config["ALLOWED_ROLES"]:
+        return jsonify({"message": "Role is not allowed"}), 400
+    if role == "admin":
+        return jsonify({"message": "Role is not allowed"}), 400
+
+    if username and len(username) > 100:
+        return jsonify({"message": "Username is too long"}), 400
+
+    conn = get_db()
+    existing_email = conn.execute(
+        "SELECT id FROM users WHERE email = ?", (email,)
+    ).fetchone()
+    if existing_email:
+        conn.close()
+        return jsonify({"message": "Email already registered"}), 409
+
+    if not username:
+        username = sanitize_html(f"{email.split('@')[0]}_{uuid.uuid4().hex[:6]}")
+
+    username = username[:100]
+    unique_username = username
+    suffix = 1
+    while conn.execute(
+        "SELECT id FROM users WHERE username = ?", (unique_username,)
+    ).fetchone():
+        unique_username = f"{username}{suffix}"
+        suffix += 1
+    username = unique_username
+
+    password_hash = generate_password_hash(
+        password, method="pbkdf2:sha256", salt_length=16
+    )
+    verification_token = serializer.dumps(email, salt="email-confirm")
+    verification_expires_at = (
+        datetime.datetime.utcnow()
+        + datetime.timedelta(hours=app.config["VERIFICATION_TOKEN_EXPIRATION_HOURS"])
+    )
+
+    conn.execute(
+        "INSERT INTO users (username, email, password, role, is_active, verification_token, verification_expires_at, created_at, updated_at) VALUES (?, ?, ?, ?, 0, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+        (
+            username,
+            email,
+            password_hash,
+            role,
+            verification_token,
+            verification_expires_at,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+    email_sent = send_verification_email(email, verification_token)
+    if email_sent:
+        message = "Verification email sent. Check your inbox."
+    else:
+        message = (
+            "Account created, but verification email could not be sent. "
+            "Check email SMTP configuration."
+        )
+    return jsonify({"message": message}), 201
+
+
+@app.route("/api/verify-email")
+def verify_email():
+    """
+    Verify user email with token
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: query
+        name: token
+        type: string
+        required: true
+        description: Verification token from email
+    responses:
+      200:
+        description: Email verified successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      400:
+        description: Token invalid or expired
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
+    token = request.args.get("token")
+    if not token:
+        return jsonify({"message": "Token is required"}), 400
+
+    try:
+        email = serializer.loads(
+            token,
+            salt="email-confirm",
+            max_age=app.config["VERIFICATION_TOKEN_EXPIRATION_HOURS"] * 3600,
+        )
+    except SignatureExpired:
+        return jsonify({"message": "Token is invalid or expired"}), 400
+    except BadSignature:
+        return jsonify({"message": "Token is invalid or expired"}), 400
 
     conn = get_db()
     user = conn.execute(
-        "SELECT * FROM users WHERE username = ?", (username,)
+        "SELECT id FROM users WHERE email = ? AND verification_token = ?",
+        (email, token),
     ).fetchone()
+    if not user:
+        conn.close()
+        return jsonify({"message": "Verification token invalid"}), 400
+
+    conn.execute(
+        "UPDATE users SET is_active = 1, verification_token = NULL, verification_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        (user["id"],),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Email verified. You may now log in."}), 200
+
+
+@app.route("/api/password-reset-request", methods=["POST"])
+def password_reset_request():
+    """
+    Password reset request endpoint
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: reset_request
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+          properties:
+            email:
+              type: string
+              example: "user@example.com"
+    responses:
+      200:
+        description: Password reset email sent if account exists
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      400:
+        description: Invalid email address
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({"message": "Invalid JSON payload"}), 400
+
+        is_valid, message = validate_json_payload(data)
+        if not is_valid:
+            return jsonify({"message": message}), 400
+    except (json.JSONDecodeError, Exception) as e:
+        app.logger.warning(f"Invalid JSON in password reset request: {str(e)}")
+        return jsonify({"message": "Invalid JSON payload"}), 400
+
+    email = normalize_email(data.get("email"))
+    if not email or not is_valid_email(email):
+        return jsonify({"message": "Invalid email address"}), 400
+
+    conn = get_db()
+    user = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+    if user:
+        reset_token = serializer.dumps(email, salt="password-reset")
+        reset_expires = (
+            datetime.datetime.utcnow()
+            + datetime.timedelta(hours=app.config["PASSWORD_RESET_TOKEN_EXPIRATION_HOURS"])
+        )
+        conn.execute(
+            "UPDATE users SET password_reset_token = ?, password_reset_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            (reset_token, reset_expires, user["id"]),
+        )
+        conn.commit()
+        email_sent = send_password_reset_email(email, reset_token)
+    else:
+        email_sent = True
     conn.close()
 
-    if user and check_password_hash(user["password"], password):
-        token = jwt.encode(
-            {
-                "user": username,
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24),
-            },
-            app.config["SECRET_KEY"],
-            algorithm="HS256",
-        )
-        app.logger.info(f"Login successful for user: {username}")
-        return jsonify({"token": token})
+    if not email_sent:
+        return jsonify({
+            "message": (
+                "Password reset requested, but email could not be sent. "
+                "Check email SMTP configuration."
+            )
+        }), 200
 
-    app.logger.warning(f"Login failed for user: {username} - Invalid credentials")
-    return jsonify({"message": "Invalid credentials"}), 401
+    return jsonify({"message": "Password reset email sent."}), 200
+
+
+@app.route("/api/password-reset", methods=["POST"])
+def password_reset():
+    """
+    Password reset confirmation endpoint
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: reset_confirmation
+        required: true
+        schema:
+          type: object
+          required:
+            - token
+            - password
+            - confirm_password
+          properties:
+            token:
+              type: string
+            password:
+              type: string
+              example: "NewPassword123!"
+            confirm_password:
+              type: string
+              example: "NewPassword123!"
+    responses:
+      200:
+        description: Password has been reset
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      400:
+        description: Invalid token or payload
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({"message": "Invalid JSON payload"}), 400
+
+        is_valid, message = validate_json_payload(data)
+        if not is_valid:
+            return jsonify({"message": message}), 400
+    except (json.JSONDecodeError, Exception) as e:
+        app.logger.warning(f"Invalid JSON in password reset request: {str(e)}")
+        return jsonify({"message": "Invalid JSON payload"}), 400
+
+    token = data.get("token")
+    password = data.get("password")
+    confirm_password = data.get("confirm_password")
+
+    if not token or not password or not confirm_password:
+        return jsonify({"message": "Token, password and confirm_password are required"}), 400
+    if password != confirm_password:
+        return jsonify({"message": "Passwords do not match"}), 400
+    if len(password) < 8:
+        return jsonify({"message": "Password must be at least 8 characters"}), 400
+
+    try:
+        email = serializer.loads(
+            token,
+            salt="password-reset",
+            max_age=app.config["PASSWORD_RESET_TOKEN_EXPIRATION_HOURS"] * 3600,
+        )
+    except SignatureExpired:
+        return jsonify({"message": "Token is invalid or expired"}), 400
+    except BadSignature:
+        return jsonify({"message": "Token is invalid or expired"}), 400
+
+    conn = get_db()
+    user = conn.execute(
+        "SELECT id FROM users WHERE email = ? AND password_reset_token = ?",
+        (email, token),
+    ).fetchone()
+    if not user:
+        conn.close()
+        return jsonify({"message": "Token is invalid or expired"}), 400
+
+    password_hash = generate_password_hash(
+        password, method="pbkdf2:sha256", salt_length=16
+    )
+    conn.execute(
+        "UPDATE users SET password = ?, password_reset_token = NULL, password_reset_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        (password_hash, user["id"]),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Password has been reset."}), 200
+
+
+@app.route("/login")
+def login_page():
+    """
+    Login page route with authenticated user protection
+    Redirects authenticated users to /guestbook to prevent session confusion
+    """
+    if is_user_authenticated():
+        app.logger.info("Authenticated user attempted to access /login, redirecting to /guestbook")
+        return redirect("/guestbook")
+    
+    return render_template("login.html")
+
+
+@app.route("/register")
+def register_page():
+    return render_template("register.html")
+
+
+@app.route("/reset-password-request")
+def reset_password_request_page():
+    return render_template("reset_password_request.html")
+
+
+@app.route("/reset-password")
+def reset_password_page():
+    return render_template("reset_password.html")
 
 
 @app.route("/api/guestbook", methods=["POST"])

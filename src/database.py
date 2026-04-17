@@ -36,7 +36,16 @@ def init_db(test_mode=False):
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            email TEXT UNIQUE,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'member',
+            is_active INTEGER NOT NULL DEFAULT 0,
+            verification_token TEXT,
+            verification_expires_at TIMESTAMP,
+            password_reset_token TEXT,
+            password_reset_expires_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
@@ -50,12 +59,60 @@ def init_db(test_mode=False):
         )
     """)
 
+    cursor.execute("PRAGMA table_info(users)")
+    existing_columns = {row[1] for row in cursor.fetchall()}
+    migration_statements = []
+
+    if "email" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN email TEXT"
+        )
+    if "role" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'member'"
+        )
+    if "is_active" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 0"
+        )
+    if "verification_token" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN verification_token TEXT"
+        )
+    if "verification_expires_at" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN verification_expires_at TIMESTAMP"
+        )
+    if "password_reset_token" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN password_reset_token TEXT"
+        )
+    if "password_reset_expires_at" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN password_reset_expires_at TIMESTAMP"
+        )
+    if "created_at" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN created_at TIMESTAMP"
+        )
+    if "updated_at" not in existing_columns:
+        migration_statements.append(
+            "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP"
+        )
+
+    for statement in migration_statements:
+        cursor.execute(statement)
+
     cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
     if cursor.fetchone()[0] == 0:
         hashed_password = generate_password_hash("password123")
         cursor.execute(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
+            "INSERT INTO users (username, password, role, is_active) VALUES (?, ?, 'admin', 1)",
             ("admin", hashed_password),
+        )
+    else:
+        cursor.execute(
+            "UPDATE users SET role = COALESCE(role, 'admin'), is_active = 1 WHERE username = 'admin'"
         )
 
     conn.commit()

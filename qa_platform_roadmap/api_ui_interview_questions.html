@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API & UI Automatisering - Jobbintervju Frågor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 API & UI Automatisering</h1>
+            <p class="subtitle">Jobbintervju Frågor - Fokuserat på Praktisk Erfarenhet</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">TestApiSkills QA Plattform | Datum: 2026-03-25</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">🎯</span> Översikt</h2>
+                <p>Detta dokument fokuserar på intervjufrågor inom API och UI automatisering baserat på praktisk erfarenhet från TestApiSkills-projektet. Vi täcker API-testning med dokumentation, kontraktstestning och negativa tester, samt UI-automatisering med Playwright. Varje sektion innehåller relevanta frågor och konkreta svar som visar teknisk kompetens.</p>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📚</span> API-Testning & Dokumentation</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Hur implementerade du API-dokumentation i ditt senaste projekt?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag använde Flask-Swagger (Flasgger) för att skapa interaktiv API-dokumentation. Jag konfigurerade Swagger UI med detaljerade endpoints som inkluderade autentisering (Bearer tokens), request/response-scheman och exempeldata. Detta gjorde det möjligt för utvecklare att testa API:et direkt från dokumentationen på /apidocs/."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Vad är API-kontraktstestning och hur använde du det?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "API-kontraktstestning validerar att API-responses matchar förväntade scheman. Jag använde pytest och jsonschema för att skapa 4 kontraktstester som kontrollerade obligatoriska fält, datatyper och statuskoder. Detta förhindrade brytande ändringar och säkerställde API-stabilitet under utveckling."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du negativa API-tester?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "För negativa tester skapade jag 17 testfall som täckte ogiltiga inputs, autentiseringsfel och edge cases. Detta inkluderade SQL-injektion, XSS-attacker och boundary values. Jag använde pytest fixtures för att simulera felvillkor och verifiera robust felhantering i applikationen."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Vilka verktyg använde du för API-testning?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag använde pytest som huvudramverk med requests-biblioteket för HTTP-anrop. För schema-validering använde jag jsonschema, och för testdata-generering använde jag Faker. Allt integrerades i en CI/CD-pipeline med HTML-rapporter och täckningsanalys."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur säkerställde du API-testkvalitet?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag implementerade olika testtyper: positiva tester för normal funktion, negativa tester för felhantering, och prestandatester för response-tider. Jag använde fixtures för att skapa testdata och säkerställa isolering mellan tester. Resultaten rapporterades med pytest-html och pytest-cov för täckningsanalys."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🖥️</span> UI-Automatisering</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Vilket ramverk valde du för UI-automatisering och varför?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag valde Playwright för dess cross-browser-stöd (Chromium, Firefox, WebKit), auto-waiting-funktioner och moderna API. Det hanterar dynamiska webbapplikationer bättre än Selenium och ger bättre debugging med screenshots och videoinspelningar. Vi implementerade 16 tester som täckte hela användarflöden."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du cross-browser-testning?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag konfigurerade Playwright att köra tester parallellt över tre webbläsare. I CI/CD-pipeline kördes testerna automatiskt på alla webbläsare för att säkerställa kompatibilitet. Jag hanterade webbläsarspecifika skillnader genom villkorlig logik i testkoden."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Beskriv din strategi för UI-testautomatisering.</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Min strategi inkluderade Page Object Model för att organisera koden, custom fixtures för autentiserade sessioner, och omfattande täckning av användarflöden. Jag skapade tester för login (5 tester), CRUD-operationer (5 tester), sökning (3 tester) och paginering (3 tester). Testerna kördes i både headed (för debugging) och headless-läge."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du dynamiskt innehåll i UI-tester?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Playwrights auto-waiting hanterade de flesta dynamiska element automatiskt. För komplexa fall använde jag explicit waits med selectors som var mer robusta än XPath. Jag implementerade också retry-mekanismer för flaky tester och använde screenshots för att debugga timing-problem."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Vad var dina största utmaningar med UI-automatisering?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "De största utmaningarna var att hantera flaky tester på grund av timing och dynamiskt innehåll. Jag löste detta genom att använda mer stabila selectors, implementera retry-logik, och köra tester i olika miljöer. En annan utmaning var att underhålla tester när UI ändrades - här hjälpte Page Object Model att isolera ändringar."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔧</span> Verktyg & Tekniker</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Hur integrerade du API och UI-tester i CI/CD?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag satte upp en GitHub Actions pipeline som körde alla tester automatiskt vid varje push. API-testerna kördes först (snabbare), följt av UI-tester. Pipeline inkluderade parallell exekvering, HTML-rapporter och kvalitetsgates som blockerade deployment vid testfel."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du testdata för automatisering?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag implementerade separata databaser för testning med automatisk rensning mellan körningar. För API-tester använde jag Faker för att generera realistiska testdata. För UI-tester skapade jag fixtures som satte upp nödvändiga förvillkor, som autentiserade användare och förifyllda data."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Vad är viktigt att tänka på när man skriver automatiserade tester?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Viktiga principer inkluderar: hållbarhet (använd stabila selectors), underhållbarhet (Page Object Model), läsbarhet (beskrivande testnamn), och pålitlighet (undvik flaky tester). Tester ska vara snabba att köra, ge tydliga felmeddelanden, och täcka kritiska användarflöden snarare än varje edge case."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">💡</span> Intervjuttips för API & UI Automatisering</h2>
+                <div class="info-box">
+                    <ul>
+                        <li><strong>Var Specifik:</strong> Nämn konkreta verktyg och tekniker du använt</li>
+                        <li><strong>Visa Problemlösning:</strong> Beskriv utmaningar och hur du löste dem</li>
+                        <li><strong>Använd Mätvärden:</strong> Nämn antal tester, täckning, exekveringstider</li>
+                        <li><strong>Demonstrera Djup:</strong> Förklara varför du valde vissa approacher</li>
+                        <li><strong>Koppla till Affärsvärde:</strong> Förklara hur automatisering förbättrade utveckling</li>
+                        <li><strong>Var Ärlig:</strong> Erkänn begränsningar och lärdomar från projektet</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> Nyckelkompetenser Sammanfattning</h2>
+                <div class="info-box">
+                    <ul>
+                        <li><strong>API-Testning:</strong> pytest, requests, jsonschema, Swagger-dokumentation</li>
+                        <li><strong>Kontraktstestning:</strong> Schema-validering, response-verifiering</li>
+                        <li><strong>Negativa Tester:</strong> Felhantering, säkerhetstestning, edge cases</li>
+                        <li><strong>UI-Automatisering:</strong> Playwright, cross-browser, Page Object Model</li>
+                        <li><strong>Teststrategi:</strong> Fixtures, parallell exekvering, CI/CD-integration</li>
+                        <li><strong>Verktyg:</strong> pytest-html, pytest-cov, GitHub Actions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Praktiska Exempel att Förbereda</h2>
+                <div class="description">
+                    <strong>API-Test Exempel:</strong> Visa hur du skriver en pytest-funktion som testar ett GET-endpoint med autentisering och schema-validering.
+                </div>
+                <div class="description">
+                    <strong>UI-Test Exempel:</strong> Visa ett Playwright-test som loggar in, navigerar till en sida och verifierar innehåll.
+                </div>
+                <div class="description">
+                    <strong>Fixture Exempel:</strong> Förklara hur du skapar återanvändbara fixtures för autentisering eller testdata.
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererat för TestApiSkills - Fokuserat på API & UI Automatisering</p>
+            <p>Baserat på praktisk erfarenhet från QA-projekt</p>
+        </footer>
+    </div>
+</body>
+</html>

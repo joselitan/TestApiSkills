@@ -1,0 +1,30 @@
+## Prompt: Fix Browser Back Button Login Page Issue (Authenticated Session)
+
+### Context
+I have a web application (QA test platform) with authentication. Users can create an account and log in. After successful login, the app redirects from `/login` to `/dashboard`. However, when an authenticated user clicks the browser's back button, they are shown the login page again, even though their session is still active.
+
+### Problem
+- The login page is accessible to authenticated users via browser back button (or direct URL)
+- This creates a UI/session state mismatch
+- Potential security risks: session confusion, insufficient route protection, login page not enforcing "logged-out only" access
+- Poor user experience
+
+### Required Solution
+Implement protection so that authenticated users **never** see the login page. Instead, they should be automatically redirected to `/dashboard` (or their last valid page) if they attempt to access `/login`.
+
+### Technical Requirements
+1. **Frontend route guard** – Check authentication status before rendering login route
+2. **Login page component check** – If authenticated, redirect immediately
+3. **History manipulation** – After successful login, replace the login page entry in browser history so back button skips it
+4. **Optional but recommended** – Server-side check on `/login` GET request to return redirect for authenticated sessions
+
+### Expected Behavior After Fix
+- Logged-in user clicks browser back button → stays on dashboard or goes to previous page before login
+- Direct URL access to `/login` → redirects to dashboard
+- Login page only visible when user is truly not authenticated
+
+### Deliverable
+Provide code examples for:
+- Route guard implementation (React Router / Vue Router / vanilla JS)
+- Login page component check
+- History replace logic after login success

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fas 3: Avancerade Tillägg - QA Platform v2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Fas 3: Avancerade Tillägg</h1>
+            <p class="subtitle">Version 2 - Låg Prioritet Implementation</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: 📋 PLANERAD | Datum: 2026-04-04</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="info-box">
+                    <h3>🎯 Syfte</h3>
+                    <p>Denna fas lägger till avancerade funktioner för framtida skalning och förbättrad användarupplevelse.</p>
+                </div>
+                <div class="description">
+                    <strong>Prioritet:</strong> Låg - Framtida förbättringar som bygger på tidigare faser.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📦</span> Nya Dependencies</h2>
+                <div class="code-block">
+                    <code>
+graphene>=3.3.0               # GraphQL<br>
+websockets>=12.0.0            # WebSocket support<br>
+prometheus-client>=0.19.0     # Monitoring<br>
+grafana-api>=1.0.3            # Grafana integration<br>
+psycopg2>=2.9.0               # PostgreSQL<br>
+sqlalchemy-pool>=2.0.0        # Connection pooling
+                    </code>
+                </div>
+                <div class="description">
+                    <strong>Installation:</strong>
+                    <div class="code-block">
+                        <code>pip install graphene websockets prometheus-client grafana-api psycopg2 sqlalchemy-pool</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📁</span> Uppdaterad Filstruktur</h2>
+                <div class="code-block">
+                    <code>
+src/<br>
+├── graphql_schema.py          # GraphQL schema<br>
+├── websocket_handler.py       # WebSocket connections<br>
+├── monitoring.py              # Prometheus metrics<br>
+└── multi_tenant.py            # Tenant isolation<br>
+<br>
+dashboard/backend/<br>
+├── realtime_api.py            # Live updates<br>
+└── tenant_api.py              # Multi-tenant endpoints<br>
+<br>
+config/<br>
+├── prometheus.yml             # Monitoring config<br>
+└── grafana_dashboards/        # Dashboard templates<br>
+<br>
+requirements.txt               # Uppdaterade deps
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔗</span> 3.1 GraphQL API</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Lägg till GraphQL som alternativ till REST för mer flexibla queries.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/graphql_schema.py<br>
+import graphene<br>
+from graphene import ObjectType, String, List<br>
+<br>
+class TestCaseType(ObjectType):<br>
+    id = String()<br>
+    title = String()<br>
+    status = String()<br>
+    priority = String()<br>
+<br>
+class Query(ObjectType):<br>
+    test_cases = List(TestCaseType, priority=String())<br>
+    <br>
+    def resolve_test_cases(self, info, priority=None):<br>
+        query = TestCase.query<br>
+        if priority:<br>
+            query = query.filter_by(priority=priority)<br>
+        return query.all()<br>
+<br>
+schema = graphene.Schema(query=Query)<br>
+<br>
+# Flask route<br>
+@app.route('/graphql', methods=['POST'])<br>
+def graphql_endpoint():<br>
+    data = request.get_json()<br>
+    result = schema.execute(data['query'])<br>
+    return jsonify(result.data)
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Exakt datahämtning</li>
+                        <li>Mindre överflödig data</li>
+                        <li>Flexibla queries</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📡</span> 3.2 WebSocket-stöd</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Implementera realtidsuppdateringar för dashboard och live-metrics.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/websocket_handler.py<br>
+from flask_socketio import SocketIO, emit<br>
+<br>
+socketio = SocketIO(app, cors_allowed_origins="*")<br>
+<br>
+@socketio.on('connect')<br>
+def handle_connect():<br>
+    emit('status', {'message': 'Connected'})<br>
+<br>
+@socketio.on('subscribe_metrics')<br>
+def handle_subscribe_metrics():<br>
+    # Send real-time metrics<br>
+    while True:<br>
+        metrics = get_current_metrics()<br>
+        emit('metrics_update', metrics)<br>
+        socketio.sleep(5)  # Update every 5 seconds<br>
+<br>
+# Client-side usage<br>
+const socket = io();<br>
+socket.on('metrics_update', function(data) {<br>
+    updateDashboard(data);<br>
+});
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Realtidsuppdateringar</li>
+                        <li>Mindre polling</li>
+                        <li>Interaktiva dashboards</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🏢</span> 3.3 Multi-tenancy</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Isolera data per organisation/kund för SaaS-användning.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/multi_tenant.py<br>
+from flask import g<br>
+<br>
+@app.before_request<br>
+def set_tenant():<br>
+    # Extract tenant from header or subdomain<br>
+    tenant_id = request.headers.get('X-Tenant-ID')<br>
+    g.tenant_id = tenant_id<br>
+<br>
+class TenantMixin:<br>
+    tenant_id = db.Column(db.String(50), nullable=False, default=lambda: g.tenant_id)<br>
+<br>
+class TestCase(db.Model, TenantMixin):<br>
+    title = db.Column(db.String(200))<br>
+    <br>
+    @classmethod<br>
+    def query_tenant(cls):<br>
+        return cls.query.filter_by(tenant_id=g.tenant_id)<br>
+<br>
+# Usage<br>
+@app.route('/test-cases')<br>
+def get_test_cases():<br>
+    return TestCase.query_tenant().all()
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Dataisolering</li>
+                        <li>SaaS-möjligheter</li>
+                        <li>Skalbar arkitektur</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> 3.4 Databasuppgradering</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Byt från SQLite till PostgreSQL för bättre samtidighet och skalbarhet.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# config/database.py<br>
+from sqlalchemy import create_engine<br>
+from sqlalchemy.pool import QueuePool<br>
+<br>
+# PostgreSQL connection with pooling<br>
+DATABASE_URL = "postgresql://user:password@localhost/qa_platform"<br>
+engine = create_engine(<br>
+    DATABASE_URL,<br>
+    poolclass=QueuePool,<br>
+    pool_size=10,<br>
+    max_overflow=20<br>)
+<br>
+# Alembic for migrations<br>
+from alembic import command<br>
+from alembic.config import Config<br>
+<br>
+alembic_cfg = Config("alembic.ini")<br>
+command.upgrade(alembic_cfg, "head")
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Bättre prestanda</li>
+                        <li>ACID-transaktioner</li>
+                        <li>Avancerade funktioner</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📈</span> 3.5 Övervakning och Alerting</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Integrera Prometheus/Grafana för metrics och notifieringar.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/monitoring.py<br>
+from prometheus_client import Counter, Histogram, generate_latest<br>
+<br>
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint'])<br>
+REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'Request latency')<br>
+<br>
+@app.before_request<br>
+def before_request():<br>
+    g.start_time = time.time()<br>
+<br>
+@app.after_request<br>
+def after_request(response):<br>
+    REQUEST_COUNT.labels(request.method, request.path).inc()<br>
+    REQUEST_LATENCY.observe(time.time() - g.start_time)<br>
+    return response<br>
+<br>
+@app.route('/metrics')<br>
+def metrics():<br>
+    return generate_latest()<br>
+<br>
+# Alerting via email/SMS<br>
+def send_alert(message):<br>
+    # Integration with notification service<br>
+    pass
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Proaktiv övervakning</li>
+                        <li>Prestandainsikter</li>
+                        <li>Automatiska alerter</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Implementation Plan</h2>
+                <div class="warning-box">
+                    <h3>📅 Tidsplan</h3>
+                    <ul>
+                        <li><strong>Veck 1-3:</strong> GraphQL och WebSocket</li>
+                        <li><strong>Veck 4-6:</strong> Multi-tenancy</li>
+                        <li><strong>Veck 7-9:</strong> Databasuppgradering</li>
+                        <li><strong>Veck 10-12:</strong> Övervakning och alerting</li>
+                    </ul>
+                </div>
+                <div class="success-box">
+                    <h3>✅ Förväntade Resultat</h3>
+                    <p>Efter denna fas kommer plattformen att vara redo för enterprise-användning med avancerade funktioner.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 QA Platform v2 - Fas 3 Implementation Guide</p>
+        </footer>
+    </div>
+</body>
+</html>

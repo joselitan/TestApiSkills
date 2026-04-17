@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fas 1: Grundläggande Förbättringar - QA Platform v2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 Fas 1: Grundläggande Förbättringar</h1>
+            <p class="subtitle">Version 2 - Hög Prioritet Implementation</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: 📋 PLANERAD | Datum: 2026-04-04</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="info-box">
+                    <h3>🎯 Syfte</h3>
+                    <p>Denna fas fokuserar på kritiska förbättringar för stabilitet, säkerhet och underhållbarhet i QA Platform v2. Genom att implementera dessa funktioner stärks grunderna för framtida utveckling.</p>
+                </div>
+                <div class="description">
+                    <strong>Prioritet:</strong> Hög - Dessa förbättringar är essentiella för en robust plattform.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📦</span> Nya Dependencies</h2>
+                <div class="code-block">
+                    <code>
+flask-limiter>=3.5.0          # Rate limiting<br>
+flask-principal>=0.4.0        # Role-based access control<br>
+cryptography>=42.0.0          # Data encryption<br>
+celery>=5.3.0                 # Async processing<br>
+redis>=5.0.0                  # Caching<br>
+sqlalchemy>=2.0.0             # Advanced DB features
+                    </code>
+                </div>
+                <div class="description">
+                    <strong>Installation:</strong>
+                    <div class="code-block">
+                        <code>pip install flask-limiter flask-principal cryptography celery redis sqlalchemy</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📁</span> Uppdaterad Filstruktur</h2>
+                <div class="code-block">
+                    <code>
+src/<br>
+├── app.py                     # Uppdaterad med rate limiting<br>
+├── auth.py                    # RBAC implementation<br>
+├── database.py                # Transaktioner & kryptering<br>
+└── audit.py                   # Audit logging<br>
+<br>
+dashboard/backend/<br>
+├── app.py                     # API versioning<br>
+├── test_cases_api.py          # Paginering<br>
+└── ai_testing_api.py          # Async processing<br>
+<br>
+requirements.txt               # Uppdaterade deps<br>
+migrations/                    # DB migrations
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔢</span> 1.1 API-Versionering</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Implementera versionshantering för API:er för att möjliggöra bakåtkompatibla uppdateringar utan att bryta befintliga klienter.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# dashboard/backend/app.py<br>
+from flask import Blueprint<br>
+<br>
+v1_bp = Blueprint('v1', __name__, url_prefix='/v1')<br>
+v2_bp = Blueprint('v2', __name__, url_prefix='/v2')<br>
+<br>
+@v1_bp.route('/test-cases')<br>
+def get_test_cases_v1():<br>
+    # Legacy implementation<br>
+    pass<br>
+<br>
+@v2_bp.route('/test-cases')<br>
+def get_test_cases_v2():<br>
+    # New implementation with pagination<br>
+    pass
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Bakåtkompatibilitet</li>
+                        <li>Gradvisa uppdateringar</li>
+                        <li>Möjlighet att deprefera gamla endpoints</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🛡️</span> 1.2 Rate Limiting</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Skydda API:erna mot överbelastning och DoS-attacker genom att begränsa antalet requests per användare/tid.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/app.py<br>
+from flask_limiter import Limiter<br>
+from flask_limiter.util import get_remote_address<br>
+<br>
+limiter = Limiter(<br>
+    app=app,<br>
+    key_func=get_remote_address,<br>
+    default_limits=["200 per day", "50 per hour"]<br>)
+<br>
+@app.route('/api/login', methods=['POST'])<br>
+@limiter.limit("5 per minute")<br>
+def login():<br>
+    # Login logic<br>
+    pass
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Förebygg DoS-attacker</li>
+                        <li>Fair användning</li>
+                        <li>Konfigurerbara limiter per endpoint</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">👥</span> 1.3 Rollbaserad Auktorisering (RBAC)</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Implementera roller (admin, tester, viewer) för att kontrollera åtkomst till olika delar av systemet.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/auth.py<br>
+from flask_principal import Principal, Permission, RoleNeed<br>
+<br>
+principal = Principal(app)<br>
+admin_permission = Permission(RoleNeed('admin'))<br>
+tester_permission = Permission(RoleNeed('tester'))<br>
+<br>
+@app.route('/admin/dashboard')<br>
+@admin_permission.require()<br>
+def admin_dashboard():<br>
+    # Admin only content<br>
+    pass<br>
+<br>
+@app.route('/test-cases')<br>
+@tester_permission.require()<br>
+def manage_test_cases():<br>
+    # Tester and admin access<br>
+    pass
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Säker åtkomstkontroll</li>
+                        <li>Flexibla roller</li>
+                        <li>Audit trails för åtgärder</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔄</span> 1.4 Databastransaktioner</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Lägg till transaktionshantering för att säkerställa dataintegritet vid bulk-operationer.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# dashboard/backend/test_cases_api.py<br>
+from sqlalchemy import create_engine<br>
+from sqlalchemy.orm import sessionmaker<br>
+<br>
+engine = create_engine(DATABASE_URL)<br>
+Session = sessionmaker(bind=engine)<br>
+<br>
+@app.route('/bulk-import', methods=['POST'])<br>
+def bulk_import_test_cases():<br>
+    session = Session()<br>
+    try:<br>
+        # Bulk operations<br>
+        session.commit()<br>
+        return {"status": "success"}<br>
+    except Exception as e:<br>
+        session.rollback()<br>
+        return {"error": str(e)}, 500<br>
+    finally:<br>
+        session.close()
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Dataintegritet</li>
+                        <li>Rollback vid fel</li>
+                        <li>Atomiska operationer</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> 1.5 Audit Logging</h2>
+                <div class="phase-item">
+                    <h3>Beskrivning</h3>
+                    <div class="description">
+                        Spåra alla användaråtgärder för compliance, felsökning och säkerhet.
+                    </div>
+                    <h4>Implementation</h4>
+                    <div class="code-block">
+                        <code>
+# src/audit.py<br>
+import logging<br>
+from datetime import datetime<br>
+<br>
+audit_logger = logging.getLogger('audit')<br>
+<br>
+def log_action(user, action, resource, details=None):<br>
+    audit_logger.info(f"{datetime.now()} | {user} | {action} | {resource} | {details}")<br>
+<br>
+# Usage in endpoints<br>
+@app.route('/test-cases', methods=['POST'])<br>
+def create_test_case():<br>
+    # Create logic<br>
+    log_action(current_user, 'CREATE', 'test_case', {'id': new_id})<br>
+    return response
+                        </code>
+                    </div>
+                    <h4>Fördelar</h4>
+                    <ul>
+                        <li>Full spårbarhet</li>
+                        <li>Compliance-krav</li>
+                        <li>Felsökningshjälp</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Implementation Plan</h2>
+                <div class="warning-box">
+                    <h3>📅 Tidsplan</h3>
+                    <ul>
+                        <li><strong>Veck 1-2:</strong> API-versionering och rate limiting</li>
+                        <li><strong>Veck 3-4:</strong> RBAC-system</li>
+                        <li><strong>Veck 5-6:</strong> Databastransaktioner och audit logging</li>
+                        <li><strong>Veck 7-8:</strong> Testing och dokumentation</li>
+                    </ul>
+                </div>
+                <div class="success-box">
+                    <h3>✅ Förväntade Resultat</h3>
+                    <p>Efter denna fas kommer plattformen att ha förbättrad säkerhet, stabilitet och skalbarhet, redo för vidare utveckling.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 QA Platform v2 - Fas 1 Implementation Guide</p>
+        </footer>
+    </div>
+</body>
+</html>

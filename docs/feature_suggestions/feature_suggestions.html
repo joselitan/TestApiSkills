@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Förslag på Nya Funktioner - QA Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💡 Förslag på Nya Funktioner</h1>
+            <p class="subtitle">Idéer för att Utöka QA Platform</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Datum: 2026-04-04</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="info-box">
+                    <h3>🎯 Syfte</h3>
+                    <p>Denna dokumentation innehåller konkreta förslag på nya funktioner för att utöka din QA-plattform. Varje förslag inkluderar beskrivning, varför det behövs och enkla exempel för bättre förståelse.</p>
+                </div>
+                <div class="description">
+                    <strong>Fokusområden:</strong> Användarhantering, dashboard, testledning, API, rapportering, säkerhet och skalning.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">👥</span> 1. Användarhantering & Autentisering</h2>
+
+                <div class="phase-item">
+                    <h3>Användarregistrering och inloggning</h3>
+                    <div class="description">
+                        Lägg till en sida där nya användare kan registrera sig själva istället för att bara admin skapar konton.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Gör plattformen mer användarvänlig för växande team. Minskar administrativ börda.</p>
+                    <h4>Exempel på användning:</h4>
+                    <div class="code-block">
+                        <code>
+// Pseudokod för registreringsflöde
+function registerUser(email, password, role) {
+    // Validera input
+    if (!isValidEmail(email)) return "Ogiltig email";
+    
+    // Skapa användare i databas
+    user = createUser({email, password: hash(password), role});
+    
+    // Skicka bekräftelsemail
+    sendEmail(email, "Välkommen! Klicka här för att aktivera.");
+    
+    return "Registrering lyckades - kontrollera din email";
+}
+                        </code>
+                    </div>
+                    <div class="success-box">
+                        <h3>✅ Fördelar</h3>
+                        <ul>
+                            <li>Snabbare onboarding för nya teammedlemmar</li>
+                            <li>Mindre arbete för administratörer</li>
+                            <li>Bättre användarupplevelse</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Lösenordsåterställning</h3>
+                    <div class="description">
+                        Funktion för att återställa glömda lösenord via email-verifiering.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Förbättrar säkerheten och användarupplevelsen - många glömmer lösenord regelbundet.</p>
+                    <h4>Exempel på flöde:</h4>
+                    <div class="code-block">
+                        <code>
+// 1. Användare klickar "Glömt lösenord"
+// 2. Anger email
+// 3. System skickar reset-länk
+POST /api/forgot-password
+{
+    "email": "user@example.com"
+}
+
+// 4. Användare klickar länk och anger nytt lösenord
+POST /api/reset-password
+{
+    "token": "reset_token_from_email",
+    "new_password": "nyttSäkertLösenord123"
+}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Tvåfaktorsautentisering (2FA)</h3>
+                    <div class="description">
+                        SMS eller app-baserad verifiering vid inloggning för extra säkerhet.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Starkare skydd mot hack, viktigt för enterprise-miljöer.</p>
+                    <h4>Exempel på implementation:</h4>
+                    <div class="code-block">
+                        <code>
+// Vid inloggning
+if (user.has2FA) {
+    // Generera TOTP-kod
+    code = generateTOTP(user.secret);
+    
+    // Skicka SMS eller visa QR-kod
+    sendSMS(user.phone, `Din kod: ${code}`);
+    
+    // Kräver kod för att slutföra inloggning
+    if (verifyTOTP(code, user.secret)) {
+        loginSuccess();
+    }
+}
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> 2. Dashboard & Visualisering</h2>
+
+                <div class="phase-item">
+                    <h3>Anpassningsbara Dashboards</h3>
+                    <div class="description">
+                        Låt användare skapa egna vyer med drag-and-drop widgets för olika metrics.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Olika team behöver olika vyer - gör plattformen mer flexibel.</p>
+                    <h4>Exempel på användning:</h4>
+                    <div class="code-block">
+                        <code>
+// Dashboard konfiguration
+{
+    "widgets": [
+        {
+            "type": "chart",
+            "title": "Testresultat idag",
+            "data_source": "test_runs_today",
+            "position": {"x": 0, "y": 0, "width": 6, "height": 4}
+        },
+        {
+            "type": "metric",
+            "title": "Aktiva buggar",
+            "value": "bug_count",
+            "position": {"x": 6, "y": 0, "width": 3, "height": 2}
+        }
+    ]
+}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Real-tidsnotifieringar</h3>
+                    <div class="description">
+                        Push-notiser eller in-app alerts när tester misslyckas eller deadlines närmar sig.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Snabbare respons på problem, minskar behovet av konstant övervakning.</p>
+                    <h4>Exempel på notifieringar:</h4>
+                    <div class="code-block">
+                        <code>
+// När ett test misslyckas
+notification = {
+    "type": "alert",
+    "title": "Test misslyckades!",
+    "message": "Login-testet i staging misslyckades",
+    "action": "Visa detaljer",
+    "priority": "high"
+};
+
+// Skicka till användare
+sendNotification(userId, notification);
+
+// Eller via WebSocket för realtid
+socket.emit('notification', notification);
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧪</span> 3. Test- och Projektledning</h2>
+
+                <div class="phase-item">
+                    <h3>Testplan-mallar</h3>
+                    <div class="description">
+                        Fördefinierade mallar för olika typer av tester som användare kan klona och anpassa.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Snabbar upp skapandet av nya testplaner och säkerställer konsistens.</p>
+                    <h4>Exempel på mall:</h4>
+                    <div class="code-block">
+                        <code>
+// Regression Test Mall
+{
+    "name": "Regression Suite",
+    "description": "Komplett regressionstestning",
+    "test_cases": [
+        {
+            "name": "Login fungerar",
+            "steps": ["Öppna app", "Ange credentials", "Klicka login"],
+            "expected": "Användare loggas in"
+        },
+        {
+            "name": "Dashboard laddar",
+            "steps": ["Navigera till dashboard"],
+            "expected": "Alla widgets visas korrekt"
+        }
+    ],
+    "tags": ["regression", "critical"]
+}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Integration med externa verktyg</h3>
+                    <div class="description">
+                        Kopplingar till Jira, GitHub Actions eller CI/CD-pipelines för automatisk synkronisering.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Minska manuellt arbete och förbättra arbetsflöden mellan olika verktyg.</p>
+                    <h4>Exempel på Jira-integration:</h4>
+                    <div class="code-block">
+                        <code>
+// När en bugg skapas i QA-plattformen
+bug = {
+    "title": "Login-knappen fungerar inte",
+    "description": "Detaljerad beskrivning...",
+    "priority": "high"
+};
+
+// Skapa automatiskt Jira-issue
+jiraResponse = jiraAPI.createIssue({
+    "project": "PROJ",
+    "type": "Bug",
+    "summary": bug.title,
+    "description": bug.description,
+    "priority": mapPriority(bug.priority)
+});
+
+// Länka tillbaka till QA-plattformen
+updateBug(bug.id, {jira_id: jiraResponse.id});
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔗</span> 4. API och Dataintegration</h2>
+
+                <div class="phase-item">
+                    <h3>Webhook-stöd</h3>
+                    <div class="description">
+                        Tillåt externa system att lyssna på händelser och trigga åtgärder automatiskt.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Automatiserar integrationer med andra verktyg och system.</p>
+                    <h4>Exempel på webhook:</h4>
+                    <div class="code-block">
+                        <code>
+// Registrera webhook
+POST /api/webhooks
+{
+    "url": "https://slack.com/webhook/123",
+    "events": ["test.failed", "bug.created"],
+    "secret": "webhook_secret"
+}
+
+// När händelse inträffar
+function triggerWebhook(event, data) {
+    payload = {
+        "event": event,
+        "data": data,
+        "timestamp": Date.now()
+    };
+    
+    // Signera payload för säkerhet
+    signature = signPayload(payload, secret);
+    
+    // Skicka till registrerade webhooks
+    webhooks.forEach(webhook => {
+        if (webhook.events.includes(event)) {
+            postToWebhook(webhook.url, payload, signature);
+        }
+    });
+}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Bulk-import från externa källor</h3>
+                    <div class="description">
+                        Importera testfall från Excel, CSV eller andra QA-verktyg.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Enklare migrering från gamla system eller massimport av data.</p>
+                    <h4>Exempel på CSV-import:</h4>
+                    <div class="code-block">
+                        <code>
+// CSV-format
+// title,description,priority,steps,expected_result
+// "Login test","Test user login","high","1. Open app\n2. Enter credentials","User logged in successfully"
+
+// Import-funktion
+function importFromCSV(csvData) {
+    rows = parseCSV(csvData);
+    
+    rows.forEach(row => {
+        testCase = {
+            title: row.title,
+            description: row.description,
+            priority: row.priority,
+            steps: row.steps.split('\n'),
+            expected_result: row.expected_result
+        };
+        
+        createTestCase(testCase);
+    });
+    
+    return `${rows.length} testfall importerade`;
+}
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📈</span> 5. Rapportering och Analys</h2>
+
+                <div class="phase-item">
+                    <h3>Avancerade rapporter</h3>
+                    <div class="description">
+                        Custom queries för att skapa specifika rapporter som "buggar per utvecklare".
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Djupare insikter för beslutsfattande och förbättringar.</p>
+                    <h4>Exempel på rapport-query:</h4>
+                    <div class="code-block">
+                        <code>
+// Rapport: Buggar per utvecklare senaste månaden
+query = {
+    "type": "bugs_by_developer",
+    "date_range": "last_30_days",
+    "group_by": "assigned_developer",
+    "filters": {
+        "severity": ["high", "critical"],
+        "status": "open"
+    }
+};
+
+// Resultat
+{
+    "developer_a@example.com": 15,
+    "developer_b@example.com": 8,
+    "developer_c@example.com": 22
+}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>AI-driven insights</h3>
+                    <div class="description">
+                        Automatiska rekommendationer baserat på dataanalys.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Proaktiv förbättring av kodkvalitet och testprocesser.</p>
+                    <h4>Exempel på AI-insight:</h4>
+                    <div class="code-block">
+                        <code>
+// Analysera testdata
+patterns = analyzeTestFailures();
+
+// Generera insights
+insights = [
+    {
+        "type": "recurring_bug",
+        "message": "Login-fel upprepas ofta - överväg att förbättra autentisering",
+        "confidence": 0.85,
+        "suggestion": "Lägg till fler edge-case tester för login"
+    },
+    {
+        "type": "test_gap",
+        "message": "Ingen testtäckning för betalningsflödet",
+        "confidence": 0.92,
+        "suggestion": "Skapa regressionstester för payment API"
+    }
+];
+
+// Visa för användare
+displayInsights(insights);
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔒</span> 6. Säkerhet och Compliance</h2>
+
+                <div class="phase-item">
+                    <h3>Audit logs för alla åtgärder</h3>
+                    <div class="description">
+                        Detaljerade loggar över vem som gjorde vad, när och varför.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Nödvändigt för compliance och felsökning i enterprise-miljöer.</p>
+                    <h4>Exempel på audit log:</h4>
+                    <div class="code-block">
+                        <code>
+// Logga alla åtgärder
+function auditLog(user, action, resource, details) {
+    logEntry = {
+        timestamp: new Date(),
+        user_id: user.id,
+        user_email: user.email,
+        action: action, // CREATE, UPDATE, DELETE, etc.
+        resource: resource, // "test_case", "bug", etc.
+        resource_id: details.id,
+        ip_address: getClientIP(),
+        user_agent: getUserAgent(),
+        changes: details.changes // Vad ändrades
+    };
+    
+    // Spara i audit-tabell
+    saveAuditLog(logEntry);
+}
+
+// Användning
+auditLog(currentUser, 'UPDATE', 'test_case', {
+    id: 123,
+    changes: {status: 'from open to closed'}
+});
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Data backup och recovery</h3>
+                    <div class="description">
+                        Automatiska backups med one-click restore-funktionalitet.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Skyddar mot dataförlust och säkerställer business continuity.</p>
+                    <h4>Exempel på backup-system:</h4>
+                    <div class="code-block">
+                        <code>
+// Schemalagd backup
+scheduleBackup('daily', () => {
+    // Backup databas
+    dbBackup = backupDatabase();
+    
+    // Backup filer
+    fileBackup = backupFiles();
+    
+    // Ladda upp till cloud storage
+    uploadToS3('qa-platform-backups', {
+        database: dbBackup,
+        files: fileBackup,
+        timestamp: Date.now()
+    });
+});
+
+// One-click restore
+function restoreFromBackup(backupId) {
+    backup = downloadFromS3(backupId);
+    
+    // Återställ databas
+    restoreDatabase(backup.database);
+    
+    // Återställ filer
+    restoreFiles(backup.files);
+    
+    return "Återställning lyckades";
+}
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📱</span> 7. Mobil och Tillgänglighet</h2>
+
+                <div class="phase-item">
+                    <h3>Mobilapp eller responsiv design</h3>
+                    <div class="description">
+                        Optimera gränssnittet för telefoner och tablets med touch-stöd.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Användare vill ofta kolla status på språng eller i fältet.</p>
+                    <h4>Exempel på responsiv design:</h4>
+                    <div class="code-block">
+                        <code>
+/* CSS för mobiloptimering */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* En kolumn på mobil */
+    }
+    
+    .test-case-card {
+        padding: 15px; /* Mindre padding */
+        font-size: 14px; /* Mindre text */
+    }
+    
+    .navigation {
+        position: fixed;
+        bottom: 0; /* Bottom navigation på mobil */
+        width: 100%;
+    }
+}
+
+/* Touch-optimeringar */
+.test-case-card {
+    min-height: 44px; /* Minimum touch-target */
+    cursor: pointer;
+}
+
+.button {
+    min-height: 44px;
+    min-width: 44px;
+}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Tillgänglighetsstöd (WCAG)</h3>
+                    <div class="description">
+                        Skärmläsarstöd, keyboard-navigation och andra tillgänglighetsfunktioner.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Inkluderar användare med funktionsnedsättning och förbättrar allmän användbarhet.</p>
+                    <h4>Exempel på tillgänglighetskod:</h4>
+                    <div class="code-block">
+                        <code>
+&lt;!-- HTML med tillgänglighet --&gt;
+&lt;button aria-label="Ta bort testfall" 
+        aria-describedby="delete-description"
+        onclick="deleteTestCase()"&gt;
+    &lt;img src="delete-icon.png" alt="" /&gt; &lt;!-- Alt-text on img --&gt;
+&lt;/button&gt;
+
+&lt;div id="delete-description" class="sr-only"&gt;
+    Tar bort det valda testfallet permanent
+&lt;/div&gt;
+
+&lt;!-- Keyboard navigation --&gt;
+&lt;nav role="navigation" aria-label="Huvudmeny"&gt;
+    &lt;ul&gt;
+        &lt;li&gt;&lt;a href="#dashboard"&gt;Dashboard&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href="#test-cases"&gt;Testfall&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/nav&gt;
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">💰</span> 8. Monetarisering och Skalning</h2>
+
+                <div class="phase-item">
+                    <h3>Prenumerationsnivåer</h3>
+                    <div class="description">
+                        Free, Pro, Enterprise-nivåer med olika funktioner upplåsta.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Skapar intäktsström och differentierar erbjudandet.</p>
+                    <h4>Exempel på prenumerationsmodell:</h4>
+                    <div class="code-block">
+                        <code>
+// Prenumerationsnivåer
+const plans = {
+    free: {
+        name: "Free",
+        price: 0,
+        limits: {
+            users: 5,
+            test_cases: 100,
+            storage: "1GB"
+        },
+        features: ["basic_dashboard", "api_access"]
+    },
+    pro: {
+        name: "Pro",
+        price: 29,
+        limits: {
+            users: 50,
+            test_cases: 1000,
+            storage: "10GB"
+        },
+        features: ["advanced_reports", "integrations", "priority_support"]
+    },
+    enterprise: {
+        name: "Enterprise",
+        price: 99,
+        limits: {
+            users: -1, // unlimited
+            test_cases: -1,
+            storage: "100GB"
+        },
+        features: ["all_features", "custom_integrations", "dedicated_support"]
+    }
+};
+
+// Kontrollera åtkomst
+function checkAccess(user, feature) {
+    plan = getUserPlan(user);
+    return plan.features.includes(feature);
+}
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>API för tredjepartsappar</h3>
+                    <div class="description">
+                        Tillåt andra utvecklare att bygga appar ovanpå din plattform.
+                    </div>
+                    <h4>Varför behövs det?</h4>
+                    <p>Bygger ett ekosystem och ökar plattformens värde.</p>
+                    <h4>Exempel på API för developers:</h4>
+                    <div class="code-block">
+                        <code>
+// Öppet API för tredjepartsappar
+GET /api/v1/test-cases?project=my_project
+Authorization: Bearer third_party_token
+
+// Webhook för realtidsuppdateringar
+POST https://third-party-app.com/webhook
+{
+    "event": "test_case.updated",
+    "data": {
+        "id": 123,
+        "changes": {"status": "passed"}
+    }
+}
+
+// SDK för enklare integration
+const qaPlatform = new QAPlatformSDK({
+    apiKey: 'your_api_key',
+    baseUrl: 'https://api.qa-platform.com'
+});
+
+// Använd SDK
+const testCases = await qaPlatform.getTestCases({
+    status: 'failed',
+    limit: 10
+});
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Implementationsrekommendationer</h2>
+                <div class="warning-box">
+                    <h3>📅 Prioritering</h3>
+                    <ul>
+                        <li><strong>Starta med:</strong> Användarhantering och autentisering - bygger grund</li>
+                        <li><strong>Sedan:</strong> Dashboard-förbättringar - förbättrar UX</li>
+                        <li><strong>Därefter:</strong> Integrationer och rapportering - ökar värde</li>
+                        <li><strong>Slutligen:</strong> Monetarisering - om det blir en produkt</li>
+                    </ul>
+                </div>
+                <div class="success-box">
+                    <h3>💡 Tips för implementation</h3>
+                    <ul>
+                        <li>Börja med små, värdefulla funktioner</li>
+                        <li>Testa varje ny funktion noga</li>
+                        <li>Samla feedback från användare tidigt</li>
+                        <li>Dokumentera API:er och funktioner väl</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 QA Platform - Feature Suggestions Documentation</p>
+        </footer>
+    </div>
+</body>
+</html>

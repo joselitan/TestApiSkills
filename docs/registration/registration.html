@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Platform Registrering & SMTP Dokumentation</title>
+    <style>
+        :root {
+            --bg: #050b14;
+            --panel: rgba(12, 19, 34, 0.95);
+            --panel-light: rgba(18, 33, 62, 0.94);
+            --accent: #ff4d6d;
+            --accent-soft: #ff6784;
+            --accent-2: #6fdbff;
+            --text: #f6f7ff;
+            --muted: #9fb0d8;
+            --border: rgba(255,255,255,0.08);
+            --shadow: 0 30px 100px rgba(0,0,0,0.35);
+            --radius: 28px;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            background: radial-gradient(circle at top left, rgba(255,77,109,0.18), transparent 22%),
+                        radial-gradient(circle at bottom right, rgba(111,219,255,0.16), transparent 20%),
+                        linear-gradient(180deg, #02050d 0%, #07111f 40%, #081322 100%);
+            overflow-x: hidden;
+        }
+
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 30px 20px;
+        }
+
+        h1 {
+            font-size: clamp(2.8rem, 4vw, 4.4rem);
+            line-height: 1.02;
+            margin-bottom: 8px;
+            letter-spacing: -0.04em;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #8fccff;
+            text-transform: uppercase;
+            letter-spacing: 0.22em;
+            font-size: 0.82rem;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .subtitle {
+            margin-top: 20px;
+            max-width: 860px;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--muted);
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 26px;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            color: #d9e6ff;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 30px 80px;
+        }
+
+        .card {
+            margin-top: 40px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(255,77,109,0.18), rgba(111,219,255,0.14));
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: clamp(1.8rem, 2.2vw, 2.4rem);
+            letter-spacing: -0.03em;
+        }
+
+        .card-body {
+            padding: 36px;
+            display: grid;
+            gap: 28px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        p, li {
+            font-size: 1rem;
+            line-height: 1.9;
+            color: var(--text);
+        }
+
+        ul {
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        code, .code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255,255,255,0.06);
+            color: #c7d4ff;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+        }
+
+        .callout {
+            display: grid;
+            gap: 16px;
+            padding: 24px;
+            border-radius: 22px;
+            background: rgba(20, 41, 82, 0.9);
+            border: 1px solid rgba(111,219,255,0.14);
+        }
+
+        .callout strong {
+            color: var(--accent-2);
+        }
+
+        .grid-2 {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .highlight {
+            color: #a9ffcb;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 860px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <span class="eyebrow">Fungerande lösning</span>
+        <h1>Registrering, verifiering & SMTP</h1>
+        <p class="subtitle">Fullständig implementation av användarsjälvregistrering med e-postverifiering, SMTP-felsökningsläge och komplett teststöd.</p>
+        <div class="badge-row">
+            <span class="badge">✅ Fungerande</span>
+            <span class="badge">E-postfelsökningsläge</span>
+            <span class="badge">SMTP konfigurerbart</span>
+            <span class="badge">Testat & verifierat</span>
+        </div>
+    </section>
+
+    <main class="content">
+        <section class="card">
+            <div class="card-header">
+                <h2>Kärnflöde för användarregistrering</h2>
+            </div>
+            <div class="card-body">
+                <div>
+                    <div class="section-title">Endpoint</div>
+                    <p><code>POST /api/register</code></p>
+                    <p><strong>Fil:</strong> <code>src/app.py</code></p>
+                    <p><strong>Funktion:</strong> <code>register()</code></p>
+                </div>
+
+                <div>
+                    <div class="section-title">Funktionalitet</div>
+                    <ul>
+                        <li>Tar emot JSON-data med <code>email</code>, <code>password</code>, <code>confirm_password</code>, valfri <code>username</code> och valfri <code>role</code>.</li>
+                        <li>Normaliserar e-postadressen och validerar formatet med <code>is_valid_email()</code>.</li>
+                        <li>Genererar automatiskt användarnamn vid behov från e-postens lokala del.</li>
+                        <li>Kräver lösenord på minst 8 tecken.</li>
+                        <li>Säkerställer att lösenord och bekräftelsematchning stämmer.</li>
+                        <li>Avvisar registrering med ogiltig roll eller reserverad <code>admin</code>-roll.</li>
+                        <li>Lagrar användare som inaktiva tills verifiering slutförts.</li>
+                    </ul>
+                </div>
+
+                <div class="callout">
+                    <strong>Resultat:</strong> Användarposter skapas även om e-postleverans misslyckas. Svaret anger tydligt om e-postsändningen lyckades eller om SMTP-konfiguration saknas.
+                </div>
+
+                <div>
+                    <div class="section-title">Databasbeteende</div>
+                    <ul>
+                        <li>Nya användare infogas i <code>users</code>-tabellen.</li>
+                        <li>Lagrade fält inkluderar: <code>username</code>, <code>email</code>, <code>password</code>, <code>role</code>, <code>is_active</code>, <code>verification_token</code>, <code>verification_expires_at</code>.</li>
+                        <li>Nya konton sparas med <code>is_active = 0</code>.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>E-postverifiering</h2>
+            </div>
+            <div class="card-body">
+                <div>
+                    <div class="section-title">Endpoint</div>
+                    <p><code>GET /api/verify-email?token=&lt;token&gt;</code></p>
+                    <p><strong>Fil:</strong> <code>src/app.py</code></p>
+                    <p><strong>Funktion:</strong> <code>verify_email()</code></p>
+                </div>
+
+                <div>
+                    <div class="section-title">Funktionalitet</div>
+                    <ul>
+                        <li>Validerar verifieringstoken med <code>itsdangerous.URLSafeTimedSerializer</code>.</li>
+                        <li>Kräver en token som query-parameter.</li>
+                        <li>Markerar användaren som aktiv genom att sätta <code>is_active = 1</code> vid lyckad verifiering.</li>
+                        <li>Rensar <code>verification_token</code> och <code>verification_expires_at</code> efter verifiering.</li>
+                    </ul>
+                </div>
+
+                <div class="callout">
+                    <strong>Viktigt:</strong> Om verifieringsmailet inte levereras kan användare inte slutföra aktiveringen och inloggning förblir blockerad.
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>Inloggning och kontostatus</h2>
+            </div>
+            <div class="card-body">
+                <div>
+                    <div class="section-title">Endpoint</div>
+                    <p><code>POST /api/login</code></p>
+                    <p><strong>Fil:</strong> <code>src/app.py</code></p>
+                    <p><strong>Funktion:</strong> <code>login()</code></p>
+                </div>
+
+                <div>
+                    <div class="section-title">Funktionalitet</div>
+                    <ul>
+                        <li>Tar emot antingen <code>email</code> eller <code>username</code> plus <code>password</code>.</li>
+                        <li>Kontrollerar lösenordshashen med <code>werkzeug.security.check_password_hash</code>.</li>
+                        <li>Avvisar inaktiva användare med ett <code>403</code>-svar tills e-postverifiering är genomförd.</li>
+                        <li>Returnerar en JWT-token vid lyckad inloggning.</li>
+                    </ul>
+                </div>
+
+                <div class="highlight">Inaktiv användarinloggning är avsiktlig av säkerhetsskäl: registrering räcker inte för att få åtkomst till plattformen.</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>SMTP och e-postleverans</h2>
+            </div>
+            <div class="card-body">
+                <div>
+                    <div class="section-title">Kärn-SMTP-logik</div>
+                    <p><strong>Funktion:</strong> <code>send_email()</code></p>
+                    <p><strong>Fil:</strong> <code>src/app.py</code></p>
+                </div>
+
+                <div>
+                    <div class="section-title">Konfiguration</div>
+                    <ul>
+                        <li><code>EMAIL_HOST</code></li>
+                        <li><code>EMAIL_PORT</code> (standard <code>587</code>)</li>
+                        <li><code>EMAIL_USERNAME</code></li>
+                        <li><code>EMAIL_PASSWORD</code></li>
+                        <li><code>EMAIL_FROM</code> (standard <code>noreply@example.com</code>)</li>
+                        <li><code>EMAIL_USE_TLS</code> (standard <code>true</code>)</li>
+                        <li><code>EMAIL_USE_SSL</code> (standard <code>false</code>)</li>
+                        <li><code>EMAIL_DEBUG</code> (standard <code>false</code>)</li>
+                    </ul>
+                </div>
+
+                <div class="callout">
+                    <strong>Beteende:</strong> Om SMTP-inställningarna saknas loggar <code>send_email()</code> en varning och returnerar <code>false</code>. Registreringssvaret informerar då om att kontot skapades men verifieringsmailet inte skickades.
+                </div>
+
+                <div>
+                    <div class="section-title">Felsökningsläge</div>
+                    <p>När <code>EMAIL_DEBUG=true</code> krävs ingen riktig SMTP-server. I stället loggas mejlinslaget och <code>send_email()</code> returnerar framgång, vilket möjliggör lokal testning av verifieringsflödet utan att skicka riktig post.</p>
+                </div>
+
+                <div class="callout">
+                    <strong>Notera:</strong> Mailinator stöds som mottagaradress, men plattformen kräver fortfarande en utgående SMTP-relä för att leverera e-post till den inkorgen. Mailinator ensam ersätter inte SMTP.
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>Nuvarande begränsningar</h2>
+            </div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div>
+                        <div class="section-title">Funktionella begränsningar</div>
+                        <ul>
+                            <li>Registrering är tillgänglig endast när <code>ENABLE_SELF_REGISTRATION</code> är aktiverat.</li>
+                            <li>Nya konton förblir inaktiva tills e-postverifiering är klar.</li>
+                            <li>Inloggning är blockerad för inaktiva konton.</li>
+                            <li>Lösenordskomplexitet begränsas endast till minsta längd.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="section-title">Systembegränsningar</div>
+                        <ul>
+                            <li>Ingen inbyggd Mailinator API- eller relästöd finns.</li>
+                            <li>SMTP-inställningar måste tillhandahållas av driftsmiljön.</li>
+                            <li>Om SMTP misslyckas lyckas kontoskapandet men användare kan inte verifiera via e-post.</li>
+                            <li>Kontoroller begränsas till de konfigurerade tillåtna rollerna; <code>admin</code>-registrering är uttryckligen förbjuden.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>Användarguide</h2>
+            </div>
+            <div class="card-body">
+                <div>
+                    <div class="section-title">Hur du testar registrering</div>
+                    <ol>
+                        <li>Sätt miljövariabler för SMTP eller aktivera <code>EMAIL_DEBUG=true</code>.</li>
+                        <li>Öppna registreringssidan eller anropa <code>POST /api/register</code>.</li>
+                        <li>Verifiera att svaret bekräftar kontoskapandet.</li>
+                        <li>Om SMTP är konfigurerat, öppna inkorgen och klicka på verifieringslänken.</li>
+                        <li>Försök logga in efter verifiering med <code>POST /api/login</code>.</li>
+                    </ol>
+                </div>
+
+                <div class="callout">
+                    <strong>Tips:</strong> Använd <code>EMAIL_DEBUG=true</code> i utveckling för att undvika SMTP-konfiguration samtidigt som du testar flödets logik ända till slutet.
+                </div>
+            </div>
+        </section>
+
+        <div class="footer">
+            Dokument skapat för QA Platform-registrering och SMTP-stöd. Källfunktioner finns i <code>src/app.py</code>.
+            <br><br>
+            <a href="register-api-explanation.html" style="color: var(--accent-2); text-decoration: none; font-weight: bold;">→ Visa detaljerad API-förklaring</a>
+        </div>
+    </main>
+</body>
+</html>

@@ -16,7 +16,7 @@ def test_login_page_loads(page: Page):
 def test_successful_login(page: Page):
     """Test successful login flow"""
     page.goto(BASE_URL)
-    page.fill("#username", "admin")
+    page.fill("#identifier", "admin")
     page.fill("#password", "password123")
     page.click("button[type='submit']")
     page.wait_for_url(f"{BASE_URL}/guestbook")
@@ -27,24 +27,24 @@ def test_successful_login(page: Page):
 def test_failed_login_wrong_password(page: Page):
     """Test login with wrong password"""
     page.goto(BASE_URL)
-    page.fill("#username", "admin")
+    page.fill("#identifier", "admin")
     page.fill("#password", "wrongpassword")
     page.click("button[type='submit']")
     expect(page.locator(".error")).to_be_visible()
 
 
-def test_failed_login_empty_username(page: Page):
-    """Test login with empty username"""
+def test_failed_login_empty_identifier(page: Page):
+    """Test login with empty identifier"""
     page.goto(BASE_URL)
     page.fill("#password", "password123")
     page.click("button[type='submit']")
-    expect(page.locator(".error")).to_have_text("Please enter your username")
+    expect(page.locator(".error")).to_have_text("Please enter your email or username")
 
 
 def test_failed_login_empty_password(page: Page):
     """Test login with empty password"""
     page.goto(BASE_URL)
-    page.fill("#username", "admin")
+    page.fill("#identifier", "admin")
     page.click("button[type='submit']")
     expect(page.locator(".error")).to_have_text("Please enter your password")
 
@@ -53,10 +53,8 @@ def test_failed_login_empty_fields(page: Page):
     """Test login with empty fields"""
     page.goto(BASE_URL)
     page.click("button[type='submit']")
-    # HTML5 validation should prevent submission
-    # expect(page).to_have_url(BASE_URL)
     expect(page.locator(".error")).to_have_text(
-        "Please enter both username and password"
+        "Please enter your email or username"
     )
 
 

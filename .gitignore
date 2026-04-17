@@ -33,12 +33,16 @@ allure-results/
 allure-report/
 .allure/
 
+# HTML Documents
+*.html
+
+# CSS Stylesheets
+*.css
+
 # pytest-html Reports
-test_report.html
 test-results/
 
 # Locust Reports
-locust_report.html
 
 # IDE
 .vscode/

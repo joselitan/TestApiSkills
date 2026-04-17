@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Användarregistrering & Inloggning - Specifikation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧭 Specifikation: Användarregistrering & Inloggning</h1>
+            <p class="subtitle">QA Platform - Self-service account creation, email verification och JWT login</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Version: v2 proposal | Datum: 2026-04-04</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📌</span> Mål</h2>
+                <div class="description">
+                    Ge nya användare möjlighet att själva registrera sig, minska administrativ börda och skapa en säkrare onboarding med verifiering via e-post. Funktionen ska återanvända befintlig JWT-login och lösenordshantering i <code>src/app.py</code>.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔧</span> Återanvändning av befintlig logik</h2>
+                <div class="description">
+                    Befintliga funktioner i <code>src/app.py</code> ger redan:
+                    <ul>
+                        <li>JWT-tokenautentisering</li>
+                        <li>Lösenordskontroll med <code>werkzeug.security.check_password_hash</code></li>
+                        <li>Databaskoppling via <code>get_db()</code></li>
+                        <li>Validering och XSS-skydd med <code>validate_json_payload</code> och <code>sanitize_html</code></li>
+                        <li>Globala säkerhetsheaders</li>
+                    </ul>
+                </div>
+                <div class="description">
+                    Den nya registreringsflödet kompletterar dessa genom att lägga till:
+                    <ul>
+                        <li>Skapa användare</li>
+                        <li>Verifierings-token</li>
+                        <li>E-postaktivering</li>
+                        <li>Rate limiting och CSRF-stöd</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧱</span> Databasmodell</h2>
+                <div class="code-block">
+                    <code>
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    username TEXT UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'member',
+    is_active BOOLEAN NOT NULL DEFAULT 0,
+    verification_token TEXT,
+    verification_expires_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+                    </code>
+                </div>
+                <div class="description">
+                    Existerande tabell <code>users</code> uppgraderas. Om befintlig kod använder <code>username</code> kan det behållas som valfritt fält, medan <code>email</code> blir huvudsaklig inloggningsnyckel.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧪</span> Migrationsplan</h2>
+                <div class="phase-item">
+                    <h3>Stegvis rollout med minimal störning</h3>
+                    <ul>
+                        <li>1. Skapa migrering för nya fält i <code>users</code>.</li>
+                        <li>2. Behåll befintlig admin-användare och lägg till <code>email</code> för den.</li>
+                        <li>3. Lägg till env-var <code>ENABLE_SELF_REGISTRATION=true</code> som feature-flag.</li>
+                        <li>4. Implementera register-/verify-/login-endpoints i <code>src/app.py</code>.</li>
+                        <li>5. Lägg till frontend-formulär och bekräftelsesida.</li>
+                        <li>6. Testa i staging med både gamla och nya användare.</li>
+                        <li>7. Sätt <code>ENABLE_SELF_REGISTRATION</code> på true i produktion när valideringen är klar.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧑‍💻</span> Frontend: Registreringsflöde</h2>
+                <div class="description">
+                    Ett formulär med följande fält:
+                    <ul>
+                        <li><strong>Email</strong> (mandatory, valid email)</li>
+                        <li><strong>Password</strong> (mandatory, min 8 chars)</li>
+                        <li><strong>Confirm password</strong> (match)</li>
+                        <li><strong>Role</strong> (optional dropdown med begränsade värden)</li>
+                    </ul>
+                </div>
+                <div class="code-block">
+                    <code>
+<form id="registerForm">
+  <label>Email</label>
+  <input type="email" id="email" required>
+
+  <label>Password</label>
+  <input type="password" id="password" minlength="8" required>
+
+  <label>Confirm password</label>
+  <input type="password" id="confirmPassword" minlength="8" required>
+
+  <label>Role (optional)</label>
+  <select id="role">
+    <option value="member">Member</option>
+    <option value="tester">Tester</option>
+  </select>
+
+  <button type="submit">Register</button>
+</form>
+                    </code>
+                </div>
+                <div class="description">
+                    Den klientbaserade valideringen bör kontrollera:
+                    <ul>
+                        <li>Giltig e-postadress</li>
+                        <li>Lösenord minst 8 tecken</li>
+                        <li>Bekräftelselösenord matchar</li>
+                        <li>Endast tillåtna roller väljs</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">⚙️</span> Backend: Endpoint-design</h2>
+                <div class="description">
+                    Följande API-kontrakt föreslås:
+                </div>
+                <div class="code-block">
+                    <code>
+POST /api/register
+Request:
+{
+  "email": "user@example.com",
+  "password": "SecurePass123",
+  "confirm_password": "SecurePass123",
+  "role": "member"
+}
+Response 201:
+{
+  "message": "Verification email sent. Check your inbox."
+}
+
+GET /api/verify-email?token=... 
+Response 200:
+{
+  "message": "Email verified. You may now log in."
+}
+
+POST /api/login
+Request:
+{
+  "email": "user@example.com",
+  "password": "SecurePass123"
+}
+Response 200:
+{
+  "token": "jwt_token_string"
+}
+
+POST /api/password-reset-request
+Request:
+{
+  "email": "user@example.com"
+}
+Response 200:
+{
+  "message": "Password reset email sent."
+}
+
+POST /api/password-reset
+Request:
+{
+  "token": "reset_token",
+  "password": "NewSecurePass123",
+  "confirm_password": "NewSecurePass123"
+}
+Response 200:
+{
+  "message": "Password has been reset."
+}
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔐</span> Backend: Säkerhetskrav</h2>
+                <div class="phase-item">
+                    <h3>Grundläggande säkerhetskrav</h3>
+                    <ul>
+                        <li>Hasha lösenord med salted hashing via <code>werkzeug.security.generate_password_hash()</code> eller Argo2/bcrypt.</li>
+                        <li>Styr e-postverifiering med token och tidsbegränsning.</li>
+                        <li>Rate limit för <code>/api/register</code> och <code>/api/login</code>.</li>
+                        <li>CSRF-skydd på HTML-formulär och POST-begäranden.</li>
+                        <li>Ej exponera detaljerade interna felmeddelanden till klienten.</li>
+                        <li>Logga login-försök och verifieringsfel utan att ge ut detaljer som möjliggör kontoenumeration.</li>
+                    </ul>
+                </div>
+                <div class="description">
+                    Forslag till skydd:
+                    <ul>
+                        <li><code>Flask-Limiter</code> med 5-10 försök per minut.</li>
+                        <li>CSRF-token via <code>Flask-WTF</code> för webbaserade formulär.</li>
+                        <li><code>SameSite=Strict</code> och <code>HttpOnly</code> för cookies.</li>
+                        <li>Stäng av detaljerade tracebacks i produktion.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧩</span> Rollhantering</h2>
+                <div class="description">
+                    Rollfältet får inte vara ett fritt textfält. Endast säkerställda roller ska tas emot, till exempel:
+                    <ul>
+                        <li><code>member</code> (standard)</li>
+                        <li><code>tester</code></li>
+                    </ul>
+                </div>
+                <div class="description">
+                    Admin-rollen måste tilldelas internt eller via ett admin-verktyg. Förhindra admin-registrering med:
+                    <ul>
+                        <li>Frontend: dölja <code>admin</code> från roll-listor.</li>
+                        <li>Backend: avvisa <code>role: admin</code> i <code>/api/register</code>.</li>
+                        <li>Admin-uppgradering: endast via admin-API med behörighetskontroll.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧪</span> Testplan</h2>
+                <div class="description">
+                    Nödvändiga tester:
+                    <ul>
+                        <li>Unit: valid register payload skapar användare och token.</li>
+                        <li>Unit: ogiltig e-post eller svagt lösenord avvisas.</li>
+                        <li>Unit: registrering med redan registrerad e-post ger 409.</li>
+                        <li>Integration: verifieringslänk aktiverar kontot.</li>
+                        <li>Integration: login efter verifiering returnerar JWT.</li>
+                        <li>Integration: login före verifiering avvisas.</li>
+                        <li>Integration: lösenordsåterställning skickar email och återställer lösenord.</li>
+                        <li>Security: rate limiting blockerar brute force.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">💻</span> Kodförslag</h2>
+                <div class="description">
+                    Pseudokod och konkret backend-exempel i Python/Flask. Detta kan läggas in i <code>src/app.py</code> och återanvänder befintlig databaslogik.
+                </div>
+                <div class="code-block">
+                    <code>
+from itsdangerous import URLSafeTimedSerializer
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
+
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+ALLOWED_ROLES = ['member', 'tester']
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.get_json(force=True)
+    is_valid, msg = validate_json_payload(data)
+    if not is_valid:
+        return jsonify({'message': msg}), 400
+
+    email = data.get('email')
+    password = data.get('password')
+    confirm = data.get('confirm_password')
+    role = data.get('role', 'member')
+
+    if not email or not password or not confirm:
+        return jsonify({'message': 'Email, password and confirm_password are required'}), 400
+    if password != confirm:
+        return jsonify({'message': 'Passwords do not match'}), 400
+    if len(password) < 8:
+        return jsonify({'message': 'Password must be at least 8 characters'}), 400
+    if role not in ALLOWED_ROLES:
+        return jsonify({'message': 'Role is not allowed'}), 400
+
+    email = sanitize_html(email.lower())
+
+    conn = get_db()
+    existing = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
+    if existing:
+        return jsonify({'message': 'Email already registered'}), 409
+
+    password_hash = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
+    token = serializer.dumps(email, salt='email-confirm')
+    expires_at = datetime.utcnow() + timedelta(hours=24)
+
+    conn.execute(
+        '''INSERT INTO users (email, password, role, is_active, verification_token, verification_expires_at)
+           VALUES (?, ?, ?, 0, ?, ?)''',
+        (email, password_hash, role, token, expires_at)
+    )
+    conn.commit()
+    conn.close()
+
+    send_verification_email(email, token)
+    return jsonify({'message': 'Verification email sent. Check your inbox.'}), 201
+                    </code>
+                </div>
+                <div class="code-block">
+                    <code>
+@app.route('/api/verify-email')
+def verify_email():
+    token = request.args.get('token')
+    if not token:
+        return jsonify({'message': 'Token is required'}), 400
+
+    try:
+        email = serializer.loads(token, salt='email-confirm', max_age=86400)
+    except Exception:
+        return jsonify({'message': 'Token is invalid or expired'}), 400
+
+    conn = get_db()
+    user = conn.execute(
+        'SELECT id, verification_expires_at FROM users WHERE email = ? AND verification_token = ?',
+        (email, token)
+    ).fetchone()
+    if not user:
+        return jsonify({'message': 'Verification token invalid'}), 400
+
+    conn.execute(
+        'UPDATE users SET is_active = 1, verification_token = NULL, verification_expires_at = NULL WHERE id = ?',
+        (user['id'],)
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Email verified. You may now log in.'}), 200
+                    </code>
+                </div>
+                <div class="code-block">
+                    <code>
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json(force=True)
+    is_valid, msg = validate_json_payload(data)
+    if not is_valid:
+        return jsonify({'message': msg}), 400
+
+    email = data.get('email')
+    password = data.get('password')
+    if not email or not password:
+        return jsonify({'message': 'Email and password are required'}), 400
+
+    conn = get_db()
+    user = conn.execute('SELECT * FROM users WHERE email = ?', (email.lower(),)).fetchone()
+    conn.close()
+
+    if not user:
+        return jsonify({'message': 'Invalid credentials'}), 401
+    if not user['is_active']:
+        return jsonify({'message': 'Account not active. Verify your email.'}), 403
+    if not check_password_hash(user['password'], password):
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    token = jwt.encode({
+        'user': user['email'],
+        'role': user['role'],
+        'exp': datetime.utcnow() + timedelta(hours=24)
+    }, app.config['SECRET_KEY'], algorithm='HS256')
+
+    return jsonify({'token': token}), 200
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📤</span> E-postsändning & verifiering</h2>
+                <div class="description">
+                    Använd befintliga e-postinställningar med nya env-vars:
+                    <ul>
+                        <li><code>EMAIL_HOST</code></li>
+                        <li><code>EMAIL_PORT</code></li>
+                        <li><code>EMAIL_USERNAME</code></li>
+                        <li><code>EMAIL_PASSWORD</code></li>
+                        <li><code>EMAIL_FROM</code></li>
+                        <li><code>EMAIL_USE_TLS</code> / <code>EMAIL_USE_SSL</code></li>
+                    </ul>
+                </div>
+                <div class="code-block">
+                    <code>
+def send_verification_email(email, token):
+    verification_url = f"{app.config['APP_BASE_URL']}/api/verify-email?token={token}"
+    subject = 'Verify your QA Platform account'
+    body = f"Click this link to activate your account:\n\n{verification_url}\n\nThe link expires in 24 hours."
+    
+    send_email(
+        to=email,
+        subject=subject,
+        body=body
+    )
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">⚙️</span> Deployment / Konfiguration</h2>
+                <div class="description">
+                    Nyckelkonfigurationer som bör sättas via miljövariabler:
+                    <ul>
+                        <li><code>JWT_SECRET_KEY</code> / <code>SECRET_KEY</code></li>
+                        <li><code>EMAIL_HOST</code>, <code>EMAIL_PORT</code>, <code>EMAIL_USERNAME</code>, <code>EMAIL_PASSWORD</code></li>
+                        <li><code>APP_BASE_URL</code></li>
+                        <li><code>PASSWORD_HASH_METHOD</code> (t.ex. <code>pbkdf2:sha256</code>)</li>
+                        <li><code>PASSWORD_HASH_SALT_LENGTH</code> (t.ex. 16)</li>
+                        <li><code>RATE_LIMIT_LOGIN</code>, <code>RATE_LIMIT_REGISTER</code></li>
+                        <li><code>ENABLE_SELF_REGISTRATION</code></li>
+                    </ul>
+                </div>
+                <div class="description">
+                    Säkerhetsheaders och cookie-inställningar:
+                    <ul>
+                        <li><code>Strict-Transport-Security</code></li>
+                        <li><code>X-Frame-Options: DENY</code></li>
+                        <li><code>X-Content-Type-Options: nosniff</code></li>
+                        <li><code>Content-Security-Policy</code></li>
+                        <li><code>SESSION_COOKIE_SECURE = True</code></li>
+                        <li><code>SESSION_COOKIE_HTTPONLY = True</code></li>
+                        <li><code>SESSION_COOKIE_SAMESITE = 'Strict'</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📈</span> Prioriterade tasks</h2>
+                <div class="phase-item">
+                    <h3>MVP</h3>
+                    <ul>
+                        <li>Designa och migrera användartabellen med <code>email</code>, <code>role</code> och verifieringsfält.</li>
+                        <li>Implementera <code>/api/register</code> med email-verifiering.</li>
+                        <li>Implementera <code>/api/verify-email</code>.</li>
+                        <li>Uppdatera <code>/api/login</code> för email-login och konton som endast aktiveras efter verifiering.</li>
+                    </ul>
+                </div>
+                <div class="phase-item">
+                    <h3>Sekundärt</h3>
+                    <ul>
+                        <li>Lösenordsåterställning (reset-länk och token).</li>
+                        <li>Admin-verktyg för rollhantering och uppgradering.</li>
+                        <li>Rate limiting och brute force-skydd.</li>
+                        <li>CSRF-skydd på formulär och state-changing endpoints.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">💬</span> Exempel på användarvänliga felmeddelanden</h2>
+                <div class="code-block">
+                    <code>
+"Email is required"
+"Password is required"
+"Passwords do not match"
+"Password must be at least 8 characters"
+"Email already registered"
+"Verification email sent. Check your inbox."
+"Token is invalid or expired"
+"Account not active. Verify your email."
+"Invalid credentials"
+"Rate limit exceeded. Please try again later."
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧾</span> Kort API-kontrakt</h2>
+                <div class="code-block">
+                    <code>
+POST /api/register
+Request: { email, password, confirm_password, role }
+Response 201: { message }
+
+GET /api/verify-email?token=...
+Response 200: { message }
+
+POST /api/login
+Request: { email, password }
+Response 200: { token }
+
+POST /api/password-reset-request
+Request: { email }
+Response 200: { message }
+
+POST /api/password-reset
+Request: { token, password, confirm_password }
+Response 200: { message }
+                    </code>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Sammanfattning</h2>
+                <div class="success-box">
+                    <h3>Rekommenderad rollout</h3>
+                    <ul>
+                        <li>Starta med register + email verification + login.</li>
+                        <li>Behåll befintlig JWT-autentisering och success-meddelanden.</li>
+                        <li>Lägg till CSRF och rate limiting som andra steg.</li>
+                        <li>Använd roller som <code>member</code> och <code>tester</code> i första skedet.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 QA Platform - Auth Registration Specification</p>
+        </footer>
+    </div>
+</body>
+</html>

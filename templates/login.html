@@ -10,12 +10,16 @@
     <div class="login-container">
         <h1>Guest Book Login</h1>
         <form id="loginForm">
-            <input type="text" id="username" placeholder="Username">
+            <input type="text" id="identifier" placeholder="Email or Username">
             <input type="password" id="password" placeholder="Password">
             <button type="submit">Login</button>
             <div id="error" class="error"></div>
         </form>
-        <p class="hint">Default: admin / password123</p>
+        <p class="hint">Default login: admin / password123</p>
+        <div class="auth-links">
+            <a href="/register">Create account</a> |
+            <a href="/reset-password-request">Forgot password?</a>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>

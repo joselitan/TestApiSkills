@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobbintervju Frågor - TestApiSkills QA Plattform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💼 Jobbintervju Frågor</h1>
+            <p class="subtitle">Baserat på TestApiSkills QA Plattform Prestationer</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Förberett för Tekniska Intervjuer | Datum: 2026-03-25</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">🎯</span> Översikt</h2>
+                <p>Detta dokument beskriver potentiella tekniska intervjufrågor baserat på den omfattande QA-plattformen vi byggde i TestApiSkills. Plattformen täcker API-testning, UI-testning, säkerhetstestning, prestandatestning och CI/CD-automatisering. Varje sektion innehåller sannolika frågor och föreslagna svar som demonstrerar din praktiska erfarenhet och tekniska djup.</p>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📚</span> API-Testning & Dokumentation</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Kan du förklara hur du implementerade API-dokumentation i ditt projekt?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "I vår QA-plattform implementerade jag omfattande API-dokumentation med Flask-Swagger (Flasgger). Jag konfigurerade Swagger UI med detaljerade endpointspecifikationer inklusive autentiseringskrav, request/response-scheman och exempel payloads. Detta inkluderade inställning av Bearer token-autentisering och dokumentation av alla CRUD-operationer för gästboks-API:et. Dokumentationen är tillgänglig på /apidocs/ och ger interaktiva testmöjligheter."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du API-kontraktstestning?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag implementerade API-kontraktstestning med pytest och jsonschema. Vi skapade 4 omfattande kontraktstester som validerar response-scheman, obligatoriska fält, datatyper och statuskoder. Detta säkerställer att API-responses matchar förväntade kontrakt och förhindrar brytande ändringar under utveckling."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Beskriv din approach till negativ API-testning.</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "För negativ testning utvecklade jag 17 testfall som täcker ogiltiga inputs, autentiseringsfel, felformade requests och edge cases. Detta inkluderade SQL-injektionsförsök, XSS-payloads och boundary value-testning. Vi använde pytest fixtures för att simulera olika felvillkor och säkerställa robust felhantering."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🖥️</span> UI-Testning</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Vilket UI-testramverk valde du och varför?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag valde Playwright för UI-testning på grund av dess cross-browser-stöd, auto-waiting-funktioner och robusta API. Vi implementerade 16 omfattande UI-tester som täcker login-flöden, CRUD-operationer, sökfunktionalitet och paginering. Playwrights förmåga att hantera moderna webbapplikationer och ge detaljerad debugging gjorde det idealiskt för våra behov."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du cross-browser-testning?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Vi konfigurerade Playwright att köra tester över Chromium, Firefox och WebKit-webbläsare. Vår CI/CD-pipeline inkluderar parallell exekvering över alla tre webbläsare, vilket säkerställer konsekvent beteende. Vi implementerade också webbläsarspecifika konfigurationer och hanterade webbläsar-quirks genom villkorlig logik i våra test fixtures."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Beskriv din UI-testautomatiseringsstrategi.</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Vår UI-teststrategi inkluderade page object models, custom fixtures för autentiserade sessioner och omfattande testtäckning. Vi implementerade tester för login (5 tester), gästboks-CRUD-operationer (5 tester), sökfunktionalitet (3 tester) och paginering (3 tester). Tester körs i både headed och headless-lägen med screenshots och videor för debugging."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔒</span> Säkerhetstestning</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Hur närmade du dig OWASP Top 10-testning?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag implementerade omfattande säkerhetstestning som täcker alla större OWASP-kategorier. Detta inkluderade 15 injektionstester, 8 autentiseringstester, 8 auktoriseringstester, 8 input-valideringstester, 8 säkerhetsheadertester och 6 penetrationstest-scenarier. Vi använde verktyg som Bandit för statisk analys och Safety för beroende-skanning."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Vilka säkerhetsheaders implementerade du?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag lade till omfattande säkerhetsheaders med Flask-Talisman, inklusive X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Content-Security-Policy och HSTS. Vi implementerade också rate limiting med Flask-Limiter för att förhindra missbruk och lade till CORS-konfiguration för säkra cross-origin-requests."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du automatiserad säkerhetsskanning?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag skapade ett automatiserat säkerhetsskannings-script som kör Bandit för kodanalys och Safety för beroende-sårbarheter. Scriptet genererar JSON-rapporter och integreras med vår CI/CD-pipeline. Vi implementerade också säkerhetsgates som misslyckar builds om kritiska sårbarheter upptäcks."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">⚡</span> Prestandatestning</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Vilka typer av prestandatestning implementerade du?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag implementerade fem typer av prestandatestning: load testing (3 tester), stress testing (4 tester), volume testing (4 tester), spike testing (4 tester) och endurance testing (4 tester). Med Locust för load testing och pytest-benchmark för micro-benchmarks testade vi olika scenarier inklusive samtidiga användare, stora datasets och ihållande belastningar."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur övervakade du prestandamätvärden?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag utvecklade ett prestandaövervaknings-script med psutil för att spåra CPU, minne och disk-användning under tester. Vi samlade response-tider, throughput-mätvärden och systemresurs-utnyttjande. Resultat lagras i JSON-rapporter och visualiseras i vår dashboard, vilket hjälper till att identifiera prestandaflaskhalsar och skalbarhetsproblem."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Beskriv din load testing-setup med Locust.</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Vår Locust-setup inkluderade flera task classes för olika användarbeteenden, konfigurerbara användarantal och spawn rates, samt omfattande rapportering. Vi testade API-endpoints under olika belastningar, mätte response-tider, failure rates och resursförbrukning. Setupen stödjer både web UI och headless-exekvering för CI/CD-integration."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🔄</span> CI/CD & DevOps</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Hur satte du upp din CI/CD-pipeline?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag skapade en 9-stegs GitHub Actions-pipeline som täcker linting, testning, säkerhetsskanning, prestandatestning, byggande och deployment. Pipelinen triggas på pushes till main (produktion) och develop (staging) branches, med manuella triggers tillgängliga. Vi implementerade kvalitetsgates som förhindrar deployment om tester misslyckas eller säkerhetsproblem hittas."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Vilken containeriseringsstrategi använde du?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag implementerade Docker-containerisering med multi-stage builds för optimering. Vår docker-compose.yml definierar tjänster för QA-plattformen, test runners och prestandatestning. Vi använder Docker för konsekventa miljöer över utveckling, staging och produktion, vilket säkerställer reproducerbara builds och deployments."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du hälsövervakning och deployment?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag utvecklade omfattande hälsokontroller med endpoints för grundläggande hälsa, detaljerad systemstatus och Kubernetes readiness/liveness probes. Vårt deployment-script hanterar databas-backups, zero-downtime deployments och rollback-möjligheter. Vi övervakar systemresurser, databasanslutning och applikations uptime med detaljerad loggning och alerting."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🛠️</span> Testdatahantering & Bästa Praxis</h2>
+                <div class="phase-item">
+                    <h3>Fråga: Hur hanterade du testdata-isolering?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag implementerade separata databaser för produktion och testning, med automatisk testdatabas-rensning mellan testkörningar. Med pytest fixtures säkerställer vi att varje test börjar med ett rent tillstånd. Jag skapade också en testdata-factory med Faker för att generera realistisk testdata, som stödjer olika scenarier och edge cases."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Vilka testramverk och verktyg använde du?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Vår tech stack inkluderade pytest för unit och integration testing, Playwright för UI-testning, Locust för prestandatestning och olika säkerhetsverktyg. Vi använde pytest-cov för täckning, Allure för rapportering och implementerade custom fixtures och markers för organiserad testexekvering. Alla verktyg integreras sömlöst med vår CI/CD-pipeline."
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Fråga: Hur säkerställde du kodkvalitet?</h3>
+                    <div class="description">
+                        <strong>Föreslaget Svar:</strong> "Jag upprätthöll kodkvalitet genom Black för formattering, Flake8 och Pylint för linting, samt isort för import-sortering. Dessa verktyg körs i vår CI-pipeline, med kvalitetsgates som förhindrar merges om koden inte möter standarder. Vi upprätthåller också hög testtäckning (mål 80%+) och använder mutation testing för att validera testeffektivitet."
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">💡</span> Allmänna Intervjuttips</h2>
+                <div class="info-box">
+                    <ul>
+                        <li><strong>Var Specifik:</strong> Referera till konkreta exempel från din implementation istället för allmänna koncept</li>
+                        <li><strong>Visa Påverkan:</strong> Förklara hur ditt arbete förbättrade kvalitet, tillförlitlighet eller effektivitet</li>
+                        <li><strong>Demonstrera Djup:</strong> Diskutera utmaningar du stötte på och hur du löste dem</li>
+                        <li><strong>Använd Mätvärden:</strong> Nämn specifika siffror (testtäckning, prestandabenchmarks, etc.)</li>
+                        <li><strong>Koppla Teknologier:</strong> Visa hur olika verktyg och praxis fungerar tillsammans</li>
+                        <li><strong>Följ Upp:</strong> Var redo att diskutera kodexempel eller demonstrera koncept</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> Nyckelprestationer Sammanfattning</h2>
+                <div class="info-box">
+                    <ul>
+                        <li><strong>API-Testning:</strong> 21 kontrakt & negativa tester, Swagger-dokumentation</li>
+                        <li><strong>UI-Testning:</strong> 16 Playwright-tester över 3 webbläsare</li>
+                        <li><strong>Säkerhetstestning:</strong> 45 säkerhetstester, automatiserad skanning</li>
+                        <li><strong>Prestandatestning:</strong> 19 prestandatester, Locust load testing</li>
+                        <li><strong>CI/CD:</strong> 9-stegs pipeline, Docker-containerisering, hälsövervakning</li>
+                        <li><strong>Testinfrastruktur:</strong> Testdatahantering, fixtures, omfattande rapportering</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Genererat för TestApiSkills QA Plattform Intervjuförberedelse</p>
+            <p>Baserat på omfattande QA-implementation över 5 faser</p>
+        </footer>
+    </div>
+</body>
+</html>

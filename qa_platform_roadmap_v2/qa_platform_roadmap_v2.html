@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Platform Roadmap v2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ QA Platform Roadmap v2</h1>
+            <p class="subtitle">Versionsspecifikation och Implementation Guide</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Version 2.0 | Datum: 2026-04-04</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="icon">📋</span> Översikt</h2>
+                <div class="info-box">
+                    <h3>🎯 Syfte med Version 2</h3>
+                    <p>QA Platform v2 bygger vidare på den stabila grund från v1 genom att lägga till avancerade funktioner för bättre säkerhet, prestanda och skalbarhet. Denna roadmap specificerar implementationen i tre faser med tydliga prioriteringar.</p>
+                </div>
+                <div class="description">
+                    <strong>Version 2 Fokuserar på:</strong> Säkerhet, prestanda, användarupplevelse och enterprise-funktioner.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📊</span> Versionsjämförelse</h2>
+                <div class="phase-item">
+                    <h3>Version 1 (Nuvarande)</h3>
+                    <ul>
+                        <li>✅ Grundläggande API och dashboard</li>
+                        <li>✅ Testautomatisering</li>
+                        <li>✅ Docker/K8s deployment</li>
+                        <li>✅ Säkerhetstester</li>
+                    </ul>
+                </div>
+                <div class="phase-item">
+                    <h3>Version 2 (Planerad)</h3>
+                    <ul>
+                        <li>🔒 Avancerad säkerhet (RBAC, rate limiting)</li>
+                        <li>⚡ Prestandaoptimeringar (caching, async)</li>
+                        <li>🚀 Enterprise-funktioner (multi-tenancy, monitoring)</li>
+                        <li>📱 Modern API:er (GraphQL, WebSocket)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📅</span> Implementation Faser</h2>
+
+                <div class="phase-item">
+                    <h3><a href="fas1_implementation_v2.html" style="color: #34d399; text-decoration: none;">🔧 Fas 1: Grundläggande Förbättringar</a> <span class="status planned">PLANERAD</span></h3>
+                    <div class="description">
+                        Kritiska förbättringar för stabilitet och säkerhet. Inkluderar API-versionering, rate limiting, RBAC, databastransaktioner och audit logging.
+                    </div>
+                    <h4>Nyckelfunktioner:</h4>
+                    <ul>
+                        <li>API-versionering (/v1, /v2)</li>
+                        <li>Rate limiting mot DoS</li>
+                        <li>Rollbaserad auktorisering</li>
+                        <li>Databastransaktioner</li>
+                        <li>Audit logging</li>
+                    </ul>
+                    <div class="info-box">
+                        <h3>⏱️ Uppskattad Tid: 6-8 veckor</h3>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3><a href="fas2_implementation_v2.html" style="color: #34d399; text-decoration: none;">⚡ Fas 2: Prestanda och Användarupplevelse</a> <span class="status planned">PLANERAD</span></h3>
+                    <div class="description">
+                        Optimeringar för bättre prestanda och användarupplevelse. Fokuserar på skalbarhet och effektivitet.
+                    </div>
+                    <h4>Nyckelfunktioner:</h4>
+                    <ul>
+                        <li>API-paginering</li>
+                        <li>Redis-caching</li>
+                        <li>Asynkron bearbetning</li>
+                        <li>Enhetlig felhantering</li>
+                        <li>Data kryptering</li>
+                    </ul>
+                    <div class="info-box">
+                        <h3>⏱️ Uppskattad Tid: 6-8 veckor</h3>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3><a href="fas3_implementation_v2.html" style="color: #34d399; text-decoration: none;">🚀 Fas 3: Avancerade Tillägg</a> <span class="status planned">PLANERAD</span></h3>
+                    <div class="description">
+                        Framtida enterprise-funktioner för skalning och avancerad användning.
+                    </div>
+                    <h4>Nyckelfunktioner:</h4>
+                    <ul>
+                        <li>GraphQL API</li>
+                        <li>WebSocket realtid</li>
+                        <li>Multi-tenancy</li>
+                        <li>PostgreSQL uppgradering</li>
+                        <li>Prometheus/Grafana monitoring</li>
+                    </ul>
+                    <div class="info-box">
+                        <h3>⏱️ Uppskattad Tid: 10-12 veckor</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🎯</span> Fördelar med Version 2</h2>
+                <div class="success-box">
+                    <h3>🔒 Säkerhet</h3>
+                    <p>Avancerad autentisering, auktorisering och dataskydd för enterprise-användning.</p>
+                </div>
+                <div class="success-box">
+                    <h3>⚡ Prestanda</h3>
+                    <p>Caching, asynkron bearbetning och optimeringar för bättre responstider.</p>
+                </div>
+                <div class="success-box">
+                    <h3>📈 Skalbarhet</h3>
+                    <p>Multi-tenancy, bättre databas och övervakning för växande organisationer.</p>
+                </div>
+                <div class="success-box">
+                    <h3>👥 Användarupplevelse</h3>
+                    <p>Moderna API:er, realtidsuppdateringar och bättre felhantering.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📋</span> Implementationsstrategi</h2>
+                <div class="warning-box">
+                    <h3>🔄 Iterativ Utveckling</h3>
+                    <ul>
+                        <li><strong>Fas 1:</strong> Bygg stabil grund (börja här)</li>
+                        <li><strong>Fas 2:</strong> Optimera prestanda (parallell med fas 1)</li>
+                        <li><strong>Fas 3:</strong> Lägg till avancerade funktioner (efter fas 1-2)</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>🧪 Testing Strategy</h3>
+                    <p>Varje fas inkluderar omfattande tester: enhetstester, integrationstester, säkerhetstester och prestandatester.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🚀</span> Kom igång</h2>
+                <div class="code-block">
+                    <code>
+# Börja med Fas 1<br>
+# 1. Installera nya dependencies<br>
+pip install flask-limiter flask-principal cryptography<br>
+<br>
+# 2. Läs implementation guide<br>
+# Öppna fas1_implementation_v2.html<br>
+<br>
+# 3. Implementera steg för steg<br>
+# Följ kodexemplen och testfallen
+                    </code>
+                </div>
+                <div class="success-box">
+                    <h3>💡 Tips</h3>
+                    <p>Arbeta igenom faserna i ordning. Varje fas bygger på den föregående. Använd de inkluderade testfallen för att validera implementationen.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 QA Platform v2 - Roadmap Overview</p>
+        </footer>
+    </div>
+</body>
+</html>
