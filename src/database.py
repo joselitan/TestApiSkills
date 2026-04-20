@@ -64,9 +64,7 @@ def init_db(test_mode=False):
     migration_statements = []
 
     if "email" not in existing_columns:
-        migration_statements.append(
-            "ALTER TABLE users ADD COLUMN email TEXT"
-        )
+        migration_statements.append("ALTER TABLE users ADD COLUMN email TEXT")
     if "role" not in existing_columns:
         migration_statements.append(
             "ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'member'"
@@ -92,13 +90,9 @@ def init_db(test_mode=False):
             "ALTER TABLE users ADD COLUMN password_reset_expires_at TIMESTAMP"
         )
     if "created_at" not in existing_columns:
-        migration_statements.append(
-            "ALTER TABLE users ADD COLUMN created_at TIMESTAMP"
-        )
+        migration_statements.append("ALTER TABLE users ADD COLUMN created_at TIMESTAMP")
     if "updated_at" not in existing_columns:
-        migration_statements.append(
-            "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP"
-        )
+        migration_statements.append("ALTER TABLE users ADD COLUMN updated_at TIMESTAMP")
 
     for statement in migration_statements:
         cursor.execute(statement)

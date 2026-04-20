@@ -12,7 +12,9 @@ BASE_URL = "http://localhost:8080"
 @allure.story("Registration")
 @allure.severity(allure.severity_level.NORMAL)
 def test_register_missing_fields():
-    response = requests.post(f"{BASE_URL}/api/register", json={"password": "Password123!"})
+    response = requests.post(
+        f"{BASE_URL}/api/register", json={"password": "Password123!"}
+    )
     assert response.status_code == 400
 
 

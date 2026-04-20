@@ -126,13 +126,9 @@ def send_email(to, subject, body):
 
     try:
         if app.config["EMAIL_USE_SSL"]:
-            smtp = smtplib.SMTP_SSL(
-                app.config["EMAIL_HOST"], app.config["EMAIL_PORT"]
-            )
+            smtp = smtplib.SMTP_SSL(app.config["EMAIL_HOST"], app.config["EMAIL_PORT"])
         else:
-            smtp = smtplib.SMTP(
-                app.config["EMAIL_HOST"], app.config["EMAIL_PORT"]
-            )
+            smtp = smtplib.SMTP(app.config["EMAIL_HOST"], app.config["EMAIL_PORT"])
             if app.config["EMAIL_USE_TLS"]:
                 smtp.starttls()
 
@@ -146,9 +142,7 @@ def send_email(to, subject, body):
 
 
 def send_verification_email(email, token):
-    verification_url = (
-        f"{app.config['APP_BASE_URL']}/api/verify-email?token={token}"
-    )
+    verification_url = f"{app.config['APP_BASE_URL']}/api/verify-email?token={token}"
     subject = "Verify your QA Platform account"
     body = (
         f"Welcome to QA Platform!\n\n"
@@ -159,9 +153,7 @@ def send_verification_email(email, token):
 
 
 def send_password_reset_email(email, token):
-    reset_url = (
-        f"{app.config['APP_BASE_URL']}/reset-password?token={token}"
-    )
+    reset_url = f"{app.config['APP_BASE_URL']}/reset-password?token={token}"
     subject = "Reset your QA Platform password"
     body = (
         f"A password reset was requested for your account.\n\n"
@@ -193,7 +185,9 @@ def get_user_by_email(email):
     if not email:
         return None
     conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (normalize_email(email),)).fetchone()
+    user = conn.execute(
+        "SELECT * FROM users WHERE email = ?", (normalize_email(email),)
+    ).fetchone()
     conn.close()
     return user
 
@@ -230,7 +224,9 @@ app = Flask(
     static_folder=os.path.join(basedir, "static"),
     template_folder=os.path.join(basedir, "templates"),
 )
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+app.config["SECRET_KEY"] = os.getenv(
+    "SECRET_KEY", "your-secret-key-change-in-production"
+)
 app.config["APP_BASE_URL"] = os.getenv("APP_BASE_URL", "http://localhost:8080")
 app.config["ENABLE_SELF_REGISTRATION"] = os.getenv(
     "ENABLE_SELF_REGISTRATION", "true"
@@ -664,7 +660,10 @@ def register():
         username = sanitize_html(base_username)
 
     if not email or not password or not confirm_password:
-        return jsonify({"message": "Email, password and confirm_password are required"}), 400
+        return (
+            jsonify({"message": "Email, password and confirm_password are required"}),
+            400,
+        )
     if not is_valid_email(email):
         return jsonify({"message": "Invalid email address"}), 400
     if password != confirm_password:
@@ -704,9 +703,8 @@ def register():
         password, method="pbkdf2:sha256", salt_length=16
     )
     verification_token = serializer.dumps(email, salt="email-confirm")
-    verification_expires_at = (
-        datetime.datetime.utcnow()
-        + datetime.timedelta(hours=app.config["VERIFICATION_TOKEN_EXPIRATION_HOURS"])
+    verification_expires_at = datetime.datetime.utcnow() + datetime.timedelta(
+        hours=app.config["VERIFICATION_TOKEN_EXPIRATION_HOURS"]
     )
 
     conn.execute(
@@ -851,9 +849,8 @@ def password_reset_request():
     user = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
     if user:
         reset_token = serializer.dumps(email, salt="password-reset")
-        reset_expires = (
-            datetime.datetime.utcnow()
-            + datetime.timedelta(hours=app.config["PASSWORD_RESET_TOKEN_EXPIRATION_HOURS"])
+        reset_expires = datetime.datetime.utcnow() + datetime.timedelta(
+            hours=app.config["PASSWORD_RESET_TOKEN_EXPIRATION_HOURS"]
         )
         conn.execute(
             "UPDATE users SET password_reset_token = ?, password_reset_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
@@ -866,12 +863,17 @@ def password_reset_request():
     conn.close()
 
     if not email_sent:
-        return jsonify({
-            "message": (
-                "Password reset requested, but email could not be sent. "
-                "Check email SMTP configuration."
-            )
-        }), 200
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "Password reset requested, but email could not be sent. "
+                        "Check email SMTP configuration."
+                    )
+                }
+            ),
+            200,
+        )
 
     return jsonify({"message": "Password reset email sent."}), 200
 
@@ -935,7 +937,10 @@ def password_reset():
     confirm_password = data.get("confirm_password")
 
     if not token or not password or not confirm_password:
-        return jsonify({"message": "Token, password and confirm_password are required"}), 400
+        return (
+            jsonify({"message": "Token, password and confirm_password are required"}),
+            400,
+        )
     if password != confirm_password:
         return jsonify({"message": "Passwords do not match"}), 400
     if len(password) < 8:
@@ -980,9 +985,11 @@ def login_page():
     Redirects authenticated users to /guestbook to prevent session confusion
     """
     if is_user_authenticated():
-        app.logger.info("Authenticated user attempted to access /login, redirecting to /guestbook")
+        app.logger.info(
+            "Authenticated user attempted to access /login, redirecting to /guestbook"
+        )
         return redirect("/guestbook")
-    
+
     return render_template("login.html")
 
 
