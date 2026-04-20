@@ -14,9 +14,9 @@
         <div class="form-section">
             <h2>Add New Entry</h2>
             <form id="entryForm">
-                <input type="text" id="name" placeholder="Name" required>
-                <input type="email" id="email" placeholder="Email" required>
-                <textarea id="comment" placeholder="Comment" rows="3"></textarea>
+                <input type="text" id="name" placeholder="Name" autocomplete="name" required>
+                <input type="email" id="email" placeholder="Email" autocomplete="email" required>
+                <textarea id="comment" placeholder="Comment" rows="3" autocomplete="off" required></textarea>
                 <button type="submit">Add Entry</button>
             </form>
         </div>

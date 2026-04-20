@@ -1073,11 +1073,11 @@ def create_entry():
 
     name = data.get("name")
     email = data.get("email")
-    comment = data.get("comment")
+    comment = data.get("comment") or ""
 
     # Input validation
-    if not name or not email or not comment:
-        return jsonify({"message": "Name, email, and comment are required"}), 400
+    if not name or not email:
+        return jsonify({"message": "Name and email are required"}), 400
 
     # Data type validation
     if (

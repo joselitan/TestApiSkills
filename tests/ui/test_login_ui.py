@@ -58,12 +58,9 @@ def test_failed_login_empty_fields(page: Page):
     )
 
 
-def test_logout(page: Page):
+def test_logout(authenticated_page: Page):
     """Test logout functionality"""
-    page.goto(BASE_URL)
-    page.fill("#username", "admin")
-    page.fill("#password", "password123")
-    page.click("button[type='submit']")
+    page = authenticated_page
     page.wait_for_url(f"{BASE_URL}/guestbook")
     page.click(".logout-btn")
     page.wait_for_url(BASE_URL)

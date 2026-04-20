@@ -10,8 +10,10 @@ BASE_URL = "http://localhost:8080"
 def authenticated_page(page: Page):
     """Fixture that provides an authenticated page"""
     page.goto(BASE_URL)
-    page.fill("#username", "admin")
+    page.fill("#identifier", "admin")
     page.fill("#password", "password123")
     page.click("button[type='submit']")
     page.wait_for_url(f"{BASE_URL}/guestbook")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_selector("#name", state="visible")
     return page
