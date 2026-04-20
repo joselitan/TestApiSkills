@@ -1073,19 +1073,21 @@ def create_entry():
 
     name = data.get("name")
     email = data.get("email")
-    comment = data.get("comment") or ""
+    comment = data.get("comment")
 
     # Input validation
     if not name or not email:
         return jsonify({"message": "Name and email are required"}), 400
 
-    # Data type validation
+    # Data type validation - check raw values before applying any defaults
     if (
         not isinstance(name, str)
         or not isinstance(email, str)
         or not isinstance(comment, str)
     ):
         return jsonify({"message": "Name, email, and comment must be strings"}), 400
+
+    comment = comment or ""
 
     # Sanitize inputs to prevent XSS
     name = sanitize_html(name)
