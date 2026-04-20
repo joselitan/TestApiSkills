@@ -14,7 +14,7 @@ from functools import wraps
 import jwt
 import pandas as pd
 from flasgger import Swagger
-from flask import Flask, g, jsonify, render_template, request, redirect
+from flask import Flask, g, jsonify, redirect, render_template, request
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename

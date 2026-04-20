@@ -1,9 +1,10 @@
 """API tests for user registration and authentication."""
 
+import uuid
+
 import allure
 import pytest
 import requests
-import uuid
 
 BASE_URL = "http://localhost:8080"
 
