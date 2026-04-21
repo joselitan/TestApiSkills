@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Switch to dark mode">🌙</button>
     <div class="auth-container">
         <h1>Create a New Account</h1>
         <form id="registerForm">
@@ -21,6 +22,7 @@
         <p class="hint">Already have an account? <a href="/login">Sign in</a></p>
     </div>
 
+    <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
     <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
 </html>

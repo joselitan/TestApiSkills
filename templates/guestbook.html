@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Switch to dark mode">🌙</button>
     <div class="container">
         <h1>Guest Book</h1>
         <button onclick="logout()" class="logout-btn">Logout</button>
@@ -100,6 +101,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
     <script src="{{ url_for('static', filename='js/guestbook.js') }}"></script>
 </body>
 </html>
