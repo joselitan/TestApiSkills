@@ -17,8 +17,8 @@ PAGES_WITH_TOGGLE = [
 
 
 def _has_dark_mode(page: Page) -> bool:
-    """Return True if dark-mode class is present on body."""
-    return page.evaluate("document.body.classList.contains('dark-mode')")
+    """Return True if dark-mode class is present on html element."""
+    return page.evaluate("document.documentElement.classList.contains('dark-mode')")
 
 
 def _get_saved_preference(page: Page) -> str | None:
@@ -199,23 +199,23 @@ def test_dark_mode_persists_after_logout_and_login(page: Page):
 
     # Enable dark mode on guestbook
     page.click("#darkModeToggle")
-    assert _has_dark_mode(page)
+    page.wait_for_function("document.documentElement.classList.contains('dark-mode')")
 
     # Logout
     page.click(".logout-btn")
-    page.wait_for_url(f"{BASE_URL}/login")
-    page.wait_for_load_state("networkidle")
-
-    # Dark mode toggle should reflect saved preference on login page
-    assert _has_dark_mode(page), "Dark mode should still be active on login page after logout"
+    # logout() redirects to '/' which serves the login page
+    page.wait_for_url(f"{BASE_URL}/")
+    page.wait_for_selector("#darkModeToggle", state="visible")
+    # Inline head script applies dark-mode before first paint — wait for it
+    page.wait_for_function("document.documentElement.classList.contains('dark-mode')")
 
     # Re-login
     page.fill("#identifier", "admin")
     page.fill("#password", "password123")
     page.click("button[type='submit']")
     page.wait_for_url(f"{BASE_URL}/guestbook")
-    page.wait_for_load_state("networkidle")
-    assert _has_dark_mode(page), "Dark mode should persist after re-login"
+    page.wait_for_selector("#darkModeToggle", state="visible")
+    page.wait_for_function("document.documentElement.classList.contains('dark-mode')")
 
 
 # ---------------------------------------------------------------------------

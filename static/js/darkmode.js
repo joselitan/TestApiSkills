@@ -3,12 +3,13 @@
 
     var STORAGE_KEY = "darkMode";
     var DARK_CLASS = "dark-mode";
+    var root = document.documentElement; // <html> element — set before first paint by inline head script
 
     function applyTheme(isDark) {
         if (isDark) {
-            document.body.classList.add(DARK_CLASS);
+            root.classList.add(DARK_CLASS);
         } else {
-            document.body.classList.remove(DARK_CLASS);
+            root.classList.remove(DARK_CLASS);
         }
         var btn = document.getElementById("darkModeToggle");
         if (btn) {
@@ -18,7 +19,7 @@
     }
 
     function toggleDarkMode() {
-        var isDark = document.body.classList.contains(DARK_CLASS);
+        var isDark = root.classList.contains(DARK_CLASS);
         var newState = !isDark;
         localStorage.setItem(STORAGE_KEY, newState ? "enabled" : "disabled");
         applyTheme(newState);
@@ -28,6 +29,7 @@
         var saved = localStorage.getItem(STORAGE_KEY);
         // Default is light mode for new users (saved === null)
         var isDark = saved === "enabled";
+        // Class already applied by inline head script — just sync the button icon
         applyTheme(isDark);
 
         var btn = document.getElementById("darkModeToggle");

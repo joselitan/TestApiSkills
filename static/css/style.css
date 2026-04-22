@@ -17,7 +17,7 @@
 }
 
 /* ===== Dark Theme ===== */
-body.dark-mode {
+html.dark-mode {
     --bg-page: #1a1a2e;
     --bg-container: #16213e;
     --bg-input: #0f3460;
@@ -51,7 +51,7 @@ h1, h2, h3 { color: var(--text-heading); }
 .error { color: red; margin: 10px 0; }
 .hint { color: var(--text-secondary); font-size: 0.9em; margin-top: 20px; }
 a { color: #007bff; }
-body.dark-mode a { color: #4da3ff; }
+html.dark-mode a { color: #4da3ff; }
 .logout-btn { background: #dc3545; width: auto; float: right; }
 .logout-btn:hover { background: #c82333; }
 
