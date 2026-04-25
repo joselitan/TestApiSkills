@@ -54,7 +54,17 @@ async function loadEntries(page = 1, search = '') {
                         <button class="delete-btn" onclick="deleteEntry(${entry.userId})">Delete</button>
                     </td>
                 </tr>
+                <tr class="reactions-row">
+                    <td colspan="6" class="reactions-cell">
+                        <span class="reactions-label">Reactions:</span>
+                        <button id="reaction-like-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'like')">👍 <span id="count-like-${entry.userId}">0</span></button>
+                        <button id="reaction-love-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'love')">❤️ <span id="count-love-${entry.userId}">0</span></button>
+                        <button id="reaction-laugh-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'laugh')">😄 <span id="count-laugh-${entry.userId}">0</span></button>
+                    </td>
+                </tr>
             `).join('');
+            // Load reaction counts for each entry
+            entries.forEach(entry => loadReactions(entry.userId));
         }
         
         // Update pagination controls
@@ -190,6 +200,51 @@ async function importExcel() {
 function logout() {
     sessionStorage.removeItem('token');
     window.location.href = '/';
+}
+
+// ---------------------------------------------------------------------------
+// Entry Reactions (DEV-18)
+// ---------------------------------------------------------------------------
+
+async function loadReactions(entryId) {
+    try {
+        const response = await fetch(`/api/entries/${entryId}/reactions`, {headers});
+        if (!response.ok) return;
+        const data = await response.json();
+        const types = ['like', 'love', 'laugh'];
+        types.forEach(type => {
+            const countEl = document.getElementById(`count-${type}-${entryId}`);
+            const btnEl = document.getElementById(`reaction-${type}-${entryId}`);
+            if (countEl) countEl.textContent = data[type] ?? 0;
+            if (btnEl) {
+                if (data.user_reactions && data.user_reactions.includes(type)) {
+                    btnEl.classList.add('reaction-active');
+                } else {
+                    btnEl.classList.remove('reaction-active');
+                }
+            }
+        });
+    } catch (err) {
+        console.error(`❌ Error loading reactions for entry ${entryId}:`, err);
+    }
+}
+
+async function toggleReaction(entryId, reactionType) {
+    try {
+        const response = await fetch(`/api/entries/${entryId}/reactions`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({reaction_type: reactionType})
+        });
+        if (!response.ok) {
+            console.error(`❌ Toggle reaction failed: ${response.status}`);
+            return;
+        }
+        // Reload counts and active state for this entry
+        await loadReactions(entryId);
+    } catch (err) {
+        console.error(`❌ Error toggling reaction for entry ${entryId}:`, err);
+    }
 }
 
 // Initialize

@@ -59,6 +59,18 @@ def init_db(test_mode=False):
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS entry_reactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entry_id INTEGER NOT NULL,
+            user_identifier TEXT NOT NULL,
+            reaction_type TEXT NOT NULL CHECK(reaction_type IN ('like', 'love', 'laugh')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (entry_id) REFERENCES guestbook(userId),
+            UNIQUE (entry_id, user_identifier, reaction_type)
+        )
+    """)
+
     cursor.execute("PRAGMA table_info(users)")
     existing_columns = {row[1] for row in cursor.fetchall()}
     migration_statements = []

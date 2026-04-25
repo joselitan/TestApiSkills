@@ -109,7 +109,9 @@ def test_toggle_deactivates_dark_mode(page: Page):
     page.click("#darkModeToggle")  # enable
     assert _has_dark_mode(page)
     page.click("#darkModeToggle")  # disable
-    assert not _has_dark_mode(page), "dark-mode class should be removed after second click"
+    assert not _has_dark_mode(
+        page
+    ), "dark-mode class should be removed after second click"
 
 
 # ---------------------------------------------------------------------------
@@ -175,7 +177,9 @@ def test_dark_mode_persists_across_pages(page: Page):
     page.click("#darkModeToggle")  # enable on login page
     page.goto(f"{BASE_URL}/register")
     page.wait_for_load_state("networkidle")
-    assert _has_dark_mode(page), "Dark mode should persist when navigating to a different page"
+    assert _has_dark_mode(
+        page
+    ), "Dark mode should persist when navigating to a different page"
 
 
 # ---------------------------------------------------------------------------
