@@ -268,6 +268,33 @@ tests/api/test_guestbook_api.py::test_read_all_entries PASSED
     <h3>Performance-tester</h3>
     <pre><code>pytest tests/performance/test_load_testing.py -v</code></pre>
 
+    <h3>Integrationstester (Webhook System)</h3>
+    <p>Dessa tester verifierar att plattformen kan kommunicera med externa system via webhooks. En lokal mock-server startas automatiskt &mdash; inga externa beroenden behövs.</p>
+    <pre><code>pytest tests/api/test_integrations.py -v</code></pre>
+
+    <div class="success-box">
+        <strong>Vad integrationstesterna täcker:</strong>
+        <ul>
+            <li>Registrera och avregistrera webhook-prenumeranter</li>
+            <li>Lista aktiva prenumeranter</li>
+            <li>Ta emot inkommande händelser från externa system</li>
+            <li>End-to-end: en gästbokspost skapas och webhook-anropet fångas upp av mock-servern</li>
+            <li>HMAC-SHA256 signaturverifiering</li>
+        </ul>
+    </div>
+
+    <h3>Registrera en webhook manuellt (valfritt)</h3>
+    <pre><code># Hämta ett token först
+TOKEN=$(curl -s -X POST http://localhost:8080/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+# Registrera en webhook
+curl -X POST http://localhost:8080/api/webhooks \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://ditt-system.example.com/hook", "events": ["entry.created", "user.registered"]}'</code></pre>
+
     <h2 id="dashboard-overview"><span class="emoji">📊</span>Dashboard Overview</h2>
 
     <h3>Starta Dashboard</h3>

@@ -36,42 +36,25 @@ class DashboardReporter:
     def pytest_sessionstart(self, session):
         self.start_time = datetime.now()
         print(f"\nQA Dashboard: Startar test-session...")
-        
-        # Determine test type based on test file paths
+
+    def pytest_collection_finish(self, session):
+        """Detect test type after collection, when session.items is populated"""
+        from pathlib import Path
+
         test_type = 'integration'  # default
         detected_types = set()
 
-        if hasattr(session, 'items') and session.items:
-            # Scan all collected test items to avoid missing the actual test folder
-            from pathlib import Path
-
-            for item in session.items:
-                path = Path(str(item.fspath))
-                parts = [p.lower() for p in path.parts]
-
-                if 'tests' in parts:
-                    idx = parts.index('tests')
-                    if idx + 1 < len(parts):
-                        candidate = parts[idx + 1]
-                        if candidate in ('ui', 'api', 'performance', 'security'):
-                            detected_types.add(candidate)
-
-                # Fall back to substring matching for odd cases
-                joined = str(path).lower().replace('\\', '/')
-                if '/ui/' in joined:
-                    detected_types.add('ui')
-                if '/api/' in joined:
-                    detected_types.add('api')
-                if '/performance/' in joined:
-                    detected_types.add('performance')
-                if '/security/' in joined:
-                    detected_types.add('security')
-
-            # Select the most specific type (UI > API > Performance > Security > Integration)
+        for item in session.items:
+            path = Path(str(item.fspath))
+            joined = str(path).lower().replace('\\', '/')
             for t in ('ui', 'api', 'performance', 'security'):
-                if t in detected_types:
-                    test_type = t
-                    break
+                if f'/{t}/' in joined:
+                    detected_types.add(t)
+
+        for t in ('ui', 'api', 'performance', 'security'):
+            if t in detected_types:
+                test_type = t
+                break
 
         self.session_data['test_type'] = test_type
         print(f"Detekterad test-typ: {test_type} (sanity check: found {sorted(detected_types)})")
@@ -204,6 +187,9 @@ dashboard_reporter = DashboardReporter()
 
 def pytest_sessionstart(session):
     dashboard_reporter.pytest_sessionstart(session)
+
+def pytest_collection_finish(session):
+    dashboard_reporter.pytest_collection_finish(session)
 
 def pytest_runtest_logreport(report):
     dashboard_reporter.pytest_runtest_logreport(report)

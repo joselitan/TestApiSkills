@@ -1132,6 +1132,61 @@ dashboard/<br>
                 </div>
 
                 <div class="phase-item">
+                    <h3>6.4 Webhook &amp; Integration System ✅ IMPLEMENTERAT</h3>
+                    <h4>Status: KLAR - Fas 6 Integration Upgrade</h4>
+                    <div class="description">
+                        Plattformen kan nu kommunicera med externa system i båda riktningarna via ett webhook-system.
+                    </div>
+
+                    <h4>Vad som implementerades:</h4>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>src/webhooks.py</strong> — Webhook dispatcher med trådsäker prenumerantregistrering och HMAC-SHA256 signering</li>
+                            <li>✅ <strong>POST /api/webhooks</strong> — Registrera en extern URL som prenumerant på plattformshändelser</li>
+                            <li>✅ <strong>GET /api/webhooks</strong> — Lista alla registrerade prenumeranter</li>
+                            <li>✅ <strong>DELETE /api/webhooks</strong> — Avregistrera en prenumerant</li>
+                            <li>✅ <strong>POST /api/integrations/inbound</strong> — Ta emot händelser från externa system</li>
+                            <li>✅ <strong>Automatisk dispatch</strong> — entry.created och user.registered skickas automatiskt</li>
+                            <li>✅ <strong>tests/api/test_integrations.py</strong> — 8 integrationstester inklusive end-to-end dispatch och HMAC-verifiering</li>
+                        </ul>
+                    </div>
+
+                    <h4>Hur det fungerar:</h4>
+                    <div class="description">
+                        <p><strong>Utgående webhooks (Outbound):</strong> När en händelse inträffar i plattformen (t.ex. en ny gästbokspost skapas) skickas ett HTTP POST-anrop till alla registrerade prenumeranter. Leveransen sker asynkront i bakgrundstrådar så att API-svarstiden inte påverkas.</p>
+                        <p><strong>Inkommande händelser (Inbound):</strong> Externa system (CI/CD-pipelines, övervakningsverktyg, tredjepartstjänster) kan skicka händelser till /api/integrations/inbound. Plattformen loggar händelsen och bekräftar mottagandet.</p>
+                        <p><strong>Säkerhet:</strong> Om en hemlighet (secret) anges vid registrering signeras varje webhook-payload med HMAC-SHA256. Mottagaren kan verifiera signaturen i X-Signature-headern för att bekräfta att anropet kommer från plattformen.</p>
+                    </div>
+
+                    <h4>Händelser som stöds:</h4>
+                    <div class="description">
+                        <ul>
+                            <li><strong>entry.created</strong> — Utlöses när en ny gästbokspost skapas</li>
+                            <li><strong>user.registered</strong> — Utlöses när en ny användare registrerar sig</li>
+                        </ul>
+                    </div>
+
+                    <h4>Snabbstart:</h4>
+                    <div class="code-block">
+                        <code>
+# 1. Registrera en webhook-prenumerant<br>
+curl -X POST http://localhost:8080/api/webhooks \<br>
+&nbsp;&nbsp;-H "Authorization: Bearer {token}" \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+&nbsp;&nbsp;-d '{"url": "https://ditt-system.example.com/hook", "events": ["entry.created"], "secret": "din-hemlighet"}'<br>
+<br>
+# 2. Skicka en inkommande händelse från ett externt system<br>
+curl -X POST http://localhost:8080/api/integrations/inbound \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+&nbsp;&nbsp;-d '{"event": "external.sync", "data": {"ref": "build-42"}}'<br>
+<br>
+# 3. Kör integrationstesterna<br>
+pytest tests/api/test_integrations.py -v
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
                     <h3>6.4 AI-Powered Testing</h3>
                     <h4>Mål:</h4>
                     <div class="description">

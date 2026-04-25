@@ -165,6 +165,49 @@
                 <p><strong>Request:</strong> multipart/form-data with Excel file</p>
                 <p><strong>Response:</strong> { "imported": int, "message": "string" }</p>
             </div>
+
+            <h2>Integration &amp; Webhook Endpoints</h2>
+            <p>These endpoints allow the platform to connect with external systems. Outbound webhooks notify subscribers when events happen inside the platform. The inbound endpoint receives events from external systems.</p>
+
+            <div class="endpoint">
+                <span class="endpoint-method">POST</span>
+                <span class="endpoint-path">/api/webhooks</span>
+                <p><strong>Description:</strong> Register an external URL to receive webhook notifications when platform events occur (e.g. a new guestbook entry is created or a user registers).</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Request Body:</strong> { "url": "https://external.example.com/hook", "events": ["entry.created", "user.registered"], "secret": "optional-hmac-secret" }</p>
+                <p><strong>Response:</strong> { "message": "Webhook registered", "url": "string", "events": ["string"] }</p>
+                <p><strong>Status Code:</strong> 201 Created</p>
+                <p><strong>How it works:</strong> After registration, every time a matching event fires the platform sends an HTTP POST to your URL with a JSON body containing the event name and data. If a secret is provided, an HMAC-SHA256 signature is included in the X-Signature header so you can verify the payload is genuine.</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-path">/api/webhooks</span>
+                <p><strong>Description:</strong> List all currently registered webhook subscribers.</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Response:</strong> { "webhooks": [ { "url": "string", "events": ["string"] } ] }</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">DELETE</span>
+                <span class="endpoint-path">/api/webhooks</span>
+                <p><strong>Description:</strong> Remove a previously registered webhook subscriber.</p>
+                <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                <p><strong>Request Body:</strong> { "url": "https://external.example.com/hook" }</p>
+                <p><strong>Response:</strong> { "message": "Webhook removed" }</p>
+                <p><strong>Status Code:</strong> 200 OK (or 404 if the URL was not registered)</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">POST</span>
+                <span class="endpoint-path">/api/integrations/inbound</span>
+                <p><strong>Description:</strong> Receive an event payload from an external system. Use this endpoint when another tool (CI/CD pipeline, monitoring system, third-party service) needs to push data or trigger an action inside the platform.</p>
+                <p><strong>Headers:</strong> Content-Type: application/json (no auth required — intended for external callers)</p>
+                <p><strong>Request Body:</strong> { "event": "external.sync", "data": { "ref": "abc123" } }</p>
+                <p><strong>Response:</strong> { "message": "Event received", "event": "string" }</p>
+                <p><strong>Status Code:</strong> 200 OK</p>
+                <p><strong>How it works:</strong> The platform logs the event and returns an acknowledgement. You can extend this endpoint to trigger internal actions (e.g. re-run tests, update a record) based on the event type.</p>
+            </div>
         </div>
 
         <div class="section">

@@ -457,6 +457,65 @@ python -c "import sqlite3; print(sqlite3.connect('guestbook.db').execute('SELECT
                     </ul>
                 </div>
             </div>
+
+            <div class="section">
+                <h2><span class="icon">🔗</span> Integration Upgrade — Webhook System ✅ IMPLEMENTERAT</h2>
+                <div class="success-box">
+                    <h3>✅ Plattformen kan nu integreras med externa system</h3>
+                    <p>Ett komplett webhook-system har lagts till som gör det möjligt att ansluta plattformen till externa verktyg, CI/CD-pipelines och tredjepartstjänster.</p>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Vad som lades till</h3>
+                    <div class="description">
+                        <ul>
+                            <li>✅ <strong>src/webhooks.py</strong> — Ny modul för webhook-hantering. Hanterar prenumerantregistrering, avregistrering och asynkron leverans med HMAC-SHA256-signering.</li>
+                            <li>✅ <strong>POST /api/webhooks</strong> — Registrera en extern URL som prenumerant. Kräver JWT-autentisering.</li>
+                            <li>✅ <strong>GET /api/webhooks</strong> — Lista alla aktiva prenumeranter.</li>
+                            <li>✅ <strong>DELETE /api/webhooks</strong> — Avregistrera en prenumerant.</li>
+                            <li>✅ <strong>POST /api/integrations/inbound</strong> — Ta emot händelser från externa system. Ingen autentisering krävs (avsett för externa anropare).</li>
+                            <li>✅ <strong>Automatisk dispatch</strong> — entry.created skickas när en gästbokspost skapas. user.registered skickas när en användare registrerar sig.</li>
+                            <li>✅ <strong>tests/api/test_integrations.py</strong> — 8 integrationstester med en inbyggd mock-server på port 9876.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Hur man testar integrationen</h3>
+                    <div class="code-block">
+                        <code>
+# Kör alla integrationstester (startar automatiskt en mock-server)<br>
+pytest tests/api/test_integrations.py -v<br>
+<br>
+# Registrera en webhook manuellt<br>
+curl -X POST http://localhost:8080/api/webhooks \<br>
+&nbsp;&nbsp;-H "Authorization: Bearer {token}" \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+&nbsp;&nbsp;-d '{"url": "https://ditt-system.example.com/hook", "events": ["entry.created", "user.registered"]}'<br>
+<br>
+# Skicka en inkommande händelse<br>
+curl -X POST http://localhost:8080/api/integrations/inbound \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+&nbsp;&nbsp;-d '{"event": "external.sync", "data": {"ref": "build-42"}}'<br>
+<br>
+# Lista registrerade webhooks<br>
+curl -H "Authorization: Bearer {token}" http://localhost:8080/api/webhooks
+                        </code>
+                    </div>
+                </div>
+
+                <div class="phase-item">
+                    <h3>Användningsfall</h3>
+                    <div class="description">
+                        <ul>
+                            <li><strong>CI/CD-notifieringar:</strong> Skicka en inkommande händelse från din GitHub Actions-pipeline när en build lyckas eller misslyckas.</li>
+                            <li><strong>Slack-notifieringar:</strong> Registrera en Slack Incoming Webhook-URL som prenumerant på entry.created för att få meddelanden i Slack när nya poster skapas.</li>
+                            <li><strong>Datasynkronisering:</strong> Låt ett externt system prenumerera på user.registered för att synkronisera användare till en CRM eller e-postlista.</li>
+                            <li><strong>Testautomatisering:</strong> Utlös en testkörning i ett externt system när en ny post skapas i plattformen.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <footer>

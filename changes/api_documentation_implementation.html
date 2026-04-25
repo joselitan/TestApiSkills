@@ -159,51 +159,66 @@ def login():<br>
                     
                     <div class="description">
                         <ul>
-                            <li><strong>POST /api/guestbook</strong> - Skapa ny entry
-                                <ul>
-                                    <li>Request body schema med required fields</li>
-                                    <li>Exempel-värden för alla fält</li>
-                                    <li>Response schemas för 201, 400, 401</li>
-                                </ul>
-                            </li>
-                            <li><strong>GET /api/guestbook</strong> - Hämta alla entries
-                                <ul>
-                                    <li>Query parameters: page, limit, search</li>
-                                    <li>Pagination metadata i response</li>
-                                    <li>Array av entry-objekt</li>
-                                </ul>
-                            </li>
-                            <li><strong>GET /api/guestbook/{id}</strong> - Hämta en entry
-                                <ul>
-                                    <li>Path parameter: user_id</li>
-                                    <li>Response för 200 och 404</li>
-                                </ul>
-                            </li>
-                            <li><strong>PUT /api/guestbook/{id}</strong> - Uppdatera entry
-                                <ul>
-                                    <li>Path parameter + request body</li>
-                                    <li>Required fields dokumenterade</li>
-                                </ul>
-                            </li>
-                            <li><strong>DELETE /api/guestbook/{id}</strong> - Radera entry
-                                <ul>
-                                    <li>Path parameter</li>
-                                    <li>Success/error responses</li>
-                                </ul>
-                            </li>
-                            <li><strong>DELETE /api/guestbook/bulk</strong> - Bulk delete
-                                <ul>
-                                    <li>Array av IDs i request body</li>
-                                    <li>Antal raderade i response</li>
-                                </ul>
-                            </li>
-                            <li><strong>POST /api/guestbook/import</strong> - Excel import
-                                <ul>
-                                    <li>File upload (multipart/form-data)</li>
-                                    <li>Excel format requirements</li>
-                                </ul>
-                            </li>
+                            <li><strong>POST /api/guestbook</strong> - Skapa ny entry</li>
+                            <li><strong>GET /api/guestbook</strong> - Hämta alla entries med pagination</li>
+                            <li><strong>GET /api/guestbook/{id}</strong> - Hämta en entry</li>
+                            <li><strong>PUT /api/guestbook/{id}</strong> - Uppdatera entry</li>
+                            <li><strong>DELETE /api/guestbook/{id}</strong> - Radera entry</li>
+                            <li><strong>DELETE /api/guestbook/bulk</strong> - Bulk delete</li>
+                            <li><strong>POST /api/guestbook/import</strong> - Excel import</li>
                         </ul>
+                    </div>
+                </div>
+
+                <div class="change-item">
+                    <h3>4. Endpoint Dokumentation - Integrations (NY!)</h3>
+                    <div class="file-path">src/app.py &amp; src/webhooks.py</div>
+
+                    <div class="description">
+                        <strong>Bakgrund:</strong> Plattformen har utvidgats med ett webhook-system som gör det möjligt att integrera med externa system. Alla nya endpoints är dokumenterade i Swagger under taggen <em>Integrations</em>.
+                    </div>
+
+                    <div class="description">
+                        <strong>Nya endpoints:</strong>
+                        <ul>
+                            <li><strong>POST /api/webhooks</strong> — Registrera en extern URL som prenumerant på plattformshändelser. Kräver JWT. Payload: url, events[], secret (valfritt).</li>
+                            <li><strong>GET /api/webhooks</strong> — Lista alla registrerade prenumeranter. Kräver JWT.</li>
+                            <li><strong>DELETE /api/webhooks</strong> — Avregistrera en prenumerant. Kräver JWT. Payload: url.</li>
+                            <li><strong>POST /api/integrations/inbound</strong> — Ta emot en händelse från ett externt system. Ingen autentisering krävs. Payload: event, data.</li>
+                        </ul>
+                    </div>
+
+                    <div class="description">
+                        <strong>Händelser som automatiskt dispatchar webhooks:</strong>
+                        <ul>
+                            <li><strong>entry.created</strong> — Skickas när POST /api/guestbook lyckas</li>
+                            <li><strong>user.registered</strong> — Skickas när POST /api/register lyckas</li>
+                        </ul>
+                    </div>
+
+                    <div class="description">
+                        <strong>Säkerhet:</strong> Om en hemlighet anges vid registrering signeras varje webhook-payload med HMAC-SHA256. Mottagaren kan verifiera X-Signature-headern för att bekräfta att anropet är äkta.
+                    </div>
+
+                    <div class="code-block">
+                        <code>
+# Registrera en webhook<br>
+POST /api/webhooks<br>
+{<br>
+&nbsp;&nbsp;"url": "https://ditt-system.example.com/hook",<br>
+&nbsp;&nbsp;"events": ["entry.created", "user.registered"],<br>
+&nbsp;&nbsp;"secret": "din-hemlighet"<br>
+}<br>
+<br>
+# Plattformen skickar detta till din URL när en händelse inträffar:<br>
+POST https://ditt-system.example.com/hook<br>
+X-Event-Type: entry.created<br>
+X-Signature: &lt;hmac-sha256-hash&gt;<br>
+{<br>
+&nbsp;&nbsp;"event": "entry.created",<br>
+&nbsp;&nbsp;"data": { "userId": 42, "name": "...", "email": "...", "comment": "..." }<br>
+}
+                        </code>
                     </div>
                 </div>
 

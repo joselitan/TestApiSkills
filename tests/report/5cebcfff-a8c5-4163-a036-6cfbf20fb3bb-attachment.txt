@@ -1,0 +1,3 @@
+
+Setting up test database...
+Test database created: /Users/josemartin/TestApiSkills/data/guestbook_test.db

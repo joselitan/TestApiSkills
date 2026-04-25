@@ -437,6 +437,62 @@
                     <li><span class="highlight">Slack Notifications</span> - Automatiska meddelanden</li>
                 </ul>
             </div>
+
+            <!-- STEG 7: Integration Testing -->
+            <div class="step">
+                <h2><span class="step-number">7</span>Integration Testing — Webhook System</h2>
+                <p>Plattformen har nu ett inbyggt webhook-system som gör det möjligt att testa integrationer med externa system. Här är hur du använder det.</p>
+
+                <div class="info">
+                    <strong>💡 Vad är ett webhook?</strong> Ett webhook är ett sätt för plattformen att automatiskt meddela ett externt system när något händer. När t.ex. en ny gästbokspost skapas skickar plattformen ett HTTP POST-anrop till alla registrerade URL:er med information om händelsen.
+                </div>
+
+                <h3>Kör integrationstesterna:</h3>
+                <div class="terminal">pytest tests/api/test_integrations.py -v</div>
+
+                <div class="success">
+                    ✅ <strong>Testerna startar automatiskt en lokal mock-server på port 9876</strong> som fångar upp webhook-anrop. Inga externa beroenden behövs.
+                </div>
+
+                <h3>Registrera en webhook manuellt:</h3>
+                <div class="terminal">curl -X POST http://localhost:8080/api/webhooks -H "Authorization: Bearer {token}" -H "Content-Type: application/json" -d '{"url": "https://ditt-system.example.com/hook", "events": ["entry.created", "user.registered"]}'</div>
+
+                <h3>Skicka en inkommande händelse från ett externt system:</h3>
+                <div class="terminal">curl -X POST http://localhost:8080/api/integrations/inbound -H "Content-Type: application/json" -d '{"event": "external.sync", "data": {"ref": "build-42"}}'</div>
+
+                <h3>Lista registrerade webhooks:</h3>
+                <div class="terminal">curl -H "Authorization: Bearer {token}" http://localhost:8080/api/webhooks</div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>📤 Utgående Webhooks</h3>
+                        <ul>
+                            <li>entry.created — ny gästbokspost</li>
+                            <li>user.registered — ny användare</li>
+                            <li>Asynkron leverans (påverkar inte API-svar)</li>
+                            <li>HMAC-SHA256 signering</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📥 Inkommande Händelser</h3>
+                        <ul>
+                            <li>Ta emot händelser från externa system</li>
+                            <li>Ingen autentisering krävs</li>
+                            <li>Loggas automatiskt</li>
+                            <li>Utbyggbar för interna åtgärder</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🧪 Integrationstester</h3>
+                        <ul>
+                            <li>8 test cases</li>
+                            <li>End-to-end dispatch-verifiering</li>
+                            <li>HMAC-signaturverifiering</li>
+                            <li>Inbyggd mock-server</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
             
             <!-- Troubleshooting -->
             <div class="troubleshooting">
