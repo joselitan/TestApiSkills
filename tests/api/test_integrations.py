@@ -60,6 +60,7 @@ def clear_events():
 
 # ── Webhook Management ────────────────────────────────────────────────────────
 
+
 @allure.feature("Integrations")
 @allure.story("Webhook Registration")
 @allure.severity(allure.severity_level.CRITICAL)
@@ -136,6 +137,7 @@ def test_unregister_nonexistent_webhook(auth_token, mock_server):
 
 # ── Inbound Events ────────────────────────────────────────────────────────────
 
+
 @allure.feature("Integrations")
 @allure.story("Inbound Events")
 @allure.severity(allure.severity_level.CRITICAL)
@@ -161,6 +163,7 @@ def test_inbound_event_missing_fields():
 
 # ── End-to-End Dispatch ───────────────────────────────────────────────────────
 
+
 @allure.feature("Integrations")
 @allure.story("Webhook Dispatch")
 @allure.severity(allure.severity_level.CRITICAL)
@@ -174,11 +177,17 @@ def test_entry_created_dispatches_webhook(auth_token, mock_server):
 
     requests.post(
         f"{BASE_URL}/api/guestbook",
-        json={"name": "Integration Test", "email": "int@test.com", "comment": "hook test"},
+        json={
+            "name": "Integration Test",
+            "email": "int@test.com",
+            "comment": "hook test",
+        },
         headers={"Authorization": f"Bearer {auth_token}"},
     )
 
-    import time; time.sleep(0.3)  # allow async dispatch
+    import time
+
+    time.sleep(0.3)  # allow async dispatch
 
     assert any(e["event_type"] == "entry.created" for e in received_events)
 
@@ -201,12 +210,16 @@ def test_webhook_hmac_signature(auth_token, mock_server):
         headers={"Authorization": f"Bearer {auth_token}"},
     )
 
-    import time; time.sleep(0.3)
+    import time
+
+    time.sleep(0.3)
 
     signed = [e for e in received_events if e.get("signature")]
     assert signed, "Expected at least one signed webhook delivery"
 
     event = signed[0]
-    raw = json.dumps({"event": event["body"]["event"], "data": event["body"]["data"]}).encode()
+    raw = json.dumps(
+        {"event": event["body"]["event"], "data": event["body"]["data"]}
+    ).encode()
     expected_sig = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
     assert event["signature"] == expected_sig
