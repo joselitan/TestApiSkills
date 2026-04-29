@@ -4,14 +4,15 @@ Automated Test Run - Verify QA Platform Functionality
 Tests environment variable support and basic functionality
 """
 
-import os
-import sys
-import time
-import requests
-import subprocess
-import threading
 import json
+import os
+import subprocess
+import sys
+import threading
+import time
 from datetime import datetime
+
+import requests
 
 
 class QAPlatformTester:

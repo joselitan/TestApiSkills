@@ -26,7 +26,8 @@ def init_database():
     cursor = conn.cursor()
 
     # Test runs table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS test_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -39,10 +40,12 @@ def init_database():
             coverage_percentage REAL,
             branch TEXT DEFAULT 'main'
         )
-    """)
+    """
+    )
 
     # Test cases table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS test_cases (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             run_id INTEGER,
@@ -53,10 +56,12 @@ def init_database():
             error_message TEXT,
             FOREIGN KEY (run_id) REFERENCES test_runs (id)
         )
-    """)
+    """
+    )
 
     # Performance metrics table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS performance_metrics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -65,7 +70,8 @@ def init_database():
             status_code INTEGER,
             users INTEGER DEFAULT 1
         )
-    """)
+    """
+    )
 
     conn.commit()
     conn.close()
@@ -271,7 +277,8 @@ def show_dashboard_stats():
     print(f"  • Performance metrics: {perf_metrics}")
 
     # Today's summary
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT 
             SUM(total_tests) as total,
             SUM(passed_tests) as passed,
@@ -279,7 +286,8 @@ def show_dashboard_stats():
             AVG(coverage_percentage) as coverage
         FROM test_runs 
         WHERE DATE(timestamp) = DATE('now')
-    """)
+    """
+    )
 
     today = cursor.fetchone()
     if today[0]:

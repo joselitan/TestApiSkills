@@ -1,13 +1,14 @@
-import pytest
 import os
 import sys
-import requests
 from datetime import datetime
+
+import pytest
+import requests
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from database import init_db, clear_test_db, get_db_path
+from database import clear_test_db, get_db_path, init_db
 from tests.fixtures.factories import create_guestbook_entry, create_multiple_entries
 
 # Sätt test mode environment variable

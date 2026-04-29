@@ -1,0 +1,319 @@
+Run pre-commit run --all-files
+  pre-commit run --all-files
+  shell: /usr/bin/bash -e {0}
+  env:
+    PYTHON_VERSION: 3.11
+    pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+    PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+    Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+    Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+    Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+    LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+  
+[INFO] Initializing environment for https://github.com/psf/black.
+[INFO] Initializing environment for https://github.com/PyCQA/flake8.
+[INFO] Initializing environment for https://github.com/PyCQA/isort.
+Warning:  repo `https://github.com/PyCQA/isort` uses deprecated stage names (commit, merge-commit, push) which will be removed in a future version.  Hint: often `pre-commit autoupdate --repo https://github.com/PyCQA/isort` will fix this.  if it does not -- consider reporting an issue to that repo.
+[INFO] Installing environment for https://github.com/psf/black.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/PyCQA/flake8.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/PyCQA/isort.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+black....................................................................Failed
+- hook id: black
+- files were modified by this hook
+reformatted conftest_dashboard.py
+reformatted dashboard/backend/app.py
+reformatted dashboard/backend/bug_tracking_api.py
+reformatted dashboard/backend/ai_testing_api.py
+reformatted fix_dashboard_db.py
+reformatted dashboard/backend/models.py
+reformatted dashboard/backend/test_cases_api.py
+reformatted manuals/generate_pdfs.py
+reformatted dashboard/populate_demo_data.py
+reformatted fix_database.py
+reformatted send_test_data.py
+reformatted scripts/populate_dashboard.py
+reformatted src/auth_helpers.py
+reformatted src/app.py
+reformatted src/blueprints/v1/reactions.py
+reformatted src/database.py
+reformatted src/blueprints/v1/auth.py
+reformatted tests/ui/test_login_ui.py
+All done! ✨ 🍰 ✨
+18 files reformatted, 50 files left unchanged.
+flake8...................................................................Failed
+- hook id: flake8
+- exit code: 2
+usage: flake8 [options] file file ...
+flake8: error: unrecognized arguments: conftest.py conftest_dashboard.py create_staging_db.py dashboard/backend/ai_testing_api.py dashboard/backend/app.py dashboard/backend/bug_tracking_api.py dashboard/backend/models.py dashboard/backend/test_cases_api.py dashboard/populate_demo_data.py fix_dashboard_db.py fix_database.py health_usage_example.py manuals/generate_pdfs.py scripts/api_test_run.py scripts/check_setup.py scripts/cleanup_guestbook.py scripts/deploy.py scripts/health_monitor.py scripts/performance/performance_monitor.py scripts/populate_dashboard.py scripts/security/security_scan.py scripts/seed_data.py scripts/test_app.py send_test_data.py src/app.py src/app_original.py src/app_secure.py src/auth_helpers.py src/blueprints/__init__.py src/blueprints/v1/__init__.py src/blueprints/v1/auth.py src/blueprints/v1/guestbook.py src/blueprints/v1/reactions.py src/blueprints/v1/webhooks.py src/database.py src/health_check.py src/logger_config.py src/utils.py src/webhooks.py test_run.py tests/api/test_api_con
+isort....................................................................Failed
+- hook id: isort
+- exit code: 1
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/conftest.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/conftest_dashboard.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/ai_testing_api.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/app.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/bug_tracking_api.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/models.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/test_cases_api.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/dashboard/populate_demo_data.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/fix_dashboard_db.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/fix_database.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/health_usage_example.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/manuals/generate_pdfs.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/send_test_data.py Imports are incorrectly sorted and/or formatted.
+ERROR: /home/runner/work/TestApiSkills/TestApiSkills/test_run.py Imports are incorrectly sorted and/or formatted.
+--- /home/runner/work/TestApiSkills/TestApiSkills/conftest.py:before	2026-04-29 15:20:53.683414
++++ /home/runner/work/TestApiSkills/TestApiSkills/conftest.py:after	2026-04-29 15:21:14.374955
+@@ -1,13 +1,14 @@
+-import pytest
+ import os
+ import sys
++from datetime import datetime
++
++import pytest
+ import requests
+-from datetime import datetime
+ 
+ # Add src to path
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+ 
+-from database import init_db, clear_test_db, get_db_path
++from database import clear_test_db, get_db_path, init_db
+ from tests.fixtures.factories import create_guestbook_entry, create_multiple_entries
+ 
+ # Sätt test mode environment variable
+--- /home/runner/work/TestApiSkills/TestApiSkills/conftest_dashboard.py:before	2026-04-29 15:21:12.137406
++++ /home/runner/work/TestApiSkills/TestApiSkills/conftest_dashboard.py:after	2026-04-29 15:21:14.377750
+@@ -3,12 +3,13 @@
+ Skickar automatiskt test-resultat till dashboard efter varje test-körning
+ """
+ 
++import json
++import os
++import sys
++from datetime import datetime
++
+ import pytest
+ import requests
+-import json
+-from datetime import datetime
+-import os
+-import sys
+ 
+ # Dashboard API URL
+ DASHBOARD_API = "http://localhost:6001/api"
+--- /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/ai_testing_api.py:before	2026-04-29 15:21:12.409715
++++ /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/ai_testing_api.py:after	2026-04-29 15:21:14.384571
+@@ -2,11 +2,12 @@
+ AI-Powered Testing API Blueprint - Fas 6 Implementation
+ """
+ 
+-from flask import Blueprint, request, jsonify
+-from models import DatabaseManager, AITestSuggestion
+ import json
+ import re
+-from typing import List, Dict
++from typing import Dict, List
++
++from flask import Blueprint, jsonify, request
++from models import AITestSuggestion, DatabaseManager
+ 
+ ai_testing_bp = Blueprint("ai_testing", __name__)
+ db = DatabaseManager()
+--- /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/app.py:before	2026-04-29 15:21:12.283217
++++ /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/app.py:after	2026-04-29 15:21:14.389603
+@@ -1,15 +1,16 @@
++import json
++import os
++import sqlite3
++from datetime import datetime, timedelta
++
++from ai_testing_api import ai_testing_bp
++from bug_tracking_api import bug_tracking_bp
+ from flask import Flask, jsonify, request, send_from_directory
+ from flask_cors import CORS
+-import sqlite3
+-import json
+-from datetime import datetime, timedelta
+-import os
++from models import DatabaseManager
+ 
+ # Import new API blueprints
+ from test_cases_api import test_cases_bp
+-from bug_tracking_api import bug_tracking_bp
+-from ai_testing_api import ai_testing_bp
+-from models import DatabaseManager
+ 
+ app = Flask(__name__)
+ CORS(app)
+--- /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/bug_tracking_api.py:before	2026-04-29 15:21:12.353782
++++ /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/bug_tracking_api.py:after	2026-04-29 15:21:14.393363
+@@ -2,11 +2,12 @@
+ Bug Tracking API Blueprint - Fas 6 Implementation
+ """
+ 
+-from flask import Blueprint, request, jsonify
+-from models import DatabaseManager, BugReport
+-import requests
+ import json
+ from datetime import datetime
++
++import requests
++from flask import Blueprint, jsonify, request
++from models import BugReport, DatabaseManager
+ 
+ bug_tracking_bp = Blueprint("bug_tracking", __name__)
+ db = DatabaseManager()
+--- /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/models.py:before	2026-04-29 15:21:12.472716
++++ /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/models.py:after	2026-04-29 15:21:14.396951
+@@ -2,12 +2,12 @@
+ Database Models for QA Dashboard - Fas 6 Implementation
+ """
+ 
+-import sqlite3
+ import json
+ import os
++import sqlite3
++from dataclasses import asdict, dataclass
+ from datetime import datetime
+-from typing import List, Dict, Optional
+-from dataclasses import dataclass, asdict
++from typing import Dict, List, Optional
+ 
+ 
+ @dataclass
+--- /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/test_cases_api.py:before	2026-04-29 15:21:12.475842
++++ /home/runner/work/TestApiSkills/TestApiSkills/dashboard/backend/test_cases_api.py:after	2026-04-29 15:21:14.399530
+@@ -2,9 +2,10 @@
+ Test Cases API Blueprint - Fas 6 Implementation
+ """
+ 
+-from flask import Blueprint, request, jsonify
++import json
++
++from flask import Blueprint, jsonify, request
+ from models import DatabaseManager, TestCase
+-import json
+ 
+ test_cases_bp = Blueprint("test_cases", __name__)
+ db = DatabaseManager()
+--- /home/runner/work/TestApiSkills/TestApiSkills/dashboard/populate_demo_data.py:before	2026-04-29 15:21:12.582966
++++ /home/runner/work/TestApiSkills/TestApiSkills/dashboard/populate_demo_data.py:after	2026-04-29 15:21:14.404182
+@@ -3,15 +3,16 @@
+ Kör detta script för att fylla dashboard med exempel-data
+ """
+ 
++import os
+ import sys
+-import os
+ 
+ sys.path.append(os.path.join(os.path.dirname(__file__), "backend"))
+ 
+-from models import DatabaseManager, TestCase, BugReport, AITestSuggestion
+ import json
++import random
+ from datetime import datetime, timedelta
+-import random
++
++from models import AITestSuggestion, BugReport, DatabaseManager, TestCase
+ 
+ 
+ def populate_demo_data():
+--- /home/runner/work/TestApiSkills/TestApiSkills/fix_dashboard_db.py:before	2026-04-29 15:21:12.462432
++++ /home/runner/work/TestApiSkills/TestApiSkills/fix_dashboard_db.py:after	2026-04-29 15:21:14.405645
+@@ -2,11 +2,11 @@
+ """
+ Snabb fix för låst databas - starta om backend med rätt databashantering
+ """
++import os
+ import sqlite3
+-import os
+-import time
+ import subprocess
+ import sys
++import time
+ 
+ 
+ def kill_processes_using_db():
+--- /home/runner/work/TestApiSkills/TestApiSkills/fix_database.py:before	2026-04-29 15:21:12.587629
++++ /home/runner/work/TestApiSkills/TestApiSkills/fix_database.py:after	2026-04-29 15:21:14.407853
+@@ -2,9 +2,9 @@
+ """
+ Fix database schema for test cases API
+ """
++import json
++import os
+ import sqlite3
+-import os
+-import json
+ from datetime import datetime
+ 
+ 
+--- /home/runner/work/TestApiSkills/TestApiSkills/health_usage_example.py:before	2026-04-29 15:20:53.689673
++++ /home/runner/work/TestApiSkills/TestApiSkills/health_usage_example.py:after	2026-04-29 15:21:14.409193
+@@ -3,9 +3,10 @@
+ Exempel på hur du kan utnyttja health check-funktionaliteten
+ """
+ 
+-import requests
+ import json
+ import time
++
++import requests
+ 
+ 
+ def check_application_health():
+--- /home/runner/work/TestApiSkills/TestApiSkills/manuals/generate_pdfs.py:before	2026-04-29 15:21:12.574430
++++ /home/runner/work/TestApiSkills/TestApiSkills/manuals/generate_pdfs.py:after	2026-04-29 15:21:14.411958
+@@ -9,8 +9,8 @@
+ from pathlib import Path
+ 
+ try:
++    import markdown
+     import pdfkit
+-    import markdown
+     from jinja2 import Template
+ except ImportError:
+     print("Missing dependencies. Install with:")
+--- /home/runner/work/TestApiSkills/TestApiSkills/send_test_data.py:before	2026-04-29 15:21:12.739818
++++ /home/runner/work/TestApiSkills/TestApiSkills/send_test_data.py:after	2026-04-29 15:21:14.426803
+@@ -1,7 +1,8 @@
++import json
+ import sqlite3
++from datetime import datetime
++
+ import requests
+-import json
+-from datetime import datetime
+ 
+ # Create a fresh database
+ DB_PATH = "test_dashboard.db"
+--- /home/runner/work/TestApiSkills/TestApiSkills/test_run.py:before	2026-04-29 15:20:53.694162
++++ /home/runner/work/TestApiSkills/TestApiSkills/test_run.py:after	2026-04-29 15:21:14.455668
+@@ -4,14 +4,15 @@
+ Tests environment variable support and basic functionality
+ """
+ 
++import json
+ import os
++import subprocess
+ import sys
++import threading
+ import time
++from datetime import datetime
++
+ import requests
+-import subprocess
+-import threading
+-import json
+-from datetime import datetime
+ 
+ 
+ class QAPlatformTester:
+Error: Process completed with exit code 1.

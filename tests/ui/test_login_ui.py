@@ -55,6 +55,7 @@ def test_failed_login_empty_fields(page: Page):
     page.click("button[type='submit']")
     expect(page.locator(".error")).to_have_text("Please enter your email or username")
 
+
 def test_logout(authenticated_page: Page):
     """Test logout functionality"""
     page = authenticated_page

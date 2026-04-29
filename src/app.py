@@ -13,8 +13,6 @@ from logger_config import setup_logger
 from webhooks import dispatch, list_webhooks, register_webhook, unregister_webhook
 
 
-
-
 # Security headers middleware
 def add_security_headers(response):
     """Add security headers to all responses"""
@@ -249,7 +247,6 @@ def rate_limit_exceeded(e):
     return jsonify({"message": "Rate limit exceeded"}), 429
 
 
-
 @app.route("/")
 def index():
     return render_template("login.html")
@@ -293,4 +290,3 @@ def reset_password_page():
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, port=8080)
-

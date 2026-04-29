@@ -32,7 +32,8 @@ def init_db(test_mode=False):
     conn = sqlite3.connect(get_db_path(test_mode))
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -47,9 +48,11 @@ def init_db(test_mode=False):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS guestbook (
             userId INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -57,9 +60,11 @@ def init_db(test_mode=False):
             comment TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS entry_reactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             entry_id INTEGER NOT NULL,
@@ -69,7 +74,8 @@ def init_db(test_mode=False):
             FOREIGN KEY (entry_id) REFERENCES guestbook(userId),
             UNIQUE (entry_id, user_identifier, reaction_type)
         )
-    """)
+    """
+    )
 
     cursor.execute("PRAGMA table_info(users)")
     existing_columns = {row[1] for row in cursor.fetchall()}

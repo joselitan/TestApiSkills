@@ -17,9 +17,7 @@ def _get_jwt_user_identifier():
         raw = auth_header.split(" ", 1)[1]
     else:
         raw = auth_header
-    payload = jwt.decode(
-        raw, current_app.config["SECRET_KEY"], algorithms=["HS256"]
-    )
+    payload = jwt.decode(raw, current_app.config["SECRET_KEY"], algorithms=["HS256"])
     return payload.get("user") or payload.get("sub") or ""
 
 

@@ -87,10 +87,7 @@ def get_user_by_email(email):
 
 
 def send_email(to, subject, body):
-    if (
-        not current_app.config["EMAIL_HOST"]
-        or not current_app.config["EMAIL_USERNAME"]
-    ):
+    if not current_app.config["EMAIL_HOST"] or not current_app.config["EMAIL_USERNAME"]:
         current_app.logger.warning("Email configuration missing, skipping send_email")
         if current_app.config["EMAIL_DEBUG"]:
             current_app.logger.info(

@@ -1,33 +1,34 @@
+import json
+import os
+import sqlite3
+from datetime import datetime, timedelta
+
+from ai_testing_api import ai_testing_bp
+from bug_tracking_api import bug_tracking_bp
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-import sqlite3
-import json
-from datetime import datetime, timedelta
-import os
+from models import DatabaseManager
 
 # Import new API blueprints
 from test_cases_api import test_cases_bp
-from bug_tracking_api import bug_tracking_bp
-from ai_testing_api import ai_testing_bp
-from models import DatabaseManager
 
 app = Flask(__name__)
 CORS(app)
 
 # Register API blueprints
-app.register_blueprint(test_cases_bp, url_prefix='/api')
-app.register_blueprint(bug_tracking_bp, url_prefix='/api')
-app.register_blueprint(ai_testing_bp, url_prefix='/api')
+app.register_blueprint(test_cases_bp, url_prefix="/api")
+app.register_blueprint(bug_tracking_bp, url_prefix="/api")
+app.register_blueprint(ai_testing_bp, url_prefix="/api")
 
-#DATABASE_PATH = "dashboard/database/test_dashboard.db"
+# DATABASE_PATH = "dashboard/database/test_dashboard.db"
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "../database/test_dashboard.db")
 db_manager = DatabaseManager("dashboard/database/test_dashboard.db")
 
 
-@app.route('/')
+@app.route("/")
 def serve_frontend():
     """Serve the frontend HTML dashboard"""
-    return send_from_directory('../frontend', 'index.html')
+    return send_from_directory("../frontend", "index.html")
 
 
 def init_db():
@@ -40,7 +41,8 @@ def init_db():
     cursor = conn.cursor()
 
     # Test runs table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS test_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -53,10 +55,12 @@ def init_db():
             coverage_percentage REAL,
             branch TEXT DEFAULT 'main'
         )
-    """)
+    """
+    )
 
     # Test cases table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS test_cases (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             run_id INTEGER,
@@ -67,10 +71,12 @@ def init_db():
             error_message TEXT,
             FOREIGN KEY (run_id) REFERENCES test_runs (id)
         )
-    """)
+    """
+    )
 
     # Performance metrics table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS performance_metrics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -79,7 +85,8 @@ def init_db():
             status_code INTEGER,
             users INTEGER DEFAULT 1
         )
-    """)
+    """
+    )
 
     conn.commit()
 
@@ -112,7 +119,8 @@ def get_dashboard_summary():
     cursor = conn.cursor()
 
     # Get latest test run stats
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT 
             SUM(total_tests) as total,
             SUM(passed_tests) as passed,
@@ -120,12 +128,14 @@ def get_dashboard_summary():
             AVG(coverage_percentage) as coverage
         FROM test_runs 
         WHERE DATE(timestamp) = DATE('now')
-    """)
+    """
+    )
 
     today_stats = cursor.fetchone()
 
     # Get test trends (last 7 days)
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT 
             DATE(timestamp) as date,
             SUM(passed_tests) as passed,
@@ -134,7 +144,8 @@ def get_dashboard_summary():
         WHERE timestamp >= DATE('now', '-7 days')
         GROUP BY DATE(timestamp)
         ORDER BY date
-    """)
+    """
+    )
 
     trends = cursor.fetchall()
 
@@ -161,7 +172,8 @@ def get_test_types_breakdown():
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT 
             test_type,
             COUNT(*) as runs,
@@ -170,7 +182,8 @@ def get_test_types_breakdown():
         FROM test_runs 
         WHERE timestamp >= DATE('now', '-30 days')
         GROUP BY test_type
-    """)
+    """
+    )
 
     results = cursor.fetchall()
     conn.close()
@@ -194,7 +207,8 @@ def get_performance_metrics():
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT 
             endpoint,
             AVG(response_time) as avg_response,
@@ -204,7 +218,8 @@ def get_performance_metrics():
         WHERE timestamp >= DATE('now', '-7 days')
         GROUP BY endpoint
         ORDER BY avg_response DESC
-    """)
+    """
+    )
 
     results = cursor.fetchall()
     conn.close()
@@ -226,9 +241,9 @@ def get_performance_metrics():
 def add_test_run():
     """Add a new test run result"""
     data = request.json
-    
+
     # Check if this is a partial update (real-time individual test)
-    if data.get('is_partial'):
+    if data.get("is_partial"):
         # For partial updates, just update the latest run or create a temporary one
         # This gives real-time feedback without creating duplicate runs
         return jsonify({"success": True, "partial": True})
@@ -285,12 +300,13 @@ def get_enhanced_dashboard_summary():
     """Get enhanced dashboard summary with Fas 6 features"""
     try:
         analytics = db_manager.get_dashboard_analytics()
-        
+
         # Get original summary
         conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
-        
-        cursor.execute("""
+
+        cursor.execute(
+            """
             SELECT 
                 SUM(total_tests) as total,
                 SUM(passed_tests) as passed,
@@ -298,25 +314,28 @@ def get_enhanced_dashboard_summary():
                 AVG(coverage_percentage) as coverage
             FROM test_runs 
             WHERE DATE(timestamp) = DATE('now')
-        """)
-        
+        """
+        )
+
         today_stats = cursor.fetchone()
         conn.close()
-        
-        return jsonify({
-            "test_execution": {
-                "total_tests": today_stats[0] or 0,
-                "passed_tests": today_stats[1] or 0,
-                "failed_tests": today_stats[2] or 0,
-                "coverage": round(today_stats[3] or 0, 2),
-            },
-            "test_management": analytics["test_cases"],
-            "bug_tracking": analytics["bugs"],
-            "ai_insights": analytics["ai_suggestions"]
-        })
-        
+
+        return jsonify(
+            {
+                "test_execution": {
+                    "total_tests": today_stats[0] or 0,
+                    "passed_tests": today_stats[1] or 0,
+                    "failed_tests": today_stats[2] or 0,
+                    "coverage": round(today_stats[3] or 0, 2),
+                },
+                "test_management": analytics["test_cases"],
+                "bug_tracking": analytics["bugs"],
+                "ai_insights": analytics["ai_suggestions"],
+            }
+        )
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/integrations/settings", methods=["GET", "POST"])
@@ -326,48 +345,56 @@ def manage_integration_settings():
         try:
             conn = sqlite3.connect(DATABASE_PATH)
             cursor = conn.cursor()
-            
-            cursor.execute("SELECT service_name, config_data, is_active FROM integration_settings")
+
+            cursor.execute(
+                "SELECT service_name, config_data, is_active FROM integration_settings"
+            )
             settings = cursor.fetchall()
             conn.close()
-            
-            return jsonify([
-                {
-                    "service": row[0],
-                    "config": json.loads(row[1]),
-                    "active": bool(row[2])
-                } for row in settings
-            ])
-            
+
+            return jsonify(
+                [
+                    {
+                        "service": row[0],
+                        "config": json.loads(row[1]),
+                        "active": bool(row[2]),
+                    }
+                    for row in settings
+                ]
+            )
+
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
-    
+            return jsonify({"error": str(e)}), 500
+
     elif request.method == "POST":
         data = request.json
-        
-        if not data.get('service_name') or not data.get('config'):
-            return jsonify({'error': 'Service name and config are required'}), 400
-        
+
+        if not data.get("service_name") or not data.get("config"):
+            return jsonify({"error": "Service name and config are required"}), 400
+
         try:
             conn = sqlite3.connect(DATABASE_PATH)
             cursor = conn.cursor()
-            
-            cursor.execute("""
+
+            cursor.execute(
+                """
                 INSERT OR REPLACE INTO integration_settings (service_name, config_data, is_active)
                 VALUES (?, ?, ?)
-            """, (
-                data['service_name'],
-                json.dumps(data['config']),
-                data.get('is_active', True)
-            ))
-            
+            """,
+                (
+                    data["service_name"],
+                    json.dumps(data["config"]),
+                    data.get("is_active", True),
+                ),
+            )
+
             conn.commit()
             conn.close()
-            
-            return jsonify({'success': True})
-            
+
+            return jsonify({"success": True})
+
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

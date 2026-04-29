@@ -414,9 +414,7 @@ def password_reset_request():
         if not is_valid:
             return jsonify({"message": message}), 400
     except (json.JSONDecodeError, Exception) as e:
-        current_app.logger.warning(
-            f"Invalid JSON in password reset request: {str(e)}"
-        )
+        current_app.logger.warning(f"Invalid JSON in password reset request: {str(e)}")
         return jsonify({"message": "Invalid JSON payload"}), 400
 
     email = normalize_email(data.get("email"))
@@ -508,9 +506,7 @@ def password_reset():
         if not is_valid:
             return jsonify({"message": message}), 400
     except (json.JSONDecodeError, Exception) as e:
-        current_app.logger.warning(
-            f"Invalid JSON in password reset request: {str(e)}"
-        )
+        current_app.logger.warning(f"Invalid JSON in password reset request: {str(e)}")
         return jsonify({"message": "Invalid JSON payload"}), 400
 
     token = data.get("token")

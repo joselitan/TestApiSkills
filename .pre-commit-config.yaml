@@ -9,11 +9,12 @@ repos:
     rev: 7.1.1
     hooks:
       - id: flake8
-        args: [--count, --select=E9,F63,F7,F82, --show-source, --statistics]
+        args: ["--count", "--select=E9,F63,F7,F82", "--show-source", "--statistics"]
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+  - repo: local
     hooks:
       - id: isort
-        stages: [pre-commit]
-        args: [--check-only, --diff]
+        name: isort (import sorting)
+        entry: isort
+        language: system
+        types: [python]

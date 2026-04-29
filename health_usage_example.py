@@ -3,9 +3,10 @@
 Exempel på hur du kan utnyttja health check-funktionaliteten
 """
 
-import requests
 import json
 import time
+
+import requests
 
 
 def check_application_health():
