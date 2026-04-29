@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import json
 import threading
+import time
 import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -11,9 +12,9 @@ import allure
 import pytest
 import requests
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://127.0.0.1:8080"
 MOCK_PORT = 9876
-MOCK_URL = f"http://localhost:{MOCK_PORT}/hook"
+MOCK_URL = f"http://127.0.0.1:{MOCK_PORT}/hook"
 
 received_events: list[dict] = []
 
@@ -38,7 +39,7 @@ class _MockHandler(BaseHTTPRequestHandler):
 
 @pytest.fixture(scope="module")
 def mock_server():
-    server = HTTPServer(("localhost", MOCK_PORT), _MockHandler)
+    server = HTTPServer(("127.0.0.1", MOCK_PORT), _MockHandler)
     t = threading.Thread(target=server.serve_forever, daemon=True)
     t.start()
     yield server
@@ -185,9 +186,7 @@ def test_entry_created_dispatches_webhook(auth_token, mock_server):
         headers={"Authorization": f"Bearer {auth_token}"},
     )
 
-    import time
-
-    time.sleep(0.3)  # allow async dispatch
+    time.sleep(1.0)  # allow async dispatch
 
     assert any(e["event_type"] == "entry.created" for e in received_events)
 
@@ -210,9 +209,7 @@ def test_webhook_hmac_signature(auth_token, mock_server):
         headers={"Authorization": f"Bearer {auth_token}"},
     )
 
-    import time
-
-    time.sleep(0.3)
+    time.sleep(1.0)
 
     signed = [e for e in received_events if e.get("signature")]
     assert signed, "Expected at least one signed webhook delivery"

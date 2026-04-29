@@ -5,7 +5,7 @@ import pytest
 import requests
 from jsonschema import ValidationError, validate
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://127.0.0.1:8080"
 
 # JSON Schemas
 GUESTBOOK_ENTRY_SCHEMA = {

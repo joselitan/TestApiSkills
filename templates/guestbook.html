@@ -31,9 +31,25 @@
 
         <div class="search-section">
             <h2>Search Entries</h2>
-            <input type="text" id="searchInput" placeholder="Search by name, email, or comment...">
-            <button onclick="searchEntries()">Search</button>
-            <button onclick="clearSearch()">Clear</button>
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="Search by name, email, or comment...">
+                <input type="text" id="authorInput" placeholder="Filter by author...">
+            </div>
+            <div class="search-row">
+                <label for="fromDate">From:</label>
+                <input type="date" id="fromDate" class="date-input">
+                <label for="toDate">To:</label>
+                <input type="date" id="toDate" class="date-input">
+                <select id="sortOrder" class="sort-select">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                </select>
+            </div>
+            <div class="search-actions">
+                <button onclick="searchEntries()">Search</button>
+                <button onclick="clearSearch()">Clear</button>
+            </div>
+            <div id="activeFilters" class="active-filters"></div>
         </div>
 
         <div class="entries-section">

@@ -6,7 +6,7 @@ import allure
 import pytest
 import requests
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://127.0.0.1:8080"
 
 
 @allure.feature("Authentication")

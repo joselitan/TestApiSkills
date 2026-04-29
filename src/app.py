@@ -1129,11 +1129,18 @@ def create_entry():
     return jsonify(dict(entry)), 201
 
 
+def _parse_date(value, param_name):
+    try:
+        return datetime.datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        return None
+
+
 @app.route("/api/guestbook", methods=["GET"])
 @token_required
 def get_all_entries():
     """
-    Get all guestbook entries with pagination and search
+    Get all guestbook entries with pagination, keyword search and advanced filters
     ---
     tags:
       - Guestbook
@@ -1153,7 +1160,25 @@ def get_all_entries():
       - in: query
         name: search
         type: string
-        description: Search term (searches in name, email, and comment)
+        description: Keyword search (matches name, email, comment — case-insensitive partial match)
+      - in: query
+        name: author
+        type: string
+        description: Filter by author name (partial match)
+      - in: query
+        name: from_date
+        type: string
+        description: Start of date range (ISO 8601, e.g. 2024-01-01)
+      - in: query
+        name: to_date
+        type: string
+        description: End of date range (ISO 8601, e.g. 2024-12-31)
+      - in: query
+        name: sort
+        type: string
+        enum: [newest, oldest]
+        default: newest
+        description: Sort order
     responses:
       200:
         description: List of guestbook entries
@@ -1186,56 +1211,94 @@ def get_all_entries():
                   type: integer
                 pages:
                   type: integer
+      400:
+        description: Bad request (invalid date format, date range, or oversized input)
       401:
         description: Unauthorized
     """
-    # Get query parameters with defaults
+    # ── Query parameters ──────────────────────────────────────────────────────
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
     search = request.args.get("search", None, type=str)
+    author = request.args.get("author", None, type=str)
+    from_date = request.args.get("from_date", None, type=str)
+    to_date = request.args.get("to_date", None, type=str)
+    sort = request.args.get("sort", "newest", type=str)
 
-    # Sanitize search input to prevent SQL injection
-    if search:
-        search = sanitize_html(search)
-        # Additional validation for SQL injection patterns
-        dangerous_patterns = [
-            r"[';\-\-]",
-            r"\bOR\b",
-            r"\bUNION\b",
-            r"\bSELECT\b",
-            r"\bDROP\b",
-        ]
-        for pattern in dangerous_patterns:
-            if re.search(pattern, search, re.IGNORECASE):
-                return jsonify({"message": "Invalid search query"}), 400
+    # ── Input validation ──────────────────────────────────────────────────────
+    # Treat whitespace-only strings as absent
+    if search is not None:
+        search = search.strip() or None
+    if author is not None:
+        author = author.strip() or None
 
-    # Calculate offset for SQL
-    offset = (page - 1) * limit
+    # Guard against excessively long inputs
+    if search and len(search) > 500:
+        return jsonify({"message": "Search query too long (max 500 characters)"}), 400
+    if author and len(author) > 500:
+        return jsonify({"message": "Author filter too long (max 500 characters)"}), 400
 
-    conn = get_db()
+    # Validate date format (ISO 8601 date: YYYY-MM-DD)
+    from_dt = to_dt = None
+    if from_date:
+        from_dt = _parse_date(from_date, "from_date")
+        if from_dt is None:
+            return (
+                jsonify({"message": "Invalid from_date format; expected YYYY-MM-DD"}),
+                400,
+            )
+    if to_date:
+        to_dt = _parse_date(to_date, "to_date")
+        if to_dt is None:
+            return (
+                jsonify({"message": "Invalid to_date format; expected YYYY-MM-DD"}),
+                400,
+            )
+    if from_dt and to_dt and from_dt > to_dt:
+        return jsonify({"message": "from_date must not be after to_date"}), 400
 
-    # Build query parts based on search
-    base_query = "FROM guestbook"
-    where_clause = ""
+    # Validate sort value
+    if sort not in ("newest", "oldest"):
+        sort = "newest"
+
+    # ── Build parameterised WHERE clause ─────────────────────────────────────
+    conditions = []
     params = []
+
     if search:
-        where_clause = " WHERE name LIKE ? OR email LIKE ? OR comment LIKE ?"
         search_term = f"%{search}%"
+        conditions.append("(name LIKE ? OR email LIKE ? OR comment LIKE ?)")
         params.extend([search_term, search_term, search_term])
 
-    # Fetch total count with filter
+    if author:
+        conditions.append("name LIKE ?")
+        params.append(f"%{author}%")
+
+    if from_dt:
+        conditions.append("created_at >= ?")
+        params.append(from_date)
+
+    if to_dt:
+        # Include the full to_date day
+        conditions.append("created_at <= ?")
+        params.append(to_date + " 23:59:59")
+
+    where_clause = (" WHERE " + " AND ".join(conditions)) if conditions else ""
+
+    order_clause = " ORDER BY created_at " + ("ASC" if sort == "oldest" else "DESC")
+
+    # ── Execute queries ───────────────────────────────────────────────────────
+    offset = (page - 1) * limit
+    conn = get_db()
+
+    base_query = "FROM guestbook"
     count_query = f"SELECT COUNT(*) {base_query}{where_clause}"
     total_count = conn.execute(count_query, params).fetchone()[0]
 
-    # Fetch specific slice of data with filter
-    data_query = (
-        f"SELECT * {base_query}{where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?"
-    )
-    query_params = params + [limit, offset]
-    entries = conn.execute(data_query, query_params).fetchall()
+    data_query = f"SELECT * {base_query}{where_clause}{order_clause} LIMIT ? OFFSET ?"
+    entries = conn.execute(data_query, params + [limit, offset]).fetchall()
     conn.close()
 
-    # Return data AND metadata
     return jsonify(
         {
             "data": [dict(entry) for entry in entries],

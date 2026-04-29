@@ -15,18 +15,30 @@ const headers = {
 
 let currentPage = 1;
 let currentSearch = '';
+let currentAuthor = '';
+let currentFromDate = '';
+let currentToDate = '';
+let currentSort = 'newest';
 let deleteEntryId = null; // Store ID of entry to delete
 const limit = 10; // Number of entries per page
 
-async function loadEntries(page = 1, search = '') {
-    console.log(`📡 Fetching entries for page ${page}${search ? ` with search: "${search}"` : ''}...`);
+async function loadEntries(page = 1, search = '', author = '', fromDate = '', toDate = '', sort = 'newest') {
+    console.log(`📡 Fetching entries for page ${page}...`);
     try {
-        const url = `/api/guestbook?page=${page}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
+        const params = new URLSearchParams({ page, limit });
+        if (search)   params.set('search', search);
+        if (author)   params.set('author', author);
+        if (fromDate) params.set('from_date', fromDate);
+        if (toDate)   params.set('to_date', toDate);
+        if (sort)     params.set('sort', sort);
+
+        const url = `/api/guestbook?${params.toString()}`;
         const response = await fetch(url, {headers});
         console.log('Response status:', response.status);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || `HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
@@ -55,11 +67,13 @@ async function loadEntries(page = 1, search = '') {
                     </td>
                 </tr>
                 <tr class="reactions-row">
-                    <td colspan="6" class="reactions-cell">
-                        <span class="reactions-label">Reactions:</span>
-                        <button id="reaction-like-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'like')">👍 <span id="count-like-${entry.userId}">0</span></button>
-                        <button id="reaction-love-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'love')">❤️ <span id="count-love-${entry.userId}">0</span></button>
-                        <button id="reaction-laugh-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'laugh')">😄 <span id="count-laugh-${entry.userId}">0</span></button>
+                    <td colspan="6">
+                        <div class="reactions-cell">
+                            <span class="reactions-label">Reactions:</span>
+                            <button id="reaction-like-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'like')">👍 <span id="count-like-${entry.userId}">0</span></button>
+                            <button id="reaction-love-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'love')">❤️ <span id="count-love-${entry.userId}">0</span></button>
+                            <button id="reaction-laugh-${entry.userId}" class="reaction-btn" onclick="toggleReaction(${entry.userId}, 'laugh')">😄 <span id="count-laugh-${entry.userId}">0</span></button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -93,27 +107,61 @@ async function loadEntries(page = 1, search = '') {
 }
 
 function searchEntries() {
-    currentSearch = document.getElementById('searchInput').value;
-    currentPage = 1; // Reset to page 1 when searching
-    console.log(`🔍 Searching for: "${currentSearch}"`);
-    loadEntries(1, currentSearch);
+    currentSearch   = document.getElementById('searchInput').value.trim();
+    currentAuthor   = document.getElementById('authorInput').value.trim();
+    currentFromDate = document.getElementById('fromDate').value;
+    currentToDate   = document.getElementById('toDate').value;
+    currentSort     = document.getElementById('sortOrder').value;
+    currentPage = 1;
+    console.log('🔍 Searching with filters:', { currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort });
+    renderActiveFilters();
+    loadEntries(1, currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort);
 }
 
 function clearSearch() {
-    currentSearch = '';
-    document.getElementById('searchInput').value = '';
+    currentSearch = currentAuthor = currentFromDate = currentToDate = '';
+    currentSort = 'newest';
     currentPage = 1;
+    document.getElementById('searchInput').value = '';
+    document.getElementById('authorInput').value = '';
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value = '';
+    document.getElementById('sortOrder').value = 'newest';
     console.log('🧹 Search cleared');
+    renderActiveFilters();
     loadEntries(1);
 }
 
+function renderActiveFilters() {
+    const container = document.getElementById('activeFilters');
+    if (!container) return;
+    const filters = [];
+    if (currentSearch)   filters.push(`<span class="filter-tag">Keyword: "${currentSearch}" <button class="filter-clear" onclick="clearFilter('search')">×</button></span>`);
+    if (currentAuthor)   filters.push(`<span class="filter-tag">Author: "${currentAuthor}" <button class="filter-clear" onclick="clearFilter('author')">×</button></span>`);
+    if (currentFromDate) filters.push(`<span class="filter-tag">From: ${currentFromDate} <button class="filter-clear" onclick="clearFilter('from')">×</button></span>`);
+    if (currentToDate)   filters.push(`<span class="filter-tag">To: ${currentToDate} <button class="filter-clear" onclick="clearFilter('to')">×</button></span>`);
+    if (currentSort !== 'newest') filters.push(`<span class="filter-tag">Sort: oldest first <button class="filter-clear" onclick="clearFilter('sort')">×</button></span>`);
+    container.innerHTML = filters.join('');
+}
+
+function clearFilter(type) {
+    if (type === 'search') { currentSearch = ''; document.getElementById('searchInput').value = ''; }
+    if (type === 'author') { currentAuthor = ''; document.getElementById('authorInput').value = ''; }
+    if (type === 'from')   { currentFromDate = ''; document.getElementById('fromDate').value = ''; }
+    if (type === 'to')     { currentToDate = ''; document.getElementById('toDate').value = ''; }
+    if (type === 'sort')   { currentSort = 'newest'; document.getElementById('sortOrder').value = 'newest'; }
+    currentPage = 1;
+    renderActiveFilters();
+    loadEntries(1, currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort);
+}
+
 function nextPage(){
-    loadEntries(currentPage + 1, currentSearch);
+    loadEntries(currentPage + 1, currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort);
 }
 
 function prevPage(){
     if (currentPage > 1) {
-        loadEntries(currentPage - 1, currentSearch);
+        loadEntries(currentPage - 1, currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort);
     }
 }
 
@@ -144,7 +192,7 @@ async function confirmDelete() {
         try {
             await fetch(`/api/guestbook/${deleteEntryId}`, {method: 'DELETE', headers});
             closeDeleteModal();
-            loadEntries(currentPage, currentSearch); // Keep current page and search
+            loadEntries(currentPage, currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort); // Keep current page and filters
         } catch (error) {
             console.error('❌ Error deleting entry:', error);
         }
@@ -289,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         closeEditModal();
-        loadEntries(currentPage, currentSearch);
+        loadEntries(currentPage, currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort);
     });
 
     // Close modal when clicking outside

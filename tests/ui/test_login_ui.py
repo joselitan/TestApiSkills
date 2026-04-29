@@ -3,7 +3,7 @@
 import pytest
 from playwright.sync_api import Page, expect
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://127.0.0.1:8080"
 
 
 def test_login_page_loads(page: Page):
@@ -55,11 +55,10 @@ def test_failed_login_empty_fields(page: Page):
     page.click("button[type='submit']")
     expect(page.locator(".error")).to_have_text("Please enter your email or username")
 
-
 def test_logout(authenticated_page: Page):
     """Test logout functionality"""
     page = authenticated_page
     page.wait_for_url(f"{BASE_URL}/guestbook")
     page.click(".logout-btn")
-    page.wait_for_url(BASE_URL)
+    page.wait_for_url(f"{BASE_URL}/")
     expect(page).to_have_url(BASE_URL + "/")
