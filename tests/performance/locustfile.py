@@ -1,4 +1,4 @@
-"""Performance Testing - Load testing with Locust"""
+﻿"""Performance Testing - Load testing with Locust"""
 
 import json
 
@@ -14,7 +14,7 @@ class GuestbookUser(HttpUser):
     def on_start(self):
         """Login and get token when user starts"""
         response = self.client.post(
-            "/api/login", json={"username": "admin", "password": "password123"}
+            "/api/v1/login", json={"username": "admin", "password": "password123"}
         )
         if response.status_code == 200:
             self.token = response.json()["token"]
@@ -24,7 +24,7 @@ class GuestbookUser(HttpUser):
         """Read all guestbook entries (most common operation)"""
         if self.token:
             self.client.get(
-                "/api/guestbook", headers={"Authorization": f"Bearer {self.token}"}
+                "/api/v1/guestbook", headers={"Authorization": f"Bearer {self.token}"}
             )
 
     @task(3)
@@ -32,7 +32,7 @@ class GuestbookUser(HttpUser):
         """Read entries with pagination"""
         if self.token:
             self.client.get(
-                "/api/guestbook?page=1&limit=10",
+                "/api/v1/guestbook?page=1&limit=10",
                 headers={"Authorization": f"Bearer {self.token}"},
             )
 
@@ -41,7 +41,7 @@ class GuestbookUser(HttpUser):
         """Search for entries"""
         if self.token:
             self.client.get(
-                "/api/guestbook?search=test",
+                "/api/v1/guestbook?search=test",
                 headers={"Authorization": f"Bearer {self.token}"},
             )
 
@@ -50,7 +50,7 @@ class GuestbookUser(HttpUser):
         """Create a new entry (less common)"""
         if self.token:
             self.client.post(
-                "/api/guestbook",
+                "/api/v1/guestbook",
                 json={
                     "name": "Load Test User",
                     "email": "loadtest@example.com",
@@ -65,5 +65,5 @@ class GuestbookUser(HttpUser):
         if self.token:
             # Try to read entry with ID 1
             self.client.get(
-                "/api/guestbook/1", headers={"Authorization": f"Bearer {self.token}"}
+                "/api/v1/guestbook/1", headers={"Authorization": f"Bearer {self.token}"}
             )

@@ -1,4 +1,4 @@
-"""Spike Testing - Test system behavior during sudden load spikes"""
+﻿"""Spike Testing - Test system behavior during sudden load spikes"""
 
 import statistics
 import threading
@@ -23,7 +23,7 @@ class TestSpikeTesting:
         """Get authentication token"""
         try:
             response = requests.post(
-                f"{self.base_url}/api/login",
+                f"{self.base_url}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
                 timeout=5,
             )
@@ -73,7 +73,7 @@ class TestSpikeTesting:
         # Phase 1: Normal load (1 user)
         normal_results = []
         for _ in range(5):
-            result = self._make_request("/api/guestbook")
+            result = self._make_request("/api/v1/guestbook")
             normal_results.append(result)
             time.sleep(0.5)
 
@@ -84,7 +84,7 @@ class TestSpikeTesting:
         def spike_user_session():
             results = []
             for _ in range(requests_per_user):
-                result = self._make_request("/api/guestbook")
+                result = self._make_request("/api/v1/guestbook")
                 results.append(result)
             return results
 
@@ -103,7 +103,7 @@ class TestSpikeTesting:
         time.sleep(2)  # Brief recovery period
         recovery_results = []
         for _ in range(5):
-            result = self._make_request("/api/guestbook")
+            result = self._make_request("/api/v1/guestbook")
             recovery_results.append(result)
             time.sleep(0.5)
 
@@ -170,7 +170,7 @@ class TestSpikeTesting:
                 results = []
                 end_time = time.time() + burst_duration
                 while time.time() < end_time:
-                    result = self._make_request("/api/guestbook")
+                    result = self._make_request("/api/v1/guestbook")
                     results.append(result)
                     time.sleep(0.1)  # Small delay to prevent overwhelming
                 return results
@@ -235,7 +235,7 @@ class TestSpikeTesting:
                 results = []
                 end_time = time.time() + stage["duration"]
                 while time.time() < end_time:
-                    result = self._make_request("/api/guestbook")
+                    result = self._make_request("/api/v1/guestbook")
                     results.append(result)
                     time.sleep(0.2)
                 return results
@@ -313,9 +313,9 @@ class TestSpikeTesting:
                         "email": f"spike{threading.current_thread().ident}@test.com",
                         "comment": f"Spike test entry {request_count}",
                     }
-                    result = self._make_request("/api/guestbook", "POST", data)
+                    result = self._make_request("/api/v1/guestbook", "POST", data)
                 else:
-                    result = self._make_request("/api/guestbook")
+                    result = self._make_request("/api/v1/guestbook")
 
                 results.append(result)
                 time.sleep(0.1)

@@ -1,4 +1,4 @@
-"""UI Tests for Pagination"""
+﻿"""UI Tests for Pagination"""
 
 import pytest
 import requests
@@ -12,7 +12,7 @@ def cleanup_all_entries_via_api(page: Page):
     base_url = "http://localhost:8080"
 
     # Use the new cleanup API endpoint with test_mode=true
-    requests.delete(f"{base_url}/api/guestbook/cleanup?test_mode=true", headers=headers)
+    requests.delete(f"{base_url}/api/v1/guestbook/cleanup?test_mode=true", headers=headers)
 
 
 def seed_test_entries(page: Page, count: int = 15):
@@ -67,7 +67,7 @@ def seed_test_entries(page: Page, count: int = 15):
     for i in range(min(count, len(test_data))):
         name, email, comment = test_data[i]
         payload = {"name": name, "email": email, "comment": comment}
-        requests.post(f"{base_url}/api/guestbook", json=payload, headers=headers)
+        requests.post(f"{base_url}/api/v1/guestbook", json=payload, headers=headers)
 
 
 def test_pagination_with_search(authenticated_page: Page):

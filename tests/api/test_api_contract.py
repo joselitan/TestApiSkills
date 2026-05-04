@@ -1,4 +1,4 @@
-"""API Contract Testing - Validate API responses against schemas"""
+﻿"""API Contract Testing - Validate API responses against schemas"""
 
 import allure
 import pytest
@@ -46,7 +46,7 @@ LOGIN_RESPONSE_SCHEMA = {
 @pytest.fixture(scope="module")
 def auth_token():
     response = requests.post(
-        f"{BASE_URL}/api/login", json={"username": "admin", "password": "password123"}
+        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
     )
     return response.json()["token"]
 
@@ -58,7 +58,7 @@ def test_login_response_schema():
     """Validate login response matches schema"""
     with allure.step("Send login request"):
         response = requests.post(
-            f"{BASE_URL}/api/login",
+            f"{BASE_URL}/api/v1/login",
             json={"username": "admin", "password": "password123"},
         )
     with allure.step("Validate response status"):
@@ -74,7 +74,7 @@ def test_guestbook_list_schema(auth_token):
     """Validate guestbook list response matches schema"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     with allure.step("Request guestbook list"):
-        response = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
+        response = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers)
     with allure.step("Validate response"):
         assert response.status_code == 200
         validate(instance=response.json(), schema=GUESTBOOK_LIST_SCHEMA)
@@ -93,7 +93,7 @@ def test_create_entry_schema(auth_token):
     }
     with allure.step("Create new entry"):
         response = requests.post(
-            f"{BASE_URL}/api/guestbook", json=payload, headers=headers
+            f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers
         )
     with allure.step("Validate response"):
         assert response.status_code == 201
@@ -110,12 +110,12 @@ def test_single_entry_schema(auth_token):
     with allure.step("Create test entry"):
         payload = {"name": "Schema Test", "email": "schema@test.com", "comment": "Test"}
         create_resp = requests.post(
-            f"{BASE_URL}/api/guestbook", json=payload, headers=headers
+            f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers
         )
         entry_id = create_resp.json()["userId"]
 
     with allure.step("Get single entry"):
-        response = requests.get(f"{BASE_URL}/api/guestbook/{entry_id}", headers=headers)
+        response = requests.get(f"{BASE_URL}/api/v1/guestbook/{entry_id}", headers=headers)
 
     with allure.step("Validate response"):
         assert response.status_code == 200

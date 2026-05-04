@@ -1,0 +1,25 @@
+Act as a senior software developer and technical lead. I need your help debugging an issue introduced in Sprint 5 of our project. The OpenAPI (Swagger) page's 'Authorize' button is unresponsive when clicked to enter a Bearer token.
+
+Context:
+
+* The issue started after Sprint 5 development.
+* The project folder structure is standard for a application.
+* The 'Authorize' button should allow entering a Bearer token for authentication.
+* No error messages appear in the browser console or network tab.
+
+Task:
+
+1. Investigate the folder structure to identify potential causes (e.g., changes to security configuration, Swagger setup, middleware, or dependencies).
+2. Diagnose the root cause (e.g., misconfigured security scheme, missing CORS headers, or broken UI component).
+3. Provide a solution with step-by-step instructions to fix the issue.
+4. Create a bug report (if necessary) with the following details:
+	* Title: "Swagger Authorize Button Unresponsive"
+	* Description: Include the issue, steps to reproduce, expected vs actual behavior, and Environment 	  	  details.
+	* Priority: High
+	* Assigned to: ghcopilot
+	* Labels: bug, sprint-5, swagger
+Output format:
+
+First, list the investigation steps you would take.
+Then, provide the root cause and solution.
+Finally, present the bug report in a structured format (e.g., markdown or JSON).

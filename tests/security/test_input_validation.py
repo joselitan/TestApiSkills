@@ -1,4 +1,4 @@
-"""Security Tests - Data Integrity Failures (OWASP A08)"""
+﻿"""Security Tests - Data Integrity Failures (OWASP A08)"""
 
 import json
 
@@ -44,7 +44,7 @@ class TestDataIntegrity:
         for payload in oversized_payloads:
             with allure.step(f"Testing oversized field: {list(payload.keys())[0]}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=self.headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=self.headers
                 )
 
                 # Should handle large payloads gracefully
@@ -81,7 +81,7 @@ class TestDataIntegrity:
         for payload in invalid_payloads:
             with allure.step(f"Testing invalid payload: {payload}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=self.headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=self.headers
                 )
 
                 # Should reject invalid data types
@@ -125,7 +125,7 @@ class TestDataIntegrity:
                     "comment": "Test comment",
                 }
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=self.headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=self.headers
                 )
 
                 # Should validate email format
@@ -144,11 +144,11 @@ class TestDataIntegrity:
         special_char_payloads = [
             # Unicode characters
             {
-                "name": "Test 测试 🚀",
+                "name": "Test æµ‹è¯• ðŸš€",
                 "email": "test@example.com",
                 "comment": "Unicode test",
             },
-            {"name": "Test", "email": "测试@example.com", "comment": "Unicode email"},
+            {"name": "Test", "email": "æµ‹è¯•@example.com", "comment": "Unicode email"},
             # Control characters
             {
                 "name": "Test\x00User",
@@ -193,7 +193,7 @@ class TestDataIntegrity:
         for payload in special_char_payloads:
             with allure.step(f"Testing special characters: {payload['name'][:20]}..."):
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=self.headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=self.headers
                 )
 
                 # Should handle special characters safely
@@ -201,7 +201,7 @@ class TestDataIntegrity:
                     # Verify data is stored safely
                     entry_id = response.json()["userId"]
                     get_response = requests.get(
-                        f"{BASE_URL}/api/guestbook/{entry_id}", headers=self.headers
+                        f"{BASE_URL}/api/v1/guestbook/{entry_id}", headers=self.headers
                     )
 
                     if get_response.status_code == 200:
@@ -270,7 +270,7 @@ class TestDataIntegrity:
         for payload in malicious_payloads:
             with allure.step(f"Testing JSON manipulation: {list(payload.keys())}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=self.headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=self.headers
                 )
 
                 # Should ignore extra fields or reject payload
@@ -309,7 +309,7 @@ class TestDataIntegrity:
                 headers["Content-Type"] = content_type
 
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers
                 )
 
                 # Should validate content-type
@@ -356,14 +356,14 @@ class TestDataIntegrity:
         for payload in encoding_payloads:
             with allure.step(f"Testing encoding attack: {payload['comment']}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=self.headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=self.headers
                 )
 
                 if response.status_code == 201:
                     # Check if encoding was decoded
                     entry_id = response.json()["userId"]
                     get_response = requests.get(
-                        f"{BASE_URL}/api/guestbook/{entry_id}", headers=self.headers
+                        f"{BASE_URL}/api/v1/guestbook/{entry_id}", headers=self.headers
                     )
 
                     if get_response.status_code == 200:
@@ -395,7 +395,7 @@ class TestDataIntegrity:
             with allure.step(f"Testing integer overflow: {value}"):
                 # Test in URL path
                 response = requests.get(
-                    f"{BASE_URL}/api/guestbook/{value}", headers=self.headers
+                    f"{BASE_URL}/api/v1/guestbook/{value}", headers=self.headers
                 )
 
                 # Should handle large integers gracefully

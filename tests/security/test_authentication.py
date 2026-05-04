@@ -1,4 +1,4 @@
-"""Security Tests - Authentication Failures (OWASP A07)"""
+﻿"""Security Tests - Authentication Failures (OWASP A07)"""
 
 import time
 
@@ -28,7 +28,7 @@ class TestAuthenticationFailures:
         with allure.step("Attempting multiple failed logins"):
             for i in range(max_attempts):
                 response = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": "admin", "password": f"wrong_password_{i}"},
                 )
 
@@ -75,7 +75,7 @@ class TestAuthenticationFailures:
         for weak_password in weak_passwords:
             with allure.step(f"Testing weak password: {weak_password}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": "admin", "password": weak_password},
                 )
 
@@ -99,7 +99,7 @@ class TestAuthenticationFailures:
 
         # Test with valid token first
         with allure.step("Testing valid token"):
-            response = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
+            response = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers)
             assert response.status_code == 200, "Valid token should work"
 
         # Test with malformed tokens
@@ -119,7 +119,7 @@ class TestAuthenticationFailures:
                     "Content-Type": "application/json",
                 }
                 response = requests.get(
-                    f"{BASE_URL}/api/guestbook", headers=test_headers
+                    f"{BASE_URL}/api/v1/guestbook", headers=test_headers
                 )
                 assert (
                     response.status_code == 401
@@ -132,7 +132,7 @@ class TestAuthenticationFailures:
         """Test token expiration (simulated)"""
         # Get a fresh token
         login_response = requests.post(
-            f"{BASE_URL}/api/login",
+            f"{BASE_URL}/api/v1/login",
             json={"username": "admin", "password": "password123"},
         )
         assert login_response.status_code == 200
@@ -143,7 +143,7 @@ class TestAuthenticationFailures:
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-        response = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
+        response = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers)
         assert response.status_code == 200, "Fresh token should work"
 
         # Note: Real expiration test would require waiting 24 hours or manipulating system time
@@ -168,7 +168,7 @@ class TestAuthenticationFailures:
         with allure.step("Testing concurrent sessions"):
             # Get another token
             login_response = requests.post(
-                f"{BASE_URL}/api/login",
+                f"{BASE_URL}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
             )
             assert login_response.status_code == 200
@@ -180,8 +180,8 @@ class TestAuthenticationFailures:
             }
 
             # Both tokens should work (stateless JWT)
-            response1 = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
-            response2 = requests.get(f"{BASE_URL}/api/guestbook", headers=headers2)
+            response1 = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers)
+            response2 = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers2)
 
             assert response1.status_code == 200, "First token should work"
             assert response2.status_code == 200, "Second token should work"
@@ -200,9 +200,9 @@ class TestAuthenticationFailures:
         """Test password reset security"""
         # Current API doesn't have password reset, but test for endpoint existence
         reset_endpoints = [
-            "/api/password-reset",
-            "/api/forgot-password",
-            "/api/reset-password",
+            "/api/v1/password-reset",
+            "/api/v1/forgot-password",
+            "/api/v1/reset-password",
             "/password-reset",
             "/forgot-password",
         ]
@@ -241,7 +241,7 @@ class TestAuthenticationFailures:
             with allure.step(f"Testing username: {username}"):
                 start_time = time.time()
                 response = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": username, "password": "wrong_password"},
                 )
                 end_time = time.time()
@@ -283,7 +283,7 @@ class TestAuthenticationFailures:
         with allure.step("Checking for MFA implementation"):
             # Test if login requires additional factors
             response = requests.post(
-                f"{BASE_URL}/api/login",
+                f"{BASE_URL}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
             )
 

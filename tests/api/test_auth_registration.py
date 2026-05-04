@@ -1,4 +1,4 @@
-"""API tests for user registration and authentication."""
+﻿"""API tests for user registration and authentication."""
 
 import uuid
 
@@ -14,7 +14,7 @@ BASE_URL = "http://127.0.0.1:8080"
 @allure.severity(allure.severity_level.NORMAL)
 def test_register_missing_fields():
     response = requests.post(
-        f"{BASE_URL}/api/register", json={"password": "Password123!"}
+        f"{BASE_URL}/api/v1/register", json={"password": "Password123!"}
     )
     assert response.status_code == 400
 
@@ -24,7 +24,7 @@ def test_register_missing_fields():
 @allure.severity(allure.severity_level.NORMAL)
 def test_register_password_mismatch():
     response = requests.post(
-        f"{BASE_URL}/api/register",
+        f"{BASE_URL}/api/v1/register",
         json={
             "email": f"user-{uuid.uuid4().hex[:8]}@example.com",
             "password": "Password123!",
@@ -40,7 +40,7 @@ def test_register_password_mismatch():
 def test_register_new_user_success():
     email = f"user-{uuid.uuid4().hex[:8]}@example.com"
     response = requests.post(
-        f"{BASE_URL}/api/register",
+        f"{BASE_URL}/api/v1/register",
         json={
             "email": email,
             "username": f"user_{uuid.uuid4().hex[:6]}",
@@ -58,7 +58,7 @@ def test_register_new_user_success():
 def test_login_inactive_user_returns_403():
     email = f"inactive-{uuid.uuid4().hex[:8]}@example.com"
     requests.post(
-        f"{BASE_URL}/api/register",
+        f"{BASE_URL}/api/v1/register",
         json={
             "email": email,
             "password": "Password123!",
@@ -67,7 +67,7 @@ def test_login_inactive_user_returns_403():
     )
 
     response = requests.post(
-        f"{BASE_URL}/api/login",
+        f"{BASE_URL}/api/v1/login",
         json={"email": email, "password": "Password123!"},
     )
     assert response.status_code == 403
@@ -79,7 +79,7 @@ def test_login_inactive_user_returns_403():
 @allure.severity(allure.severity_level.NORMAL)
 def test_password_reset_request_returns_200():
     response = requests.post(
-        f"{BASE_URL}/api/password-reset-request",
+        f"{BASE_URL}/api/v1/password-reset-request",
         json={"email": f"user-{uuid.uuid4().hex[:8]}@example.com"},
     )
     assert response.status_code == 200

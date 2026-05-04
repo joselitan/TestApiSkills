@@ -1,4 +1,4 @@
-"""Stress Testing - Test system behavior under extreme load and recovery"""
+﻿"""Stress Testing - Test system behavior under extreme load and recovery"""
 
 import statistics
 import threading
@@ -23,7 +23,7 @@ class TestStressTesting:
         """Get authentication token"""
         try:
             response = requests.post(
-                f"{self.base_url}/api/login",
+                f"{self.base_url}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
                 timeout=5,
             )
@@ -72,7 +72,7 @@ class TestStressTesting:
         def stress_user_session():
             results = []
             for _ in range(requests_per_user):
-                result = self._make_request("/api/guestbook")
+                result = self._make_request("/api/v1/guestbook")
                 results.append(result)
                 # No delay - maximum stress
             return results
@@ -131,7 +131,7 @@ class TestStressTesting:
 
         # Fire requests as fast as possible
         for i in range(rapid_requests):
-            result = self._make_request("/api/guestbook", timeout=max_response_time)
+            result = self._make_request("/api/v1/guestbook", timeout=max_response_time)
             results.append(result)
 
         end_time = time.time()
@@ -173,7 +173,7 @@ class TestStressTesting:
                     "email": f"stress{threading.current_thread().ident}@test.com",
                     "comment": large_comment,
                 }
-                result = self._make_request("/api/guestbook", "POST", data, timeout=20)
+                result = self._make_request("/api/v1/guestbook", "POST", data, timeout=20)
                 results.append(result)
                 time.sleep(0.5)  # Brief pause between large requests
             return results
@@ -219,7 +219,7 @@ class TestStressTesting:
             results = []
             end_time = time.time() + stress_duration
             while time.time() < end_time:
-                result = self._make_request("/api/guestbook")
+                result = self._make_request("/api/v1/guestbook")
                 results.append(result)
             return results
 
@@ -237,7 +237,7 @@ class TestStressTesting:
         # Phase 3: Test normal operations
         recovery_results = []
         for _ in range(10):
-            result = self._make_request("/api/guestbook")
+            result = self._make_request("/api/v1/guestbook")
             recovery_results.append(result)
             time.sleep(0.5)
 

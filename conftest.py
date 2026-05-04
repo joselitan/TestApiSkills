@@ -255,7 +255,7 @@ def test_db_path():
 def auth_token():
     """Get authentication token for tests"""
     response = requests.post(
-        f"{BASE_URL}/api/login", json={"username": "admin", "password": "password123"}
+        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
     )
     return response.json()["token"]
 

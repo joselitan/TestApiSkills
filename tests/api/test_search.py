@@ -1,7 +1,7 @@
-"""API tests for Enhanced Search functionality (DEV-19).
+﻿"""API tests for Enhanced Search functionality (DEV-19).
 
 Covers:
-  GET /api/guestbook?q=keyword&author=name&from_date=YYYY-MM-DD&to_date=YYYY-MM-DD&sort=newest|oldest
+  GET /api/v1/guestbook?q=keyword&author=name&from_date=YYYY-MM-DD&to_date=YYYY-MM-DD&sort=newest|oldest
 
 Acceptance criteria tested:
   - Keyword search (case-insensitive, partial match) against name/email/comment
@@ -9,11 +9,11 @@ Acceptance criteria tested:
   - Date range filter (from_date / to_date, ISO 8601)
   - Sort order (newest / oldest)
   - Filters combined
-  - Edge cases: empty search, whitespace-only, no results → 200 + empty list,
-    500+ char input → 400, special characters treated as literals
-  - Input safety: SQL injection → 200 with 0 results (no error/leak)
-  - Invalid date format → 400
-  - from_date after to_date → 400
+  - Edge cases: empty search, whitespace-only, no results â†’ 200 + empty list,
+    500+ char input â†’ 400, special characters treated as literals
+  - Input safety: SQL injection â†’ 200 with 0 results (no error/leak)
+  - Invalid date format â†’ 400
+  - from_date after to_date â†’ 400
 """
 
 import allure
@@ -31,7 +31,7 @@ BASE_URL = "http://127.0.0.1:8080"
 @pytest.fixture(scope="module")
 def auth_token():
     resp = requests.post(
-        f"{BASE_URL}/api/login", json={"username": "admin", "password": "password123"}
+        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
     )
     assert resp.status_code == 200
     return resp.json()["token"]
@@ -56,7 +56,7 @@ def search_entries(auth_token):
         },
     ]
     for entry in seed:
-        r = requests.post(f"{BASE_URL}/api/guestbook", json=entry, headers=headers)
+        r = requests.post(f"{BASE_URL}/api/v1/guestbook", json=entry, headers=headers)
         assert r.status_code == 201
         created.append(r.json()["userId"])
     yield created
@@ -64,7 +64,7 @@ def search_entries(auth_token):
 
 def _get(auth_token, **params):
     headers = {"Authorization": f"Bearer {auth_token}"}
-    return requests.get(f"{BASE_URL}/api/guestbook", params=params, headers=headers)
+    return requests.get(f"{BASE_URL}/api/v1/guestbook", params=params, headers=headers)
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ def test_keyword_search_matches_comment(auth_token, search_entries):
 @allure.story("Keyword Search")
 @allure.severity(allure.severity_level.NORMAL)
 def test_keyword_search_case_insensitive(auth_token, search_entries):
-    """Search is case-insensitive — 'HELLO' matches 'Hello world'."""
+    """Search is case-insensitive â€” 'HELLO' matches 'Hello world'."""
     resp = _get(auth_token, search="HELLO")
     assert resp.status_code == 200
     assert any("hello" in e["comment"].lower() for e in resp.json()["data"])
@@ -97,7 +97,7 @@ def test_keyword_search_case_insensitive(auth_token, search_entries):
 @allure.story("Keyword Search")
 @allure.severity(allure.severity_level.NORMAL)
 def test_no_filters_returns_all(auth_token, search_entries):
-    """No filters → all entries returned (total >= seeded count)."""
+    """No filters â†’ all entries returned (total >= seeded count)."""
     resp = _get(auth_token)
     assert resp.status_code == 200
     assert resp.json()["meta"]["total"] >= len(search_entries)
@@ -203,7 +203,7 @@ def test_empty_search_returns_all(auth_token, search_entries):
 @allure.story("Edge Cases")
 @allure.severity(allure.severity_level.NORMAL)
 def test_whitespace_only_search_treated_as_empty(auth_token, search_entries):
-    """Whitespace-only search string is treated as empty — no 400."""
+    """Whitespace-only search string is treated as empty â€” no 400."""
     resp = _get(auth_token, search="   ")
     assert resp.status_code == 200
 
@@ -241,7 +241,7 @@ def test_single_character_search(auth_token, search_entries):
 @allure.story("Edge Cases")
 @allure.severity(allure.severity_level.NORMAL)
 def test_special_characters_treated_as_literals(auth_token, search_entries):
-    """Special chars (%, _, *) are treated as literals — no 500 or SQL error."""
+    """Special chars (%, _, *) are treated as literals â€” no 500 or SQL error."""
     for char in ["%", "_", "*", "?"]:
         resp = _get(auth_token, search=char)
         assert resp.status_code == 200, f"Failed for char: {char!r}"
@@ -281,7 +281,7 @@ def test_html_script_tags_not_reflected_unsanitised(auth_token, search_entries):
 
 
 # ---------------------------------------------------------------------------
-# API contract — date validation
+# API contract â€” date validation
 # ---------------------------------------------------------------------------
 
 

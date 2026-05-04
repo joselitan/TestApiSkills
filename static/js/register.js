@@ -1,4 +1,4 @@
-const registerForm = document.getElementById('registerForm');
+﻿const registerForm = document.getElementById('registerForm');
 
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
@@ -24,7 +24,7 @@ if (registerForm) {
         }
 
         try {
-            const response = await fetch('/api/register', {
+            const response = await fetch('/api/v1/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, username, password, confirm_password: confirmPassword })

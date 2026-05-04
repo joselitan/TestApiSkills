@@ -1,4 +1,4 @@
-console.log('✅ Guestbook script loaded');
+﻿console.log('✅ Guestbook script loaded');
 
 const token = sessionStorage.getItem('token');
 if (!token) {
@@ -32,7 +32,7 @@ async function loadEntries(page = 1, search = '', author = '', fromDate = '', to
         if (toDate)   params.set('to_date', toDate);
         if (sort)     params.set('sort', sort);
 
-        const url = `/api/guestbook?${params.toString()}`;
+        const url = `/api/v1/guestbook?${params.toString()}`;
         const response = await fetch(url, {headers});
         console.log('Response status:', response.status);
 
@@ -168,7 +168,7 @@ function prevPage(){
 async function deleteEntry(id) {
     // Fetch entry details to show in modal
     try {
-        const response = await fetch(`/api/guestbook/${id}`, {headers});
+        const response = await fetch(`/api/v1/guestbook/${id}`, {headers});
         const entry = await response.json();
         
         // Store the ID for later use
@@ -190,7 +190,7 @@ async function confirmDelete() {
     if (deleteEntryId) {
         console.log(`🗑️ Deleting entry ${deleteEntryId}...`);
         try {
-            await fetch(`/api/guestbook/${deleteEntryId}`, {method: 'DELETE', headers});
+            await fetch(`/api/v1/guestbook/${deleteEntryId}`, {method: 'DELETE', headers});
             closeDeleteModal();
             loadEntries(currentPage, currentSearch, currentAuthor, currentFromDate, currentToDate, currentSort); // Keep current page and filters
         } catch (error) {
@@ -205,7 +205,7 @@ function closeDeleteModal() {
 }
 
 async function editEntry(id) {
-    const response = await fetch(`/api/guestbook/${id}`, {headers});
+    const response = await fetch(`/api/v1/guestbook/${id}`, {headers});
     const entry = await response.json();
     
     // Populate modal with current values
@@ -233,7 +233,7 @@ async function importExcel() {
     formData.append('file', fileInput.files[0]);
     
     console.log('📂 Uploading Excel file...');
-    const response = await fetch('/api/guestbook/import', {
+    const response = await fetch('/api/v1/guestbook/import', {
         method: 'POST',
         headers: {'Authorization': `Bearer ${token}`},
         body: formData
@@ -256,7 +256,7 @@ function logout() {
 
 async function loadReactions(entryId) {
     try {
-        const response = await fetch(`/api/entries/${entryId}/reactions`, {headers});
+        const response = await fetch(`/api/v1/entries/${entryId}/reactions`, {headers});
         if (!response.ok) return;
         const data = await response.json();
         const types = ['like', 'love', 'laugh'];
@@ -279,7 +279,7 @@ async function loadReactions(entryId) {
 
 async function toggleReaction(entryId, reactionType) {
     try {
-        const response = await fetch(`/api/entries/${entryId}/reactions`, {
+        const response = await fetch(`/api/v1/entries/${entryId}/reactions`, {
             method: 'POST',
             headers,
             body: JSON.stringify({reaction_type: reactionType})
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             comment: document.getElementById('comment').value
         };
         
-        await fetch('/api/guestbook', {
+        await fetch('/api/v1/guestbook', {
             method: 'POST',
             headers,
             body: JSON.stringify(data)
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         console.log(`✏️ Updating entry ${id}...`);
-        await fetch(`/api/guestbook/${id}`, {
+        await fetch(`/api/v1/guestbook/${id}`, {
             method: 'PUT',
             headers,
             body: JSON.stringify(data)

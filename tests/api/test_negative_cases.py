@@ -1,4 +1,4 @@
-"""Negative Testing - Test error handling and security"""
+﻿"""Negative Testing - Test error handling and security"""
 
 import allure
 import pytest
@@ -10,7 +10,7 @@ BASE_URL = "http://127.0.0.1:8080"
 @pytest.fixture(scope="module")
 def auth_token():
     response = requests.post(
-        f"{BASE_URL}/api/login", json={"username": "admin", "password": "password123"}
+        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
     )
     return response.json()["token"]
 
@@ -21,7 +21,7 @@ def auth_token():
 @allure.severity(allure.severity_level.CRITICAL)
 def test_login_missing_username():
     """Test login with missing username"""
-    response = requests.post(f"{BASE_URL}/api/login", json={"password": "password123"})
+    response = requests.post(f"{BASE_URL}/api/v1/login", json={"password": "password123"})
     assert response.status_code == 400
 
 
@@ -30,7 +30,7 @@ def test_login_missing_username():
 @allure.severity(allure.severity_level.CRITICAL)
 def test_login_missing_password():
     """Test login with missing password"""
-    response = requests.post(f"{BASE_URL}/api/login", json={"username": "admin"})
+    response = requests.post(f"{BASE_URL}/api/v1/login", json={"username": "admin"})
     assert response.status_code == 400
 
 
@@ -40,7 +40,7 @@ def test_login_missing_password():
 def test_login_wrong_credentials():
     """Test login with wrong credentials"""
     response = requests.post(
-        f"{BASE_URL}/api/login", json={"username": "admin", "password": "wrongpassword"}
+        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "wrongpassword"}
     )
     assert response.status_code == 401
 
@@ -50,7 +50,7 @@ def test_login_wrong_credentials():
 @allure.severity(allure.severity_level.CRITICAL)
 def test_access_without_token():
     """Test accessing protected endpoint without token"""
-    response = requests.get(f"{BASE_URL}/api/guestbook")
+    response = requests.get(f"{BASE_URL}/api/v1/guestbook")
     assert response.status_code == 401
 
 
@@ -60,7 +60,7 @@ def test_access_without_token():
 def test_access_with_invalid_token():
     """Test accessing with invalid token"""
     headers = {"Authorization": "Bearer invalid_token_12345"}
-    response = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
+    response = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers)
     assert response.status_code == 401
 
 
@@ -72,7 +72,7 @@ def test_create_entry_missing_name(auth_token):
     """Test creating entry without name"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {"email": "test@test.com", "comment": "Test"}
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code == 400
 
 
@@ -83,7 +83,7 @@ def test_create_entry_missing_email(auth_token):
     """Test creating entry without email"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {"name": "Test", "comment": "Test"}
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code == 400
 
 
@@ -94,7 +94,7 @@ def test_create_entry_invalid_email(auth_token):
     """Test creating entry with invalid email format"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {"name": "Test", "email": "not-an-email", "comment": "Test"}
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code == 400
 
 
@@ -105,7 +105,7 @@ def test_create_entry_empty_strings(auth_token):
     """Test creating entry with empty strings"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {"name": "", "email": "", "comment": ""}
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code == 400
 
 
@@ -121,7 +121,7 @@ def test_sql_injection_in_name(auth_token):
         "email": "test@test.com",
         "comment": "SQL injection test",
     }
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code in [201, 400]
 
 
@@ -133,11 +133,11 @@ def test_sql_injection_in_search(auth_token):
 
     The backend uses parameterised SQL so injection payloads are treated as
     literal search strings rather than SQL.  The expected response is 200 with
-    an empty result list — not a 400 or a data leak.
+    an empty result list â€” not a 400 or a data leak.
     """
     headers = {"Authorization": f"Bearer {auth_token}"}
     response = requests.get(
-        f"{BASE_URL}/api/guestbook?search=' OR '1'='1", headers=headers
+        f"{BASE_URL}/api/v1/guestbook?search=' OR '1'='1", headers=headers
     )
     assert (
         response.status_code == 200
@@ -159,7 +159,7 @@ def test_xss_in_comment(auth_token):
         "email": "xss@test.com",
         "comment": "<script>alert('XSS')</script>",
     }
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code in [201, 400]
 
 
@@ -170,7 +170,7 @@ def test_xss_in_comment(auth_token):
 def test_get_nonexistent_entry(auth_token):
     """Test getting non-existent entry"""
     headers = {"Authorization": f"Bearer {auth_token}"}
-    response = requests.get(f"{BASE_URL}/api/guestbook/999999", headers=headers)
+    response = requests.get(f"{BASE_URL}/api/v1/guestbook/999999", headers=headers)
     assert response.status_code == 404
 
 
@@ -182,7 +182,7 @@ def test_update_nonexistent_entry(auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {"name": "Test", "email": "test@test.com", "comment": "Test"}
     response = requests.put(
-        f"{BASE_URL}/api/guestbook/999999", json=payload, headers=headers
+        f"{BASE_URL}/api/v1/guestbook/999999", json=payload, headers=headers
     )
     assert response.status_code == 404
 
@@ -193,7 +193,7 @@ def test_update_nonexistent_entry(auth_token):
 def test_delete_nonexistent_entry(auth_token):
     """Test deleting non-existent entry"""
     headers = {"Authorization": f"Bearer {auth_token}"}
-    response = requests.delete(f"{BASE_URL}/api/guestbook/999999", headers=headers)
+    response = requests.delete(f"{BASE_URL}/api/v1/guestbook/999999", headers=headers)
     assert response.status_code == 404
 
 
@@ -205,7 +205,7 @@ def test_create_entry_wrong_types(auth_token):
     """Test creating entry with wrong data types"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {"name": 12345, "email": True, "comment": ["array"]}
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code == 400
 
 
@@ -217,5 +217,5 @@ def test_oversized_comment(auth_token):
     """Test creating entry with very large comment"""
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {"name": "Test", "email": "test@test.com", "comment": "A" * 10000}
-    response = requests.post(f"{BASE_URL}/api/guestbook", json=payload, headers=headers)
+    response = requests.post(f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers)
     assert response.status_code in [201, 400, 413]

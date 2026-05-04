@@ -1,4 +1,4 @@
-import json
+﻿import json
 
 import pytest
 import requests
@@ -7,46 +7,46 @@ import requests
 def test_1_verify_invalid_login():
     """Description: Verify that login fails with invalid credentials"""
     payload = {"username": "invaliduser", "password": "invalidpassword"}
-    response = requests.post("http://localhost:8080/api/login", json=payload)
+    response = requests.post("http://localhost:8080/api/v1/login", json=payload)
     print(response.status_code)
     print(response.json())
     assert (
         response.status_code == 401
-    ), f"Förväntade statuskod 401 för ogiltig inloggning"
+    ), f"FÃ¶rvÃ¤ntade statuskod 401 fÃ¶r ogiltig inloggning"
 
 
 def test_2_verify_login_fields():
     """Description: Authenticate user and receive JWT token"""
     payload = {"username": "admin", "password": "password123"}
-    response = requests.post("http://localhost:8080/api/login", json=payload)
+    response = requests.post("http://localhost:8080/api/v1/login", json=payload)
     print(response.status_code)
     print(response.json())
-    assert response.status_code == 200, f"Förväntade statuskod 200"
+    assert response.status_code == 200, f"FÃ¶rvÃ¤ntade statuskod 200"
     assert (
         "token" in response.json()
-    ), f"Förväntade token saknas i svaret. Hittade: {response.json()}"
+    ), f"FÃ¶rvÃ¤ntade token saknas i svaret. Hittade: {response.json()}"
 
 
 def test_3_access_guestbook_endpoint():
     """Description: Access protected endpoint with valid JWT token"""
     # First, authenticate to get the token
     auth_payload = {"username": "admin", "password": "password123"}
-    auth_response = requests.post("http://localhost:8080/api/login", json=auth_payload)
+    auth_response = requests.post("http://localhost:8080/api/v1/login", json=auth_payload)
     token = auth_response.json().get("token")
 
     # Now access the protected endpoint
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get("http://localhost:8080/api/guestbook", headers=headers)
+    response = requests.get("http://localhost:8080/api/v1/guestbook", headers=headers)
     print(response.status_code)
     print(json.dumps(response.json(), indent=4))
-    assert response.status_code == 200, f"Förväntade statuskod 200 för skyddad resurs"
+    assert response.status_code == 200, f"FÃ¶rvÃ¤ntade statuskod 200 fÃ¶r skyddad resurs"
 
 
 def test_4_create_guestbook_entry():
     """Description: Create a new guestbook entry with valid JWT token"""
     # First, authenticate to get the token
     auth_payload = {"username": "admin", "password": "password123"}
-    auth_response = requests.post("http://localhost:8080/api/login", json=auth_payload)
+    auth_response = requests.post("http://localhost:8080/api/v1/login", json=auth_payload)
     token = auth_response.json().get("token")
 
     # Now create a new guestbook entry
@@ -54,45 +54,45 @@ def test_4_create_guestbook_entry():
     payload = {
         "name": "Jose User",
         "email": "jose.user@example.com",
-        "comment": "Hjälper pappa att testa API:et",
+        "comment": "HjÃ¤lper pappa att testa API:et",
     }
     response = requests.post(
-        "http://localhost:8080/api/guestbook", json=payload, headers=headers
+        "http://localhost:8080/api/v1/guestbook", json=payload, headers=headers
     )
     print(response.status_code)
     print(response.json())
     assert (
         response.status_code == 201
-    ), f"Förväntade statuskod 201 för att skapa gästboksinlägg"
+    ), f"FÃ¶rvÃ¤ntade statuskod 201 fÃ¶r att skapa gÃ¤stboksinlÃ¤gg"
 
 
 def test_5_delete_guestbook_entry():
     """Description: Delete a guestbook entry with valid JWT token"""
     # First, authenticate to get the token
     auth_payload = {"username": "admin", "password": "password123"}
-    auth_response = requests.post("http://localhost:8080/api/login", json=auth_payload)
+    auth_response = requests.post("http://localhost:8080/api/v1/login", json=auth_payload)
     token = auth_response.json().get("token")
 
     # Now delete a guestbook entry
     headers = {"Authorization": f"Bearer {token}"}
     response = requests.delete(
-        "http://localhost:8080/api/guestbook/27", headers=headers
+        "http://localhost:8080/api/v1/guestbook/27", headers=headers
     )
     print(response.status_code)
     print(response.json())
     assert (
         response.status_code == 200
-    ), f"Förväntade statuskod 200 för att ta bort gästboksinlägg"
+    ), f"FÃ¶rvÃ¤ntade statuskod 200 fÃ¶r att ta bort gÃ¤stboksinlÃ¤gg"
 
 
 def test_6_access_guestbook_without_token():
     """Description: Attempt to access protected endpoint without JWT token"""
-    response = requests.get("http://localhost:8080/api/guestbook")
+    response = requests.get("http://localhost:8080/api/v1/guestbook")
     print(response.status_code)
     print(response.json())
     assert (
         response.status_code == 401
-    ), f"Förväntade statuskod 401 för att komma åt skyddad resurs utan token"
+    ), f"FÃ¶rvÃ¤ntade statuskod 401 fÃ¶r att komma Ã¥t skyddad resurs utan token"
 
 
 @pytest.mark.skip(
@@ -102,17 +102,17 @@ def test_7_bulk_delete_guestbook_entries():
     """Description: Bulk delete guestbook entries with valid JWT token"""
     # First, authenticate to get the token
     auth_payload = {"username": "admin", "password": "password123"}
-    auth_response = requests.post("http://localhost:8080/api/login", json=auth_payload)
+    auth_response = requests.post("http://localhost:8080/api/v1/login", json=auth_payload)
     token = auth_response.json().get("token")
 
     # Now bulk delete guestbook entries
     headers = {"Authorization": f"Bearer {token}"}
     payload = {"ids": [8, 9, 10]}
     response = requests.delete(
-        "http://localhost:8080/api/guestbook/bulk", json=payload, headers=headers
+        "http://localhost:8080/api/v1/guestbook/bulk", json=payload, headers=headers
     )
     print(response.status_code)
     print(response.json())
     assert (
         response.status_code == 200
-    ), f"Förväntade statuskod 200 för att bulk ta bort gästboksinlägg"
+    ), f"FÃ¶rvÃ¤ntade statuskod 200 fÃ¶r att bulk ta bort gÃ¤stboksinlÃ¤gg"

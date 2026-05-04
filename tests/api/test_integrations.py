@@ -1,4 +1,4 @@
-"""Integration tests: webhook registration, inbound events, and dispatch."""
+﻿"""Integration tests: webhook registration, inbound events, and dispatch."""
 
 import hashlib
 import hmac
@@ -49,7 +49,7 @@ def mock_server():
 @pytest.fixture(scope="module")
 def auth_token():
     resp = requests.post(
-        f"{BASE_URL}/api/login", json={"username": "admin", "password": "password123"}
+        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
     )
     return resp.json()["token"]
 
@@ -59,7 +59,7 @@ def clear_events():
     received_events.clear()
 
 
-# ── Webhook Management ────────────────────────────────────────────────────────
+# â”€â”€ Webhook Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @allure.feature("Integrations")
@@ -67,7 +67,7 @@ def clear_events():
 @allure.severity(allure.severity_level.CRITICAL)
 def test_register_webhook(auth_token, mock_server):
     resp = requests.post(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": MOCK_URL, "events": ["entry.created"]},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
@@ -82,7 +82,7 @@ def test_register_webhook(auth_token, mock_server):
 @allure.severity(allure.severity_level.NORMAL)
 def test_register_webhook_missing_fields(auth_token, mock_server):
     resp = requests.post(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": MOCK_URL},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
@@ -94,12 +94,12 @@ def test_register_webhook_missing_fields(auth_token, mock_server):
 @allure.severity(allure.severity_level.NORMAL)
 def test_list_webhooks(auth_token, mock_server):
     requests.post(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": MOCK_URL, "events": ["entry.created"]},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
     resp = requests.get(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         headers={"Authorization": f"Bearer {auth_token}"},
     )
     assert resp.status_code == 200
@@ -112,12 +112,12 @@ def test_list_webhooks(auth_token, mock_server):
 @allure.severity(allure.severity_level.NORMAL)
 def test_unregister_webhook(auth_token, mock_server):
     requests.post(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": MOCK_URL, "events": ["entry.created"]},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
     resp = requests.delete(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": MOCK_URL},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
@@ -129,14 +129,14 @@ def test_unregister_webhook(auth_token, mock_server):
 @allure.severity(allure.severity_level.NORMAL)
 def test_unregister_nonexistent_webhook(auth_token, mock_server):
     resp = requests.delete(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": "http://does-not-exist.example.com/hook"},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
     assert resp.status_code == 404
 
 
-# ── Inbound Events ────────────────────────────────────────────────────────────
+# â”€â”€ Inbound Events â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @allure.feature("Integrations")
@@ -144,7 +144,7 @@ def test_unregister_nonexistent_webhook(auth_token, mock_server):
 @allure.severity(allure.severity_level.CRITICAL)
 def test_inbound_event_success():
     resp = requests.post(
-        f"{BASE_URL}/api/integrations/inbound",
+        f"{BASE_URL}/api/v1/integrations/inbound",
         json={"event": "external.sync", "data": {"ref": "abc123"}},
     )
     assert resp.status_code == 200
@@ -156,13 +156,13 @@ def test_inbound_event_success():
 @allure.severity(allure.severity_level.NORMAL)
 def test_inbound_event_missing_fields():
     resp = requests.post(
-        f"{BASE_URL}/api/integrations/inbound",
+        f"{BASE_URL}/api/v1/integrations/inbound",
         json={"event": "external.sync"},
     )
     assert resp.status_code == 400
 
 
-# ── End-to-End Dispatch ───────────────────────────────────────────────────────
+# â”€â”€ End-to-End Dispatch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @allure.feature("Integrations")
@@ -171,13 +171,13 @@ def test_inbound_event_missing_fields():
 def test_entry_created_dispatches_webhook(auth_token, mock_server):
     """Creating a guestbook entry should fire the entry.created webhook."""
     requests.post(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": MOCK_URL, "events": ["entry.created"]},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
 
     requests.post(
-        f"{BASE_URL}/api/guestbook",
+        f"{BASE_URL}/api/v1/guestbook",
         json={
             "name": "Integration Test",
             "email": "int@test.com",
@@ -198,13 +198,13 @@ def test_webhook_hmac_signature(auth_token, mock_server):
     """Webhook payload should carry a valid HMAC-SHA256 signature when secret is set."""
     secret = "test-secret-123"
     requests.post(
-        f"{BASE_URL}/api/webhooks",
+        f"{BASE_URL}/api/v1/webhooks",
         json={"url": MOCK_URL, "events": ["entry.created"], "secret": secret},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
 
     requests.post(
-        f"{BASE_URL}/api/guestbook",
+        f"{BASE_URL}/api/v1/guestbook",
         json={"name": "HMAC Test", "email": "hmac@test.com", "comment": "sig check"},
         headers={"Authorization": f"Bearer {auth_token}"},
     )

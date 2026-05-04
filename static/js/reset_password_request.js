@@ -1,4 +1,4 @@
-const resetRequestForm = document.getElementById('resetRequestForm');
+﻿const resetRequestForm = document.getElementById('resetRequestForm');
 
 if (resetRequestForm) {
     resetRequestForm.addEventListener('submit', async (e) => {
@@ -17,7 +17,7 @@ if (resetRequestForm) {
         }
 
         try {
-            const response = await fetch('/api/password-reset-request', {
+            const response = await fetch('/api/v1/password-reset-request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })

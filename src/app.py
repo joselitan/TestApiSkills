@@ -22,9 +22,21 @@ def add_security_headers(response):
     response.headers["Strict-Transport-Security"] = (
         "max-age=31536000; includeSubDomains"
     )
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
-    )
+    # Swagger UI (Flasgger) requires 'unsafe-eval' for its React-based rendering.
+    # Apply a relaxed CSP only to documentation paths; keep strict policy everywhere else.
+    if request.path.startswith(("/apidocs", "/flasgger_static", "/apispec")):
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; "
+            "font-src 'self' data:; "
+            "worker-src 'self' blob:"
+        )
+    else:
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+        )
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
     # API-specific headers
@@ -98,11 +110,6 @@ app.register_blueprint(guestbook_v1_bp, url_prefix="/api/v1")
 app.register_blueprint(webhooks_v1_bp, url_prefix="/api/v1")
 app.register_blueprint(reactions_v1_bp, url_prefix="/api/v1")
 
-# Backward-compatible /api/ aliases â€” keeps existing tests green (DEV-27)
-app.register_blueprint(auth_v1_bp, url_prefix="/api", name="auth_legacy")
-app.register_blueprint(guestbook_v1_bp, url_prefix="/api", name="guestbook_legacy")
-app.register_blueprint(webhooks_v1_bp, url_prefix="/api", name="webhooks_legacy")
-app.register_blueprint(reactions_v1_bp, url_prefix="/api", name="reactions_legacy")
 
 # Swagger configuration
 swagger_config = {

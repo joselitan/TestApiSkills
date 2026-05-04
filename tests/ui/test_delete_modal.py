@@ -166,7 +166,7 @@ def test_delete_modal_with_empty_comment(authenticated_page: Page):
     # Create entry via API directly (comment is required in UI form)
     token = page.evaluate("() => sessionStorage.getItem('token')")
     page.request.post(
-        "http://localhost:8080/api/guestbook",
+        "http://localhost:8080/api/v1/guestbook",
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",

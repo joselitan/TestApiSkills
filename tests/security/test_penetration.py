@@ -1,4 +1,4 @@
-"""Security Tests - Penetration Testing Scenarios"""
+﻿"""Security Tests - Penetration Testing Scenarios"""
 
 import base64
 import json
@@ -46,7 +46,7 @@ class TestPenetrationScenarios:
         with allure.step("Executing brute force attack"):
             for password in common_passwords:
                 response = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": "admin", "password": password},
                 )
 
@@ -96,7 +96,7 @@ class TestPenetrationScenarios:
         }
 
         # First verify token works
-        response = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
+        response = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers)
         assert response.status_code == 200, "Valid token should work"
 
         # Decode token to understand structure
@@ -138,7 +138,7 @@ class TestPenetrationScenarios:
                         "Content-Type": "application/json",
                     }
                     response = requests.get(
-                        f"{BASE_URL}/api/guestbook", headers=test_headers
+                        f"{BASE_URL}/api/v1/guestbook", headers=test_headers
                     )
 
                     if response.status_code == 200:
@@ -167,7 +167,7 @@ class TestPenetrationScenarios:
                         "Content-Type": "application/json",
                     }
                     response = requests.get(
-                        f"{BASE_URL}/api/guestbook", headers=test_headers
+                        f"{BASE_URL}/api/v1/guestbook", headers=test_headers
                     )
 
                     if response.status_code == 200:
@@ -205,7 +205,7 @@ class TestPenetrationScenarios:
         for i in range(3):
             entry_data = create_guestbook_entry()
             response = requests.post(
-                f"{BASE_URL}/api/guestbook", json=entry_data, headers=headers
+                f"{BASE_URL}/api/v1/guestbook", json=entry_data, headers=headers
             )
             if response.status_code == 201:
                 created_entries.append(response.json()["userId"])
@@ -219,7 +219,7 @@ class TestPenetrationScenarios:
                 accessible_entries = []
                 for test_id in range(min_id - 10, max_id + 10):
                     response = requests.get(
-                        f"{BASE_URL}/api/guestbook/{test_id}", headers=headers
+                        f"{BASE_URL}/api/v1/guestbook/{test_id}", headers=headers
                     )
                     if response.status_code == 200:
                         accessible_entries.append(test_id)
@@ -242,7 +242,7 @@ class TestPenetrationScenarios:
                     "comment": "Pwned!",
                 }
                 response = requests.put(
-                    f"{BASE_URL}/api/guestbook/{test_id}",
+                    f"{BASE_URL}/api/v1/guestbook/{test_id}",
                     json=modified_data,
                     headers=headers,
                 )
@@ -250,7 +250,7 @@ class TestPenetrationScenarios:
                 if response.status_code == 200:
                     # Verify modification
                     get_response = requests.get(
-                        f"{BASE_URL}/api/guestbook/{test_id}", headers=headers
+                        f"{BASE_URL}/api/v1/guestbook/{test_id}", headers=headers
                     )
                     if get_response.status_code == 200:
                         entry_data = get_response.json()
@@ -263,7 +263,7 @@ class TestPenetrationScenarios:
 
                 # Try to delete entry
                 response = requests.delete(
-                    f"{BASE_URL}/api/guestbook/{test_id}", headers=headers
+                    f"{BASE_URL}/api/v1/guestbook/{test_id}", headers=headers
                 )
                 if response.status_code == 200:
                     allure.attach(
@@ -320,7 +320,7 @@ class TestPenetrationScenarios:
         for payload in mass_assignment_payloads:
             with allure.step(f"Testing mass assignment with {len(payload)} fields"):
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook", json=payload, headers=headers
+                    f"{BASE_URL}/api/v1/guestbook", json=payload, headers=headers
                 )
 
                 if response.status_code == 201:
@@ -402,7 +402,7 @@ class TestPenetrationScenarios:
                 files = {"file": (filename, io.BytesIO(content), content_type)}
 
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook/import", files=files, headers=headers
+                    f"{BASE_URL}/api/v1/guestbook/import", files=files, headers=headers
                 )
 
                 if response.status_code == 200:
@@ -441,7 +441,7 @@ class TestPenetrationScenarios:
                 }
 
                 response = requests.options(
-                    f"{BASE_URL}/api/guestbook", headers=headers
+                    f"{BASE_URL}/api/v1/guestbook", headers=headers
                 )
 
                 # Check if CORS allows the malicious origin
@@ -472,7 +472,7 @@ class TestPenetrationScenarios:
                     }
 
                     actual_response = requests.get(
-                        f"{BASE_URL}/api/guestbook", headers=actual_headers
+                        f"{BASE_URL}/api/v1/guestbook", headers=actual_headers
                     )
 
                     if actual_response.status_code == 200:
@@ -493,7 +493,7 @@ class TestPenetrationScenarios:
         with allure.step("Testing token reuse scenarios"):
             # Get initial token
             response1 = requests.post(
-                f"{BASE_URL}/api/login",
+                f"{BASE_URL}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
             )
 
@@ -502,7 +502,7 @@ class TestPenetrationScenarios:
 
                 # Get another token (simulate new login)
                 response2 = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": "admin", "password": "password123"},
                 )
 
@@ -513,8 +513,8 @@ class TestPenetrationScenarios:
                     headers1 = {"Authorization": f"Bearer {token1}"}
                     headers2 = {"Authorization": f"Bearer {token2}"}
 
-                    test1 = requests.get(f"{BASE_URL}/api/guestbook", headers=headers1)
-                    test2 = requests.get(f"{BASE_URL}/api/guestbook", headers=headers2)
+                    test1 = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers1)
+                    test2 = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers2)
 
                     if test1.status_code == 200 and test2.status_code == 200:
                         allure.attach(

@@ -1,4 +1,4 @@
-console.log('✅ Login script loaded'); // Check console for this message
+﻿console.log('✅ Login script loaded'); // Check console for this message
 
 // ==========================================
 // AUTHENTICATION CHECK - Redirect authenticated users
@@ -7,7 +7,7 @@ function checkAuthenticationAndRedirect() {
     const token = sessionStorage.getItem('token');
     
     if (token) {
-        console.log('🔐 Authenticated user detected on login page, redirecting to /guestbook...');
+        console.log('🔍 Authenticated user detected on login page, redirecting to /guestbook...');
         window.location.href = '/guestbook';
         return false;
     }
@@ -47,7 +47,7 @@ if (loginForm) {
         
         try {
             console.log('📡 Sending request to /api/login...');
-            const response = await fetch('/api/login', {
+            const response = await fetch('/api/v1/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({email: identifier, password})

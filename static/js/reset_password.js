@@ -1,4 +1,4 @@
-const resetForm = document.getElementById('resetForm');
+﻿const resetForm = document.getElementById('resetForm');
 
 function getQueryParam(name) {
     const search = window.location.search.substring(1);
@@ -34,7 +34,7 @@ if (resetForm) {
         }
 
         try {
-            const response = await fetch('/api/password-reset', {
+            const response = await fetch('/api/v1/password-reset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, password, confirm_password: confirmPassword })

@@ -1,4 +1,4 @@
-"""Load Testing - Test system performance under normal expected load"""
+﻿"""Load Testing - Test system performance under normal expected load"""
 
 import json
 import statistics
@@ -23,7 +23,7 @@ class TestLoadTesting:
         """Get authentication token"""
         try:
             response = requests.post(
-                f"{self.base_url}/api/login",
+                f"{self.base_url}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
                 timeout=5,
             )
@@ -72,7 +72,7 @@ class TestLoadTesting:
         def user_session():
             results = []
             for _ in range(requests_per_user):
-                result = self._make_request("/api/guestbook")
+                result = self._make_request("/api/v1/guestbook")
                 results.append(result)
                 time.sleep(0.1)  # Small delay between requests
             return results
@@ -114,14 +114,14 @@ class TestLoadTesting:
 
             for op in operations:
                 if op == "read":
-                    result = self._make_request("/api/guestbook")
+                    result = self._make_request("/api/v1/guestbook")
                 else:
                     data = {
                         "name": f"Load Test User {time.time()}",
                         "email": f"load{int(time.time())}@test.com",
                         "comment": "Load testing entry",
                     }
-                    result = self._make_request("/api/guestbook", "POST", data)
+                    result = self._make_request("/api/v1/guestbook", "POST", data)
 
                 results.append(result)
                 time.sleep(0.2)  # Realistic user think time
@@ -167,7 +167,7 @@ class TestLoadTesting:
         def pagination_session():
             results = []
             for page in range(1, pages_per_user + 1):
-                result = self._make_request(f"/api/guestbook?page={page}&limit=10")
+                result = self._make_request(f"/api/v1/guestbook?page={page}&limit=10")
                 results.append(result)
                 time.sleep(0.1)
             return results

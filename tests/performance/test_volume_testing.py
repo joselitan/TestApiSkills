@@ -1,4 +1,4 @@
-"""Volume Testing - Test system performance with large amounts of data"""
+﻿"""Volume Testing - Test system performance with large amounts of data"""
 
 import statistics
 import time
@@ -22,7 +22,7 @@ class TestVolumeTesting:
         """Get authentication token"""
         try:
             response = requests.post(
-                f"{self.base_url}/api/login",
+                f"{self.base_url}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
                 timeout=5,
             )
@@ -50,7 +50,7 @@ class TestVolumeTesting:
 
                 try:
                     response = requests.post(
-                        f"{self.base_url}/api/guestbook",
+                        f"{self.base_url}/api/v1/guestbook",
                         json=entry_data,
                         headers=self.headers,
                         timeout=10,
@@ -81,7 +81,7 @@ class TestVolumeTesting:
             start_time = time.time()
             try:
                 response = requests.get(
-                    f"{self.base_url}/api/guestbook", headers=self.headers, timeout=15
+                    f"{self.base_url}/api/v1/guestbook", headers=self.headers, timeout=15
                 )
                 end_time = time.time()
 
@@ -127,7 +127,7 @@ class TestVolumeTesting:
                 start_time = time.time()
                 try:
                     response = requests.get(
-                        f"{self.base_url}/api/guestbook?page={page}&limit={page_size}",
+                        f"{self.base_url}/api/v1/guestbook?page={page}&limit={page_size}",
                         headers=self.headers,
                         timeout=10,
                     )
@@ -171,7 +171,7 @@ class TestVolumeTesting:
                 start_time = time.time()
                 try:
                     response = requests.get(
-                        f"{self.base_url}/api/guestbook?search={term}",
+                        f"{self.base_url}/api/v1/guestbook?search={term}",
                         headers=self.headers,
                         timeout=10,
                     )
@@ -257,7 +257,7 @@ class TestVolumeTesting:
         """Helper method to create a single entry"""
         try:
             response = requests.post(
-                f"{self.base_url}/api/guestbook",
+                f"{self.base_url}/api/v1/guestbook",
                 json=entry_data,
                 headers=self.headers,
                 timeout=10,

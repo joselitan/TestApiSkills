@@ -1,4 +1,4 @@
-"""Security Tests - Injection Attacks (OWASP A03)"""
+﻿"""Security Tests - Injection Attacks (OWASP A03)"""
 
 import allure
 import pytest
@@ -41,7 +41,7 @@ class TestInjectionAttacks:
         for payload in sql_payloads:
             with allure.step(f"Testing SQL injection payload: {payload}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": payload, "password": "password123"},
                 )
 
@@ -70,7 +70,7 @@ class TestInjectionAttacks:
         for payload in sql_payloads:
             with allure.step(f"Testing SQL injection in search: {payload}"):
                 response = requests.get(
-                    f"{BASE_URL}/api/guestbook",
+                    f"{BASE_URL}/api/v1/guestbook",
                     params={"search": payload},
                     headers=self.headers,
                 )
@@ -108,7 +108,7 @@ class TestInjectionAttacks:
         for payload in xss_payloads:
             with allure.step(f"Testing XSS payload: {payload}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook",
+                    f"{BASE_URL}/api/v1/guestbook",
                     json={
                         "name": f"Test User {payload}",
                         "email": f"test{payload}@example.com",
@@ -122,7 +122,7 @@ class TestInjectionAttacks:
                     # If accepted, verify it's sanitized when retrieved
                     entry_id = response.json()["userId"]
                     get_response = requests.get(
-                        f"{BASE_URL}/api/guestbook/{entry_id}", headers=self.headers
+                        f"{BASE_URL}/api/v1/guestbook/{entry_id}", headers=self.headers
                     )
 
                     if get_response.status_code == 200:
@@ -178,7 +178,7 @@ class TestInjectionAttacks:
                 }
 
                 response = requests.post(
-                    f"{BASE_URL}/api/guestbook/import",
+                    f"{BASE_URL}/api/v1/guestbook/import",
                     files=files,
                     headers={
                         "Authorization": f"Bearer {self.headers['Authorization']}",
@@ -209,7 +209,7 @@ class TestInjectionAttacks:
             with allure.step(f"Testing NoSQL injection: {payload}"):
                 # Test in login
                 response = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": payload, "password": "password123"},
                 )
 
@@ -236,7 +236,7 @@ class TestInjectionAttacks:
         for payload in ldap_payloads:
             with allure.step(f"Testing LDAP injection: {payload}"):
                 response = requests.post(
-                    f"{BASE_URL}/api/login",
+                    f"{BASE_URL}/api/v1/login",
                     json={"username": payload, "password": "password123"},
                 )
 

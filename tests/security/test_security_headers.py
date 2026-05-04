@@ -1,4 +1,4 @@
-"""Security Tests - Security Headers & Best Practices"""
+﻿"""Security Tests - Security Headers & Best Practices"""
 
 import allure
 import pytest
@@ -330,7 +330,7 @@ class TestSecurityHeaders:
     def test_api_security_headers(self, auth_token):
         """Test security headers on API endpoints"""
         headers = {"Authorization": f"Bearer {auth_token}"}
-        response = requests.get(f"{BASE_URL}/api/guestbook", headers=headers)
+        response = requests.get(f"{BASE_URL}/api/v1/guestbook", headers=headers)
 
         # API endpoints should also have security headers
         api_headers = {
@@ -375,7 +375,7 @@ class TestSecurityHeaders:
         # Test various error conditions
         error_endpoints = [
             "/nonexistent",
-            "/api/nonexistent",
+            "/api/v1/nonexistent",
             "/admin",
             "/.env",
             "/config.php",

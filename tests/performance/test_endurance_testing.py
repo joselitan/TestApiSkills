@@ -1,4 +1,4 @@
-"""Endurance Testing - Test system performance over extended periods"""
+﻿"""Endurance Testing - Test system performance over extended periods"""
 
 import statistics
 import threading
@@ -24,7 +24,7 @@ class TestEnduranceTesting:
         """Get authentication token"""
         try:
             response = requests.post(
-                f"{self.base_url}/api/login",
+                f"{self.base_url}/api/v1/login",
                 json={"username": "admin", "password": "password123"},
                 timeout=5,
             )
@@ -83,7 +83,7 @@ class TestEnduranceTesting:
             request_interval = 60.0 / requests_per_minute  # Seconds between requests
 
             while time.time() < end_time:
-                result = self._make_request("/api/guestbook")
+                result = self._make_request("/api/v1/guestbook")
                 results.append(result)
                 time.sleep(request_interval)
 
@@ -174,10 +174,10 @@ class TestEnduranceTesting:
                         "comment": f"Memory leak test entry {request_count} "
                         + "X" * 100,  # Larger payload
                     }
-                    result = self._make_request("/api/guestbook", "POST", data)
+                    result = self._make_request("/api/v1/guestbook", "POST", data)
                 else:
                     # Read operations
-                    result = self._make_request("/api/guestbook")
+                    result = self._make_request("/api/v1/guestbook")
 
                 results.append(result)
                 time.sleep(0.5)  # Moderate pace
@@ -251,7 +251,7 @@ class TestEnduranceTesting:
             def burst_session():
                 results = []
                 for _ in range(3):  # 3 requests per burst user
-                    result = self._make_request("/api/guestbook")
+                    result = self._make_request("/api/v1/guestbook")
                     results.append(result)
                 return results
 
@@ -321,7 +321,7 @@ class TestEnduranceTesting:
                 end_time = time.time() + phase["duration"]
 
                 while time.time() < end_time:
-                    result = self._make_request("/api/guestbook")
+                    result = self._make_request("/api/v1/guestbook")
                     results.append(result)
                     time.sleep(1.0)  # 1 request per second per user
 
