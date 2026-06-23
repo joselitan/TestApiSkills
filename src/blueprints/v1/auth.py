@@ -73,7 +73,19 @@ def login():
             message:
               type: string
               example: "Account not active. Verify your email."
+      429:
+        description: Rate limit exceeded (max 5 attempts per minute)
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Rate limit exceeded. Please try again later."
     """
+    limiter = get_limiter()
+    if limiter:
+        limiter.check()
+        
     try:
         data = request.get_json(force=True)
         if not data:

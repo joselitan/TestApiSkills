@@ -10,6 +10,7 @@ from flask import Flask, g, jsonify, redirect, render_template, request
 from auth_helpers import is_user_authenticated
 from database import get_db, init_db
 from logger_config import setup_logger
+from rate_limiter import init_limiter
 from webhooks import dispatch, list_webhooks, register_webhook, unregister_webhook
 
 
@@ -102,6 +103,7 @@ app.config["DEFAULT_ROLE"] = "member"
 from blueprints.v1.auth import bp as auth_v1_bp
 from blueprints.v1.guestbook import bp as guestbook_v1_bp
 from blueprints.v1.reactions import bp as reactions_v1_bp
+from blueprints.v1.rate_limit_test import bp as rate_limit_test_v1_bp
 from blueprints.v1.webhooks import bp as webhooks_v1_bp
 
 # Versioned /api/v1/ routes (DEV-27)
@@ -109,6 +111,7 @@ app.register_blueprint(auth_v1_bp, url_prefix="/api/v1")
 app.register_blueprint(guestbook_v1_bp, url_prefix="/api/v1")
 app.register_blueprint(webhooks_v1_bp, url_prefix="/api/v1")
 app.register_blueprint(reactions_v1_bp, url_prefix="/api/v1")
+app.register_blueprint(rate_limit_test_v1_bp, url_prefix="/api/v1")
 
 
 # Swagger configuration
@@ -157,6 +160,63 @@ setup_health_routes(app)
 
 # Setup logging
 access_logger = setup_logger(app)
+
+# Initialize rate limiter
+limiter = init_limiter(app)
+
+# Apply rate limits to specific routes
+# Authentication endpoints - strict limits to prevent brute force
+limiter.limit("5 per minute, 20 per hour")(
+    app.view_functions.get("auth_v1.login")
+)
+limiter.limit("3 per hour, 10 per day")(
+    app.view_functions.get("auth_v1.register")
+)
+limiter.limit("3 per hour, 10 per day")(
+    app.view_functions.get("auth_v1.password_reset_request")
+)
+limiter.limit("5 per hour")(
+    app.view_functions.get("auth_v1.password_reset")
+)
+limiter.limit("10 per hour")(
+    app.view_functions.get("auth_v1.verify_email")
+)
+
+# Guestbook endpoints - different limits for different operations
+limiter.limit("100 per minute, 1000 per hour")(
+    app.view_functions.get("guestbook_v1.get_all_entries")
+)
+limiter.limit("100 per minute, 1000 per hour")(
+    app.view_functions.get("guestbook_v1.get_entry")
+)
+limiter.limit("30 per minute, 300 per hour")(
+    app.view_functions.get("guestbook_v1.create_entry")
+)
+limiter.limit("30 per minute, 300 per hour")(
+    app.view_functions.get("guestbook_v1.update_entry")
+)
+limiter.limit("20 per minute, 200 per hour")(
+    app.view_functions.get("guestbook_v1.delete_entry")
+)
+limiter.limit("10 per minute, 50 per hour")(
+    app.view_functions.get("guestbook_v1.bulk_delete_entries")
+)
+limiter.limit("2 per hour, 5 per day")(
+    app.view_functions.get("guestbook_v1.cleanup_all_entries")
+)
+limiter.limit("5 per minute, 30 per hour")(
+    app.view_functions.get("guestbook_v1.import_excel")
+)
+
+# Health check - generous limits
+from health_check import health, ready
+limiter.limit("60 per minute")(health)
+limiter.limit("60 per minute")(ready)
+
+# Rate limit test endpoint
+limiter.limit("10 per minute")(
+    app.view_functions.get("rate_limit_test_v1.rate_limit_status")
+)
 
 
 # Request logging middleware
