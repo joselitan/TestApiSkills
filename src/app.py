@@ -208,11 +208,6 @@ limiter.limit("5 per minute, 30 per hour")(
     app.view_functions.get("guestbook_v1.import_excel")
 )
 
-# Health check - generous limits
-from health_check import health, ready
-limiter.limit("60 per minute")(health)
-limiter.limit("60 per minute")(ready)
-
 # Rate limit test endpoint
 limiter.limit("10 per minute")(
     app.view_functions.get("rate_limit_test_v1.rate_limit_status")
