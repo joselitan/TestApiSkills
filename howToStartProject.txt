@@ -1,0 +1,20 @@
+Here's everything you need to start up the project. Open separate terminal windows for each service.
+
+1. The main Guestbook web app (Flask + Swagger built-in)
+Swagger is already baked into app.py via Flasgger — no separate process needed.
+
+cd c:\Users\admin\TestApiSkills
+venv\Scripts\activate
+cd src
+python app.py
+Then open:
+
+Web app → http://localhost:8080
+Swagger UI → http://localhost:8080/apidocs/
+2. The test results Dashboard backend (optional)
+cd c:\Users\admin\TestApiSkills
+venv\Scripts\activate
+cd dashboard\backend
+python app.py
+Runs on → http://localhost:6001
+The frontend HTML is served from the same process at http://localhost:6001

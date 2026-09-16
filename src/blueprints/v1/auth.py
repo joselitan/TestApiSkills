@@ -17,6 +17,7 @@ from auth_helpers import (
     token_required,
 )
 from database import get_db
+from extensions import limiter
 from utils import is_valid_email, normalize_email, sanitize_html, validate_json_payload
 from webhooks import dispatch
 
@@ -24,6 +25,7 @@ bp = Blueprint("auth_v1", __name__)
 
 
 @bp.route("/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def login():
     """
     User login endpoint
@@ -153,6 +155,7 @@ def login():
 
 
 @bp.route("/register", methods=["POST"])
+@limiter.limit("3 per minute")
 def register():
     """
     User registration endpoint

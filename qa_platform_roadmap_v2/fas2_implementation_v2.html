@@ -3,294 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fas 2: Prestanda och Användarupplevelse - QA Platform v2</title>
+    <title>Fas 2 – Prestanda och realtid</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>⚡ Fas 2: Prestanda och Användarupplevelse</h1>
-            <p class="subtitle">Version 2 - Medel Prioritet Implementation</p>
-            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: 📋 PLANERAD | Datum: 2026-04-04</p>
-        </header>
+<div class="container">
 
-        <div class="content">
-            <div class="section">
-                <h2><span class="icon">📋</span> Översikt</h2>
-                <div class="info-box">
-                    <h3>🎯 Syfte</h3>
-                    <p>Denna fas förbättrar prestanda, användarupplevelse och systemets effektivitet genom optimeringar och nya funktioner.</p>
-                </div>
+    <header>
+        <h1>⚡ Fas 2 — Prestanda och realtid</h1>
+        <p class="subtitle">Caching, WebSocket och kryptering — utan onödig infrastruktur</p>
+        <p class="subtitle" style="margin-top:10px;font-size:0.9em;opacity:0.8;">
+            Krav: Fas 1 klar &nbsp;·&nbsp; Svårighet: ⭐⭐⭐ Medel &nbsp;·&nbsp; Uppskattad tid: 2–3 veckor
+        </p>
+    </header>
+
+    <div class="content">
+
+        <!-- INTRO -->
+        <div class="section">
+            <h2><span class="icon">📋</span> Vad handlar den här fasen om?</h2>
+            <div class="description">
+                Nu när säkerhetsgrunden är på plats kan vi göra plattformen snabbare
+                och mer interaktiv. Den gamla v2-planen föreslog Redis och Celery —
+                det är onödig komplexitet för ett utbildningsprojekt.
+                Vi uppnår samma mål med enklare verktyg.
+            </div>
+            <div class="warning-box">
+                <h3>⚠️ Varför inte Redis och Celery?</h3>
+                <p>
+                    Redis kräver en separat server-process. Celery kräver Redis plus en
+                    worker-process. Det är tre processer att hålla igång istället för en.
+                    <code>flask-caching</code> med SimpleCache ger oss caching utan extra
+                    infrastruktur. <code>threading</code> hanterar bakgrundsjobb.
+                    Resultatet är detsamma — komplexiteten är lägre.
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h3>📦 Nya paket att installera</h3>
+                <div class="code-block"><code>
+pip install flask-caching flask-socketio
+                </code></div>
+                <p>
+                    <code>cryptography</code> finns redan i requirements.txt.<br>
+                    Lägg till <code>flask-caching>=2.1.0</code> och <code>flask-socketio>=5.3.0</code>
+                    i requirements.txt.
+                </p>
+            </div>
+        </div>
+
+        <!-- STEG 1: CACHING -->
+        <div class="section">
+            <h2><span class="icon">💾</span> Steg 1 — Enkel caching</h2>
+
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
                 <div class="description">
-                    <strong>Prioritet:</strong> Medel - Bygger på grunderna från Fas 1 för bättre användarupplevelse.
+                    Dashboard-endpointsen i <code>dashboard/backend/app.py</code> kör
+                    samma SQL-frågor varje gång någon laddar dashboarden.
+                    Med caching sparar vi resultatet i minnet i 5 minuter och svarar
+                    direkt utan att fråga databasen.
                 </div>
-            </div>
 
-            <div class="section">
-                <h2><span class="icon">📦</span> Nya Dependencies</h2>
-                <div class="code-block">
-                    <code>
-redis>=5.0.0                  # Caching<br>
-flask-caching>=2.1.0           # Flask caching<br>
-rq>=1.15.0                    # Job queues<br>
-graphene>=3.3.0               # GraphQL<br>
-websockets>=12.0.0            # WebSocket support
-                    </code>
-                </div>
-                <div class="description">
-                    <strong>Installation:</strong>
-                    <div class="code-block">
-                        <code>pip install redis flask-caching rq graphene websockets</code>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">📁</span> Uppdaterad Filstruktur</h2>
-                <div class="code-block">
-                    <code>
-src/<br>
-├── cache.py                   # Redis caching<br>
-├── graphql_api.py             # GraphQL endpoint<br>
-└── websocket.py               # Real-time updates<br>
-<br>
-dashboard/backend/<br>
-├── paginated_api.py           # API pagination<br>
-└── async_tasks.py             # Background jobs<br>
-<br>
-requirements.txt               # Uppdaterade deps<br>
-redis.conf                     # Redis config
-                    </code>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">📄</span> 2.1 API-Paginering</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Implementera paginering för stora dataset för att förbättra laddningstider och användarupplevelse.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# dashboard/backend/paginated_api.py<br>
-from flask import request<br>
-<br>
-@app.route('/test-cases')<br>
-def get_test_cases():<br>
-    page = int(request.args.get('page', 1))<br>
-    per_page = int(request.args.get('per_page', 20))<br>
-    <br>
-    # Query with pagination<br>
-    test_cases = TestCase.query.paginate(page=page, per_page=per_page)<br>
-    <br>
-    return {<br>
-        'data': [tc.to_dict() for tc in test_cases.items],<br>
-        'pagination': {<br>
-            'page': page,<br>
-            'per_page': per_page,<br>
-            'total': test_cases.total,<br>
-            'pages': test_cases.pages<br>
-        }<br>
-    }
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Snabbare laddningstider</li>
-                        <li>Mindre minnesanvändning</li>
-                        <li>Bättre användarupplevelse</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">💾</span> 2.2 Caching-strategi</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Implementera Redis-caching för frekventa queries och förbättra responstider.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/cache.py<br>
+                <h4>Ny fil: <code>dashboard/backend/cache_config.py</code></h4>
+                <div class="code-block"><code>
 from flask_caching import Cache<br>
-import redis<br>
 <br>
-cache = Cache(config={'CACHE_TYPE': 'redis', 'CACHE_REDIS_URL': 'redis://localhost:6379/0'})<br>
+# SimpleCache sparar allt i serverns minne — ingen extern service behövs<br>
+cache = Cache(config={<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"CACHE_TYPE": "SimpleCache",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"CACHE_DEFAULT_TIMEOUT": 300  # 5 minuter<br>
+})
+                </code></div>
+
+                <h4>Ändra i <code>dashboard/backend/app.py</code></h4>
+                <div class="code-block"><code>
+from cache_config import cache<br>
+<br>
+# Initialisera cachen med appen<br>
 cache.init_app(app)<br>
 <br>
-@app.route('/dashboard/metrics')<br>
-@cache.cached(timeout=300)  # Cache for 5 minutes<br>
-def get_dashboard_metrics():<br>
-    # Expensive query<br>
-    return calculate_metrics()<br>
+# Lägg till @cache.cached på tunga endpoints<br>
+@app.route("/api/dashboard/summary")<br>
+@cache.cached(timeout=300, key_prefix="dashboard_summary")<br>
+def get_dashboard_summary():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... befintlig SQL-kod — rör ingenting ...<br>
 <br>
-# Manual cache management<br>
-cache.set('key', 'value', timeout=3600)<br>
-value = cache.get('key')
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Snabbare responser</li>
-                        <li>Minskad databasbelastning</li>
-                        <li>Skalbarhet</li>
-                    </ul>
-                </div>
-            </div>
+@app.route("/api/dashboard/test-types")<br>
+@cache.cached(timeout=300, key_prefix="test_types")<br>
+def get_test_types_breakdown():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+<br>
+# När nya testresultat kommer in — rensa cachen<br>
+@app.route("/api/test-runs", methods=["POST"])<br>
+def add_test_run():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... befintlig logik ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cache.clear()  # Tvinga fram ny data nästa gång<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"success": True, "run_id": run_id})
+                </code></div>
 
-            <div class="section">
-                <h2><span class="icon">🔄</span> 2.3 Asynkron Bearbetning</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Använd RQ/Celery för långa operationer som bulk-import och rapportgenerering.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# dashboard/backend/async_tasks.py<br>
-from rq import Queue<br>
-from redis import Redis<br>
-<br>
-redis_conn = Redis()<br>
-queue = Queue(connection=redis_conn)<br>
-<br>
-def process_bulk_import(file_path):<br>
-    # Long-running import logic<br>
-    pass<br>
-<br>
-@app.route('/bulk-import', methods=['POST'])<br>
-def start_bulk_import():<br>
-    job = queue.enqueue(process_bulk_import, request.files['file'].filename)<br>
-    return {'job_id': job.id, 'status': 'queued'}<br>
-<br>
-@app.route('/job-status/&lt;job_id&gt;')<br>
-def get_job_status(job_id):<br>
-    job = queue.fetch_job(job_id)<br>
-    return {'status': job.get_status(), 'result': job.result}
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Icke-blockerande operationer</li>
-                        <li>Bättre användarupplevelse</li>
-                        <li>Skalbar bakgrundsbearbetning</li>
-                    </ul>
-                </div>
+                <h4>Hur testar vi det?</h4>
+                <div class="code-block"><code>
+def test_dashboard_summary_is_cached(client):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Andra anropet ska vara snabbare — cachen fungerar"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;import time<br>
+&nbsp;&nbsp;&nbsp;&nbsp;t1 = time.time(); client.get("/api/dashboard/summary"); t1 = time.time() - t1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;t2 = time.time(); client.get("/api/dashboard/summary"); t2 = time.time() - t2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Cachat svar ska vara snabbare<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert t2 &lt; t1
+                </code></div>
             </div>
+        </div>
 
-            <div class="section">
-                <h2><span class="icon">⚠️</span> 2.4 Enhetlig Felhantering</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Standardisera felresponsformat över alla API:er för bättre konsistens.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/error_handlers.py<br>
-from flask import jsonify<br>
-<br>
-class APIError(Exception):<br>
-    def __init__(self, message, status_code=400, payload=None):<br>
-        self.message = message<br>
-        self.status_code = status_code<br>
-        self.payload = payload<br>
-<br>
-@app.errorhandler(APIError)<br>
-def handle_api_error(error):<br>
-    response = {<br>
-        'error': {<br>
-            'code': error.status_code,<br>
-            'message': error.message,<br>
-            'details': error.payload<br>
-        }<br>
-    }<br>
-    return jsonify(response), error.status_code<br>
-<br>
-# Usage<br>
-raise APIError('Invalid input', 400, {'field': 'email'})
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Konsekventa felmeddelanden</li>
-                        <li>Bättre klienthantering</li>
-                        <li>Enklare debugging</li>
-                    </ul>
-                </div>
-            </div>
+        <!-- STEG 2: WEBSOCKET -->
+        <div class="section">
+            <h2><span class="icon">📡</span> Steg 2 — WebSocket för live test-resultat</h2>
 
-            <div class="section">
-                <h2><span class="icon">🔐</span> 2.5 Data Kryptering</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Kryptera känsliga data i databasen för bättre säkerhet.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/encryption.py<br>
-from cryptography.fernet import Fernet<br>
-<br>
-key = Fernet.generate_key()<br>
-cipher = Fernet(key)<br>
-<br>
-def encrypt_data(data):<br>
-    return cipher.encrypt(data.encode()).decode()<br>
-<br>
-def decrypt_data(encrypted_data):<br>
-    return cipher.decrypt(encrypted_data.encode()).decode()<br>
-<br>
-# Usage in models<br>
-class User(db.Model):<br>
-    email = db.Column(db.String, nullable=False)<br>
-    <br>
-    @property<br>
-    def encrypted_email(self):<br>
-        return encrypt_data(self.email)<br>
-    <br>
-    @encrypted_email.setter<br>
-    def encrypted_email(self, value):<br>
-        self.email = decrypt_data(value)
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Skydd av känslig data</li>
-                        <li>Compliance med dataskyddsregler</li>
-                        <li>Möjlighet att hantera krypterade backups</li>
-                    </ul>
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
+                <div class="description">
+                    Just nu uppdateras dashboard-sidan bara om man manuellt laddar om den.
+                    <code>conftest.py</code> skickar redan resultat via HTTP POST under testkörningen —
+                    men dashboard-sidan vet inte om det.
+                    Med WebSocket pushas uppdateringar direkt till webbläsaren i realtid.
                 </div>
-            </div>
 
-            <div class="section">
-                <h2><span class="icon">🚀</span> Implementation Plan</h2>
-                <div class="warning-box">
-                    <h3>📅 Tidsplan</h3>
-                    <ul>
-                        <li><strong>Veck 1-2:</strong> API-paginering och caching</li>
-                        <li><strong>Veck 3-4:</strong> Asynkron bearbetning</li>
-                        <li><strong>Veck 5-6:</strong> Felhantering och kryptering</li>
-                        <li><strong>Veck 7-8:</strong> Testing och optimering</li>
-                    </ul>
-                </div>
+                <h4>Ändra i <code>dashboard/backend/app.py</code></h4>
+                <div class="code-block"><code>
+from flask_socketio import SocketIO, emit<br>
+<br>
+socketio = SocketIO(app, cors_allowed_origins="*")<br>
+<br>
+# Befintlig POST /api/test-runs — lägg till emit i slutet<br>
+@app.route("/api/test-runs", methods=["POST"])<br>
+def add_test_run():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... befintlig logik ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cache.clear()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# Skicka live-uppdatering till alla anslutna webbläsare<br>
+&nbsp;&nbsp;&nbsp;&nbsp;socketio.emit("test_result", {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"passed": data.get("passed_tests"),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"failed": data.get("failed_tests"),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"test_type": data.get("test_type")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"success": True})<br>
+<br>
+# Starta med socketio istället för app.run<br>
+if __name__ == "__main__":<br>
+&nbsp;&nbsp;&nbsp;&nbsp;init_db()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;socketio.run(app, debug=True, port=6001)
+                </code></div>
+
+                <h4>Lägg till i <code>dashboard/frontend/index.html</code></h4>
+                <div class="code-block"><code>
+&lt;!-- Lägg till i &lt;head&gt; --&gt;<br>
+&lt;script src="https://cdn.socket.io/4.7.2/socket.io.min.js"&gt;&lt;/script&gt;<br>
+<br>
+&lt;!-- Lägg till i &lt;script&gt; --&gt;<br>
+const socket = io("http://localhost:6001");<br>
+<br>
+socket.on("test_result", function(data) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// Uppdatera siffrorna på dashboarden direkt<br>
+&nbsp;&nbsp;&nbsp;&nbsp;document.getElementById("passed-count").textContent = data.passed;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;document.getElementById("failed-count").textContent = data.failed;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log("Live uppdatering:", data);<br>
+});
+                </code></div>
+
                 <div class="success-box">
-                    <h3>✅ Förväntade Resultat</h3>
-                    <p>Efter denna fas kommer plattformen att ha betydligt bättre prestanda och användarupplevelse.</p>
+                    <h3>Effekten</h3>
+                    <p>
+                        Kör <code>pytest tests/api/</code> i en terminal och titta på dashboard-sidan
+                        i webbläsaren. Siffrorna uppdateras i realtid för varje test som slutförs
+                        — utan att sidan behöver laddas om.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <footer>
-            <p>© 2026 QA Platform v2 - Fas 2 Implementation Guide</p>
-        </footer>
+        <!-- STEG 3: KRYPTERING -->
+        <div class="section">
+            <h2><span class="icon">🔐</span> Steg 3 — Kryptering av e-postadresser</h2>
+
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
+                <div class="description">
+                    E-postadresser lagras i klartext i <code>guestbook.db</code>.
+                    Om databasen läcker kan alla e-postadresser läsas direkt.
+                    Vi krypterar dem med <code>Fernet</code> från
+                    <code>cryptography</code>-paketet som redan är installerat.
+                </div>
+
+                <div class="warning-box">
+                    <h3>⚠️ Viktigt att tänka på</h3>
+                    <p>
+                        Krypteringsnyckeln måste sparas säkert — aldrig i koden eller i
+                        Git-repot. Den ska ligga i en miljövariabel eller en separat nyckel-fil
+                        utanför repot. Vi löser det med <code>.env</code>-fil och
+                        <code>python-dotenv</code>.
+                    </p>
+                </div>
+
+                <h4>Ny fil: <code>src/encryption.py</code></h4>
+                <div class="code-block"><code>
+import os<br>
+from cryptography.fernet import Fernet<br>
+<br>
+def get_cipher():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Hämta krypteringsobjektet från miljövariabeln ENCRYPTION_KEY."""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;key = os.getenv("ENCRYPTION_KEY")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if not key:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;raise ValueError("ENCRYPTION_KEY saknas i miljövariabler")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return Fernet(key.encode())<br>
+<br>
+def encrypt_email(email: str) -&gt; str:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Kryptera en e-postadress. Returnerar krypterad sträng."""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return get_cipher().encrypt(email.encode()).decode()<br>
+<br>
+def decrypt_email(encrypted: str) -&gt; str:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Dekryptera en e-postadress. Returnerar klartext."""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return get_cipher().decrypt(encrypted.encode()).decode()<br>
+<br>
+# Hjälpfunktion för att generera en ny nyckel<br>
+# Kör EN gång: python -c "from encryption import generate_key; generate_key()"<br>
+def generate_key():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;key = Fernet.generate_key().decode()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(f"Lägg detta i din .env-fil: ENCRYPTION_KEY={key}")
+                </code></div>
+
+                <h4>Ändra i <code>blueprints/v1/guestbook.py</code></h4>
+                <div class="code-block"><code>
+from encryption import encrypt_email, decrypt_email<br>
+<br>
+# Vid CREATE — kryptera e-post innan lagring<br>
+def create_entry():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... validering ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;encrypted = encrypt_email(email)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cursor.execute(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name, encrypted, comment)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+<br>
+# Vid GET — dekryptera e-post i svaret<br>
+def get_all_entries():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... SQL-fråga ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;result = []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for entry in entries:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;row = dict(entry)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;row["email"] = decrypt_email(row["email"])  # Visa klartext i API-svaret<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.append(row)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"data": result, "meta": {...}})
+                </code></div>
+
+                <div class="info-box">
+                    <h3>💡 Migrering av befintlig data</h3>
+                    <p>
+                        Befintliga poster i databasen har okrypterade e-postadresser.
+                        Innan kryptering aktiveras behöver vi köra ett migreringsscript
+                        som krypterar alla befintliga rader. Det skriver vi när vi
+                        implementerar detta steg.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEG 4: BAKGRUNDSJOBB -->
+        <div class="section">
+            <h2><span class="icon">🔄</span> Steg 4 — Bakgrundsjobb för Excel-import</h2>
+
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
+                <div class="description">
+                    <code>/api/v1/guestbook/import</code> blockerar HTTP-requesten medan
+                    Excel-filen bearbetas. En stor fil kan ta flera sekunder.
+                    Vi kör importen i en bakgrunds-tråd och returnerar ett jobb-ID direkt.
+                    Ingen Celery eller Redis — bara Pythons inbyggda <code>threading</code>.
+                </div>
+
+                <h4>Ändra i <code>blueprints/v1/guestbook.py</code></h4>
+                <div class="code-block"><code>
+import threading<br>
+import uuid<br>
+<br>
+# Enkel in-memory jobbstatus<br>
+import_jobs = {}<br>
+<br>
+def _run_import(job_id, file_bytes):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Körs i bakgrunden — inte i HTTP-requesten."""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import_jobs[job_id] = {"status": "running", "imported": 0}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# ... befintlig import-logik ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import_jobs[job_id] = {"status": "done", "imported": count}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;except Exception as e:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;import_jobs[job_id] = {"status": "error", "message": str(e)}<br>
+<br>
+@bp.route("/guestbook/import", methods=["POST"])<br>
+@token_required<br>
+def import_excel():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... validering av filen ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;file_bytes = file.read()  # Läs filen direkt<br>
+&nbsp;&nbsp;&nbsp;&nbsp;job_id = str(uuid.uuid4())<br>
+&nbsp;&nbsp;&nbsp;&nbsp;thread = threading.Thread(target=_run_import, args=(job_id, file_bytes))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;thread.start()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"job_id": job_id, "status": "queued"}), 202<br>
+<br>
+@bp.route("/guestbook/import/&lt;job_id&gt;", methods=["GET"])<br>
+@token_required<br>
+def get_import_status(job_id):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;job = import_jobs.get(job_id)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if not job:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"message": "Jobb hittades inte"}), 404<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify(job)
+                </code></div>
+            </div>
+        </div>
+
+        <!-- CHECKLIST -->
+        <div class="section">
+            <h2><span class="icon">✅</span> Fas 2 — Checklista innan vi går vidare</h2>
+            <table>
+                <thead>
+                    <tr><th>Uppgift</th><th>Fil</th><th>Klar?</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>cache_config.py skapad</td><td><code>dashboard/backend/cache_config.py</code></td><td>⬜</td></tr>
+                    <tr><td>Caching på dashboard-endpoints</td><td><code>dashboard/backend/app.py</code></td><td>⬜</td></tr>
+                    <tr><td>cache.clear() vid nya testresultat</td><td><code>dashboard/backend/app.py</code></td><td>⬜</td></tr>
+                    <tr><td>flask-socketio installerat</td><td><code>requirements.txt</code></td><td>⬜</td></tr>
+                    <tr><td>socketio.emit() i add_test_run</td><td><code>dashboard/backend/app.py</code></td><td>⬜</td></tr>
+                    <tr><td>Socket.io i frontend HTML</td><td><code>dashboard/frontend/index.html</code></td><td>⬜</td></tr>
+                    <tr><td>Live uppdatering testad manuellt</td><td>Webbläsare + pytest</td><td>⬜</td></tr>
+                    <tr><td>encryption.py skapad</td><td><code>src/encryption.py</code></td><td>⬜</td></tr>
+                    <tr><td>ENCRYPTION_KEY i .env</td><td><code>.env</code> (utanför Git)</td><td>⬜</td></tr>
+                    <tr><td>Migreringsscript för befintlig data</td><td><code>scripts/migrate_encrypt_emails.py</code></td><td>⬜</td></tr>
+                    <tr><td>Bakgrundsjobb för import</td><td><code>blueprints/v1/guestbook.py</code></td><td>⬜</td></tr>
+                    <tr><td>Alla befintliga tester fortfarande gröna</td><td><code>pytest tests/</code></td><td>⬜</td></tr>
+                </tbody>
+            </table>
+            <div class="success-box">
+                <h3>🚀 Redo för Fas 3?</h3>
+                <p>
+                    När alla rutor är ibockade och testerna är gröna är vi redo
+                    för de mer avancerade tilläggen i Fas 3.
+                </p>
+            </div>
+        </div>
+
     </div>
+
+    <footer>
+        <p>QA Platform v2 — Fas 2 &nbsp;·&nbsp;
+            <a href="qa_platform_roadmap_v2.html" style="color:#34d399;">← Tillbaka till översikten</a> &nbsp;·&nbsp;
+            <a href="fas3_implementation_v2.html" style="color:#34d399;">Fas 3 →</a>
+        </p>
+    </footer>
+
+</div>
 </body>
 </html>

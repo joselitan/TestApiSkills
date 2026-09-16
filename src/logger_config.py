@@ -63,6 +63,20 @@ def setup_logger(app):
     access_logger.addHandler(access_handler)
     access_logger.addHandler(console_handler)
 
+    # Audit logger — writes to logs/audit.log (one line per user action)
+    audit_handler = RotatingFileHandler(
+        os.path.join(log_dir, "audit.log"),
+        maxBytes=10 * 1024 * 1024,  # 10MB
+        backupCount=10,
+    )
+    audit_handler.setLevel(logging.INFO)
+    audit_handler.setFormatter(logging.Formatter("%(message)s"))  # raw line, no prefix
+
+    audit_logger = logging.getLogger("audit")
+    audit_logger.setLevel(logging.INFO)
+    audit_logger.propagate = False  # Don't bubble up to root logger
+    audit_logger.addHandler(audit_handler)
+
     app.logger.info("=" * 50)
     app.logger.info("Application started")
     app.logger.info(f"Log level: {logging.getLevelName(log_level)}")

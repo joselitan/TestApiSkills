@@ -7,7 +7,8 @@ import re
 import pandas as pd
 from flask import Blueprint, current_app, jsonify, request
 
-from auth_helpers import token_required
+from audit import log_action
+from auth_helpers import role_required, token_required
 from database import get_db
 from utils import sanitize_html, validate_filename, validate_json_payload
 from webhooks import dispatch
@@ -132,6 +133,7 @@ def create_entry():
     conn.close()
 
     dispatch("entry.created", dict(entry))
+    log_action("CREATE", "guestbook_entry", {"id": entry_id, "name": name, "email": email})
     return jsonify(dict(entry)), 201
 
 
@@ -492,6 +494,7 @@ def delete_entry(user_id):
     conn.close()
 
     if deleted:
+        log_action("DELETE", "guestbook_entry", {"id": user_id})
         return jsonify({"message": "Entry deleted successfully"})
     return jsonify({"message": "Entry not found"}), 404
 
@@ -556,13 +559,20 @@ def bulk_delete_entries():
         return jsonify({"message": "IDs array is required"}), 400
 
     conn = get_db()
-    cursor = conn.cursor()
-    placeholders = ",".join("?" * len(ids))
-    cursor.execute(f"DELETE FROM guestbook WHERE userId IN ({placeholders})", ids)
-    conn.commit()
-    deleted = cursor.rowcount
-    conn.close()
+    try:
+        cursor = conn.cursor()
+        placeholders = ",".join("?" * len(ids))
+        cursor.execute(f"DELETE FROM guestbook WHERE userId IN ({placeholders})", ids)
+        conn.commit()
+        deleted = cursor.rowcount
+    except Exception as e:
+        conn.rollback()
+        current_app.logger.error(f"Bulk delete failed: {str(e)}")
+        return jsonify({"message": f"Bulk delete failed: {str(e)}"}), 500
+    finally:
+        conn.close()
 
+    log_action("BULK_DELETE", "guestbook_entries", {"count": deleted, "ids": ids})
     return jsonify(
         {"deleted": deleted, "message": f"{deleted} entries deleted successfully"}
     )
@@ -570,6 +580,7 @@ def bulk_delete_entries():
 
 @bp.route("/guestbook/cleanup", methods=["DELETE"])
 @token_required
+@role_required("admin")
 def cleanup_all_entries():
     """
     Delete ALL guestbook entries (cleanup database)
@@ -704,22 +715,27 @@ def import_excel():
             )
 
         conn = get_db()
-        cursor = conn.cursor()
-        imported = 0
+        try:
+            cursor = conn.cursor()
+            imported = 0
+            for _, row in df.iterrows():
+                name = sanitize_html(str(row["name"]))
+                email = sanitize_html(str(row["email"]))
+                comment = sanitize_html(str(row.get("comment", "") or ""))
+                cursor.execute(
+                    "INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)",
+                    (name, email, comment),
+                )
+                imported += 1
+            conn.commit()   # Bekräfta bara om alla rader lyckades
+        except Exception as e:
+            conn.rollback()  # Ångra hela importen om något gick fel
+            current_app.logger.error(f"Excel import transaction rolled back: {str(e)}")
+            return jsonify({"message": f"Import failed and was rolled back: {str(e)}"}), 400
+        finally:
+            conn.close()
 
-        for _, row in df.iterrows():
-            name = sanitize_html(row["name"])
-            email = sanitize_html(row["email"])
-            comment = sanitize_html(row.get("comment", ""))
-            cursor.execute(
-                "INSERT INTO guestbook (name, email, comment) VALUES (?, ?, ?)",
-                (name, email, comment),
-            )
-            imported += 1
-
-        conn.commit()
-        conn.close()
-
+        log_action("IMPORT", "guestbook_entries", {"imported": imported})
         return jsonify(
             {
                 "imported": imported,

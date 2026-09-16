@@ -3,312 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fas 3: Avancerade Tillägg - QA Platform v2</title>
+    <title>Fas 3 – Avancerade tillägg</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🚀 Fas 3: Avancerade Tillägg</h1>
-            <p class="subtitle">Version 2 - Låg Prioritet Implementation</p>
-            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: 📋 PLANERAD | Datum: 2026-04-04</p>
-        </header>
+<div class="container">
 
-        <div class="content">
-            <div class="section">
-                <h2><span class="icon">📋</span> Översikt</h2>
-                <div class="info-box">
-                    <h3>🎯 Syfte</h3>
-                    <p>Denna fas lägger till avancerade funktioner för framtida skalning och förbättrad användarupplevelse.</p>
-                </div>
+    <header>
+        <h1>🚀 Fas 3 — Avancerade tillägg</h1>
+        <p class="subtitle">Prometheus, GraphQL och PostgreSQL — enterprise-tekniker i utbildningsmiljö</p>
+        <p class="subtitle" style="margin-top:10px;font-size:0.9em;opacity:0.8;">
+            Krav: Fas 1 och Fas 2 klara &nbsp;·&nbsp; Svårighet: ⭐⭐⭐⭐ Hög &nbsp;·&nbsp; Uppskattad tid: 3–4 veckor
+        </p>
+    </header>
+
+    <div class="content">
+
+        <!-- INTRO -->
+        <div class="section">
+            <h2><span class="icon">📋</span> Vad handlar den här fasen om?</h2>
+            <div class="description">
+                Fas 3 handlar om tekniker du kommer att stöta på i riktiga projekt.
+                De är inte kritiska för att plattformen ska fungera — den fungerar
+                utmärkt utan dem. Poängen är att lära sig hur de fungerar i ett
+                sammanhang du redan känner till.
+            </div>
+            <div class="warning-box">
+                <h3>⚠️ Vad är borttaget jämfört med gamla planen?</h3>
+                <p>
+                    <strong>Multi-tenancy</strong> är borttaget. Det kräver grundläggande
+                    omskrivning av hela datalagret och är inte relevant för ett
+                    utbildningsprojekt.<br><br>
+                    <strong>Redis och Celery</strong> är borttagna — löst enklare i Fas 2.<br><br>
+                    Allt som finns kvar här är additivt — vi bryter ingenting som redan fungerar.
+                </p>
+            </div>
+            <div class="info-box">
+                <h3>📦 Nya paket att installera</h3>
+                <div class="code-block"><code>
+pip install prometheus-client graphene flask-graphql psycopg2-binary alembic
+                </code></div>
+                <p>Lägg till i <code>requirements.txt</code> när varje steg implementeras.</p>
+            </div>
+        </div>
+
+        <!-- STEG 1: PROMETHEUS -->
+        <div class="section">
+            <h2><span class="icon">📈</span> Steg 1 — Prometheus metrics</h2>
+
+            <div class="phase-item">
+                <h3>Vad tillför det?</h3>
                 <div class="description">
-                    <strong>Prioritet:</strong> Låg - Framtida förbättringar som bygger på tidigare faser.
+                    En <code>/metrics</code>-endpoint som exporterar data om
+                    hur appen mår — antal requests, svarstider, felfrekvens.
+                    Prometheus är industristandard för monitoring och lätt att lägga till.
+                    Det är ett bra första steg i Fas 3 eftersom det inte ändrar något befintligt.
                 </div>
-            </div>
 
-            <div class="section">
-                <h2><span class="icon">📦</span> Nya Dependencies</h2>
-                <div class="code-block">
-                    <code>
-graphene>=3.3.0               # GraphQL<br>
-websockets>=12.0.0            # WebSocket support<br>
-prometheus-client>=0.19.0     # Monitoring<br>
-grafana-api>=1.0.3            # Grafana integration<br>
-psycopg2>=2.9.0               # PostgreSQL<br>
-sqlalchemy-pool>=2.0.0        # Connection pooling
-                    </code>
-                </div>
-                <div class="description">
-                    <strong>Installation:</strong>
-                    <div class="code-block">
-                        <code>pip install graphene websockets prometheus-client grafana-api psycopg2 sqlalchemy-pool</code>
-                    </div>
-                </div>
-            </div>
+                <h4>Ny fil: <code>src/monitoring.py</code></h4>
+                <div class="code-block"><code>
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST<br>
+from flask import Response<br>
+<br>
+# Räknare och histogram för HTTP-requests<br>
+REQUEST_COUNT = Counter(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"http_requests_total",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"Totalt antal HTTP-requests",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;["method", "endpoint", "status"]<br>
+)<br>
+REQUEST_LATENCY = Histogram(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"http_request_duration_seconds",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"Svarstid per request i sekunder",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;["endpoint"]<br>
+)<br>
+<br>
+def setup_metrics(app):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Registrera metrics-endpoint och middleware på Flask-appen."""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;import time<br>
+&nbsp;&nbsp;&nbsp;&nbsp;from flask import g, request<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@app.before_request<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def start_timer():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g.metrics_start = time.time()<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@app.after_request<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def record_metrics(response):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Hoppa över metrics-endpointen själv<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if request.path == "/metrics":<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return response<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elapsed = time.time() - g.get("metrics_start", time.time())<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;REQUEST_COUNT.labels(request.method, request.path, response.status_code).inc()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;REQUEST_LATENCY.labels(request.path).observe(elapsed)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return response<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@app.route("/metrics")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def metrics():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+                </code></div>
 
-            <div class="section">
-                <h2><span class="icon">📁</span> Uppdaterad Filstruktur</h2>
-                <div class="code-block">
-                    <code>
-src/<br>
-├── graphql_schema.py          # GraphQL schema<br>
-├── websocket_handler.py       # WebSocket connections<br>
-├── monitoring.py              # Prometheus metrics<br>
-└── multi_tenant.py            # Tenant isolation<br>
+                <h4>Aktivera i <code>src/app.py</code></h4>
+                <div class="code-block"><code>
+from monitoring import setup_metrics<br>
 <br>
-dashboard/backend/<br>
-├── realtime_api.py            # Live updates<br>
-└── tenant_api.py              # Multi-tenant endpoints<br>
-<br>
-config/<br>
-├── prometheus.yml             # Monitoring config<br>
-└── grafana_dashboards/        # Dashboard templates<br>
-<br>
-requirements.txt               # Uppdaterade deps
-                    </code>
-                </div>
-            </div>
+# Lägg till efter att Swagger är initialiserat<br>
+setup_metrics(app)
+                </code></div>
 
-            <div class="section">
-                <h2><span class="icon">🔗</span> 3.1 GraphQL API</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Lägg till GraphQL som alternativ till REST för mer flexibla queries.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/graphql_schema.py<br>
-import graphene<br>
-from graphene import ObjectType, String, List<br>
-<br>
-class TestCaseType(ObjectType):<br>
-    id = String()<br>
-    title = String()<br>
-    status = String()<br>
-    priority = String()<br>
-<br>
-class Query(ObjectType):<br>
-    test_cases = List(TestCaseType, priority=String())<br>
-    <br>
-    def resolve_test_cases(self, info, priority=None):<br>
-        query = TestCase.query<br>
-        if priority:<br>
-            query = query.filter_by(priority=priority)<br>
-        return query.all()<br>
-<br>
-schema = graphene.Schema(query=Query)<br>
-<br>
-# Flask route<br>
-@app.route('/graphql', methods=['POST'])<br>
-def graphql_endpoint():<br>
-    data = request.get_json()<br>
-    result = schema.execute(data['query'])<br>
-    return jsonify(result.data)
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Exakt datahämtning</li>
-                        <li>Mindre överflödig data</li>
-                        <li>Flexibla queries</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">📡</span> 3.2 WebSocket-stöd</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Implementera realtidsuppdateringar för dashboard och live-metrics.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/websocket_handler.py<br>
-from flask_socketio import SocketIO, emit<br>
-<br>
-socketio = SocketIO(app, cors_allowed_origins="*")<br>
-<br>
-@socketio.on('connect')<br>
-def handle_connect():<br>
-    emit('status', {'message': 'Connected'})<br>
-<br>
-@socketio.on('subscribe_metrics')<br>
-def handle_subscribe_metrics():<br>
-    # Send real-time metrics<br>
-    while True:<br>
-        metrics = get_current_metrics()<br>
-        emit('metrics_update', metrics)<br>
-        socketio.sleep(5)  # Update every 5 seconds<br>
-<br>
-# Client-side usage<br>
-const socket = io();<br>
-socket.on('metrics_update', function(data) {<br>
-    updateDashboard(data);<br>
-});
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Realtidsuppdateringar</li>
-                        <li>Mindre polling</li>
-                        <li>Interaktiva dashboards</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">🏢</span> 3.3 Multi-tenancy</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Isolera data per organisation/kund för SaaS-användning.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/multi_tenant.py<br>
-from flask import g<br>
-<br>
-@app.before_request<br>
-def set_tenant():<br>
-    # Extract tenant from header or subdomain<br>
-    tenant_id = request.headers.get('X-Tenant-ID')<br>
-    g.tenant_id = tenant_id<br>
-<br>
-class TenantMixin:<br>
-    tenant_id = db.Column(db.String(50), nullable=False, default=lambda: g.tenant_id)<br>
-<br>
-class TestCase(db.Model, TenantMixin):<br>
-    title = db.Column(db.String(200))<br>
-    <br>
-    @classmethod<br>
-    def query_tenant(cls):<br>
-        return cls.query.filter_by(tenant_id=g.tenant_id)<br>
-<br>
-# Usage<br>
-@app.route('/test-cases')<br>
-def get_test_cases():<br>
-    return TestCase.query_tenant().all()
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Dataisolering</li>
-                        <li>SaaS-möjligheter</li>
-                        <li>Skalbar arkitektur</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">📊</span> 3.4 Databasuppgradering</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Byt från SQLite till PostgreSQL för bättre samtidighet och skalbarhet.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# config/database.py<br>
-from sqlalchemy import create_engine<br>
-from sqlalchemy.pool import QueuePool<br>
-<br>
-# PostgreSQL connection with pooling<br>
-DATABASE_URL = "postgresql://user:password@localhost/qa_platform"<br>
-engine = create_engine(<br>
-    DATABASE_URL,<br>
-    poolclass=QueuePool,<br>
-    pool_size=10,<br>
-    max_overflow=20<br>)
-<br>
-# Alembic for migrations<br>
-from alembic import command<br>
-from alembic.config import Config<br>
-<br>
-alembic_cfg = Config("alembic.ini")<br>
-command.upgrade(alembic_cfg, "head")
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Bättre prestanda</li>
-                        <li>ACID-transaktioner</li>
-                        <li>Avancerade funktioner</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">📈</span> 3.5 Övervakning och Alerting</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Integrera Prometheus/Grafana för metrics och notifieringar.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/monitoring.py<br>
-from prometheus_client import Counter, Histogram, generate_latest<br>
-<br>
-REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint'])<br>
-REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'Request latency')<br>
-<br>
-@app.before_request<br>
-def before_request():<br>
-    g.start_time = time.time()<br>
-<br>
-@app.after_request<br>
-def after_request(response):<br>
-    REQUEST_COUNT.labels(request.method, request.path).inc()<br>
-    REQUEST_LATENCY.observe(time.time() - g.start_time)<br>
-    return response<br>
-<br>
-@app.route('/metrics')<br>
-def metrics():<br>
-    return generate_latest()<br>
-<br>
-# Alerting via email/SMS<br>
-def send_alert(message):<br>
-    # Integration with notification service<br>
-    pass
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Proaktiv övervakning</li>
-                        <li>Prestandainsikter</li>
-                        <li>Automatiska alerter</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">🚀</span> Implementation Plan</h2>
-                <div class="warning-box">
-                    <h3>📅 Tidsplan</h3>
-                    <ul>
-                        <li><strong>Veck 1-3:</strong> GraphQL och WebSocket</li>
-                        <li><strong>Veck 4-6:</strong> Multi-tenancy</li>
-                        <li><strong>Veck 7-9:</strong> Databasuppgradering</li>
-                        <li><strong>Veck 10-12:</strong> Övervakning och alerting</li>
-                    </ul>
-                </div>
                 <div class="success-box">
-                    <h3>✅ Förväntade Resultat</h3>
-                    <p>Efter denna fas kommer plattformen att vara redo för enterprise-användning med avancerade funktioner.</p>
+                    <h3>Testa direkt</h3>
+                    <p>
+                        Starta appen och besök <code>http://localhost:8080/metrics</code>.
+                        Gör några API-anrop och ladda om — räknarna ökar.
+                        Det är allt Prometheus behöver för att kunna scrapa datan.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <footer>
-            <p>© 2026 QA Platform v2 - Fas 3 Implementation Guide</p>
-        </footer>
+        <!-- STEG 2: GRAPHQL -->
+        <div class="section">
+            <h2><span class="icon">🔗</span> Steg 2 — GraphQL som alternativt API</h2>
+
+            <div class="phase-item">
+                <h3>Vad tillför det?</h3>
+                <div class="description">
+                    REST API:et fungerar utmärkt och ändras inte.
+                    GraphQL läggs till som ett <em>alternativt</em> sätt att fråga data —
+                    på en separat endpoint <code>/graphql</code>.
+                    Det är ett bra tillfälle att lära sig hur GraphQL fungerar i ett
+                    Flask-sammanhang utan att riskera det befintliga REST-lagret.
+                </div>
+
+                <h4>Ny fil: <code>src/graphql_schema.py</code></h4>
+                <div class="code-block"><code>
+import graphene<br>
+from database import get_db<br>
+<br>
+# Definiera GraphQL-typen för en guestbook-post<br>
+class GuestbookEntry(graphene.ObjectType):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_id  = graphene.Int()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name     = graphene.String()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;email    = graphene.String()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;comment  = graphene.String()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;created_at = graphene.String()<br>
+<br>
+# Query-klassen definierar vilka frågor som är möjliga<br>
+class Query(graphene.ObjectType):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;entries = graphene.List(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GuestbookEntry,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;limit=graphene.Int(default_value=10),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;search=graphene.String()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;entry = graphene.Field(GuestbookEntry, user_id=graphene.Int(required=True))<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def resolve_entries(self, info, limit=10, search=None):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn = get_db()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if search:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rows = conn.execute(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"SELECT * FROM guestbook WHERE name LIKE ? LIMIT ?",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(f"%{search}%", limit)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).fetchall()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rows = conn.execute("SELECT * FROM guestbook LIMIT ?", (limit,)).fetchall()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn.close()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return [GuestbookEntry(**dict(r)) for r in rows]<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def resolve_entry(self, info, user_id):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn = get_db()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;row = conn.execute("SELECT * FROM guestbook WHERE userId = ?", (user_id,)).fetchone()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn.close()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return GuestbookEntry(**dict(row)) if row else None<br>
+<br>
+schema = graphene.Schema(query=Query)
+                </code></div>
+
+                <h4>Registrera i <code>src/app.py</code></h4>
+                <div class="code-block"><code>
+from flask_graphql import GraphQLView<br>
+from graphql_schema import schema<br>
+<br>
+# Lägg till GraphQL-endpoint<br>
+app.add_url_rule(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"/graphql",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True)<br>
+)
+                </code></div>
+
+                <div class="info-box">
+                    <h3>💡 GraphiQL — interaktivt verktyg</h3>
+                    <p>
+                        Besök <code>http://localhost:8080/graphql</code> i webbläsaren.
+                        Du får ett interaktivt verktyg för att skriva och köra GraphQL-frågor —
+                        liknande Swagger UI men för GraphQL.
+                    </p>
+                </div>
+
+                <h4>Exempelfråga att testa i GraphiQL</h4>
+                <div class="code-block"><code>
+{<br>
+&nbsp;&nbsp;entries(limit: 5, search: "John") {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;userId<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;comment<br>
+&nbsp;&nbsp;}<br>
+}
+                </code></div>
+            </div>
+        </div>
+
+        <!-- STEG 3: POSTGRESQL -->
+        <div class="section">
+            <h2><span class="icon">🗄️</span> Steg 3 — PostgreSQL-migration (stort steg)</h2>
+
+            <div class="phase-item">
+                <h3>Vad tillför det och varför är det ett stort steg?</h3>
+                <div class="description">
+                    SQLite är perfekt för ett utbildningsprojekt — det är en fil,
+                    inga processer att starta. PostgreSQL är industristandard för
+                    produktionsdatabaser: bättre hantering av många simultana skrivningar,
+                    fullständiga ACID-transaktioner, bättre datatyper.
+                    Det här steget kräver att vi skriver om datalagret och sätter upp
+                    migreringar med Alembic. Gör det sist.
+                </div>
+
+                <div class="warning-box">
+                    <h3>⚠️ Förutsättningar</h3>
+                    <p>
+                        PostgreSQL måste vara installerat och en databas skapad lokalt,
+                        eller kör det via Docker: <code>docker run -p 5432:5432 -e POSTGRES_PASSWORD=test postgres:16</code>.<br><br>
+                        Ta backup av <code>guestbook.db</code> innan du börjar.
+                    </p>
+                </div>
+
+                <h4>Steg 3a — Konfigurera SQLAlchemy</h4>
+                <div class="code-block"><code>
+# Ny fil: src/db_config.py<br>
+import os<br>
+from sqlalchemy import create_engine, text<br>
+from sqlalchemy.orm import sessionmaker, declarative_base<br>
+<br>
+# Välj databas baserat på miljövariabel<br>
+# SQLite för lokal dev, PostgreSQL för produktion<br>
+DATABASE_URL = os.getenv(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"DATABASE_URL",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"sqlite:///data/guestbook.db"  # Fallback till SQLite<br>
+)<br>
+<br>
+engine = create_engine(DATABASE_URL)<br>
+Session = sessionmaker(bind=engine)<br>
+Base = declarative_base()
+                </code></div>
+
+                <h4>Steg 3b — Sätt upp Alembic för migreringar</h4>
+                <div class="code-block"><code>
+# Kör i terminalen från projektets rot:<br>
+alembic init migrations<br>
+<br>
+# Redigera migrations/env.py — peka på rätt Base och DATABASE_URL<br>
+# Sedan skapa första migrering:<br>
+alembic revision --autogenerate -m "initial schema"<br>
+<br>
+# Applicera migreringen:<br>
+alembic upgrade head
+                </code></div>
+
+                <h4>Steg 3c — Migreringsscript för befintlig data</h4>
+                <div class="code-block"><code>
+# scripts/migrate_sqlite_to_postgres.py<br>
+import sqlite3<br>
+import psycopg2<br>
+<br>
+def migrate():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sqlite = sqlite3.connect("data/guestbook.db")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pg = psycopg2.connect("postgresql://user:pass@localhost/guestbook")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;rows = sqlite.execute("SELECT * FROM guestbook").fetchall()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cursor = pg.cursor()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for row in rows:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor.execute(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"INSERT INTO guestbook (name, email, comment, created_at) VALUES (%s, %s, %s, %s)",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(row[1], row[2], row[3], row[4])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pg.commit()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(f"Migrerade {len(rows)} poster")<br>
+<br>
+if __name__ == "__main__":<br>
+&nbsp;&nbsp;&nbsp;&nbsp;migrate()
+                </code></div>
+
+                <div class="info-box">
+                    <h3>💡 Fördelen med DATABASE_URL-variabeln</h3>
+                    <p>
+                        Med <code>DATABASE_URL</code> som miljövariabel kan du köra SQLite
+                        lokalt under utveckling och PostgreSQL i CI/CD — utan att ändra
+                        en enda rad kod. Det är precis hur det fungerar i riktiga projekt.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORDNING -->
+        <div class="section">
+            <h2><span class="icon">🗓️</span> Rekommenderad ordning inom Fas 3</h2>
+            <div class="description">
+                Gör dessa i ordning — varje steg är oberoende av nästa förutom att
+                PostgreSQL-migreringen bör göras sist.
+            </div>
+            <table>
+                <thead>
+                    <tr><th>#</th><th>Steg</th><th>Tid</th><th>Risk</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Prometheus <code>/metrics</code>-endpoint</td>
+                        <td>2–3 timmar</td>
+                        <td>🟢 Låg — lägger bara till en route</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>GraphQL <code>/graphql</code>-endpoint</td>
+                        <td>1–2 dagar</td>
+                        <td>🟡 Medel — ny kod, inget befintligt ändras</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>PostgreSQL + Alembic</td>
+                        <td>1–2 veckor</td>
+                        <td>🔴 Hög — kräver datamigrering, testa ordentligt</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CHECKLIST -->
+        <div class="section">
+            <h2><span class="icon">✅</span> Fas 3 — Checklista</h2>
+            <table>
+                <thead>
+                    <tr><th>Uppgift</th><th>Fil</th><th>Klar?</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>monitoring.py skapad</td><td><code>src/monitoring.py</code></td><td>⬜</td></tr>
+                    <tr><td>setup_metrics() aktiverat i app.py</td><td><code>src/app.py</code></td><td>⬜</td></tr>
+                    <tr><td>/metrics testad i webbläsaren</td><td><code>http://localhost:8080/metrics</code></td><td>⬜</td></tr>
+                    <tr><td>graphql_schema.py skapad</td><td><code>src/graphql_schema.py</code></td><td>⬜</td></tr>
+                    <tr><td>/graphql registrerat i app.py</td><td><code>src/app.py</code></td><td>⬜</td></tr>
+                    <tr><td>GraphiQL testad med exempelfråga</td><td><code>http://localhost:8080/graphql</code></td><td>⬜</td></tr>
+                    <tr><td>PostgreSQL startat lokalt (Docker)</td><td>Terminalen</td><td>⬜</td></tr>
+                    <tr><td>Alembic initialiserat</td><td><code>migrations/</code></td><td>⬜</td></tr>
+                    <tr><td>Initial migrering skapad och körd</td><td><code>alembic upgrade head</code></td><td>⬜</td></tr>
+                    <tr><td>Migreringsscript SQLite → PostgreSQL kört</td><td><code>scripts/migrate_sqlite_to_postgres.py</code></td><td>⬜</td></tr>
+                    <tr><td>Alla tester gröna mot PostgreSQL</td><td><code>pytest tests/</code></td><td>⬜</td></tr>
+                </tbody>
+            </table>
+            <div class="success-box">
+                <h3>🎉 v2 klar!</h3>
+                <p>
+                    När alla tre faser är avbockade har plattformen rate limiting,
+                    rollkontroll, audit logging, caching, WebSocket, kryptering,
+                    Prometheus metrics, GraphQL och PostgreSQL.
+                    Det är en gedigen stack att visa upp.
+                </p>
+            </div>
+        </div>
+
     </div>
+
+    <footer>
+        <p>QA Platform v2 — Fas 3 &nbsp;·&nbsp;
+            <a href="qa_platform_roadmap_v2.html" style="color:#34d399;">← Tillbaka till översikten</a>
+        </p>
+    </footer>
+
+</div>
 </body>
 </html>

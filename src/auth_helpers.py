@@ -57,6 +57,53 @@ def token_required(f):
     return decorated
 
 
+def role_required(*allowed_roles):
+    """
+    Decorator that checks the 'role' claim in the JWT token.
+
+    Usage — stack AFTER @token_required so the token is already validated:
+
+        @bp.route("/admin/action", methods=["DELETE"])
+        @token_required
+        @role_required("admin")
+        def admin_only():
+            ...
+
+        @bp.route("/shared/action", methods=["POST"])
+        @token_required
+        @role_required("admin", "tester")
+        def admin_or_tester():
+            ...
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            # Security test bypass also skips role check
+            if security_test_bypass():
+                return f(*args, **kwargs)
+
+            token = request.headers.get("Authorization", "")
+            try:
+                token = token.split()[1] if token.startswith("Bearer ") else token
+                payload = jwt.decode(
+                    token, current_app.config["SECRET_KEY"], algorithms=["HS256"]
+                )
+                user_role = payload.get("role", "member")
+            except Exception:
+                return jsonify({"message": "Token is invalid"}), 401
+
+            if user_role not in allowed_roles:
+                current_app.logger.warning(
+                    f"Role check failed: user has role '{user_role}', "
+                    f"required one of {list(allowed_roles)} — path: {request.path}"
+                )
+                return jsonify({"message": "Access denied — insufficient role"}), 403
+
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
+
+
 def get_user_by_email_or_username(identifier):
     conn = get_db()
     if not identifier:

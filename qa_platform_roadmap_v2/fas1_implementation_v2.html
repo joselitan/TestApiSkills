@@ -3,277 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fas 1: Grundläggande Förbättringar - QA Platform v2</title>
+    <title>Fas 1 – Aktivera halvklara funktioner</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔧 Fas 1: Grundläggande Förbättringar</h1>
-            <p class="subtitle">Version 2 - Hög Prioritet Implementation</p>
-            <p class="subtitle" style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Status: 📋 PLANERAD | Datum: 2026-04-04</p>
-        </header>
+<div class="container">
 
-        <div class="content">
-            <div class="section">
-                <h2><span class="icon">📋</span> Översikt</h2>
-                <div class="info-box">
-                    <h3>🎯 Syfte</h3>
-                    <p>Denna fas fokuserar på kritiska förbättringar för stabilitet, säkerhet och underhållbarhet i QA Platform v2. Genom att implementera dessa funktioner stärks grunderna för framtida utveckling.</p>
-                </div>
+    <header>
+        <h1>🔧 Fas 1 — Aktivera det som är halvklart</h1>
+        <p class="subtitle">Snabba vinster — grunden finns redan, vi slår på den</p>
+        <p class="subtitle" style="margin-top:10px;font-size:0.9em;opacity:0.8;">
+            Svårighet: ⭐⭐ Låg &nbsp;·&nbsp; Uppskattad tid: 1–2 veckor
+        </p>
+    </header>
+
+    <div class="content">
+
+        <!-- INTRO -->
+        <div class="section">
+            <h2><span class="icon">📋</span> Vad handlar den här fasen om?</h2>
+            <div class="description">
+                V1 har rätt paket installerade och rätt struktur, men tre viktiga saker
+                är inte aktiverade: rate limiting, rollkontroll och audit logging.
+                Den här fasen handlar om att koppla ihop dem — ingen ny arkitektur behövs.
+            </div>
+            <div class="info-box">
+                <h3>📦 Inga nya paket behövs</h3>
+                <p>
+                    Allt som krävs finns redan i <code>requirements.txt</code>:
+                    <code>flask-limiter</code> är installerat men inte aktiverat.
+                    <code>cryptography</code> finns. Loggern finns.
+                    Vi behöver bara använda det som redan är där.
+                </p>
+            </div>
+        </div>
+
+        <!-- STEG 1: RATE LIMITING -->
+        <div class="section">
+            <h2><span class="icon">🛡️</span> Steg 1 — Rate limiting på inloggning</h2>
+
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
                 <div class="description">
-                    <strong>Prioritet:</strong> Hög - Dessa förbättringar är essentiella för en robust plattform.
+                    Just nu kan vem som helst försöka logga in hur många gånger som helst
+                    utan att bromsas. Det kallas brute force och är en grundläggande säkerhetsrisk.
+                    <code>flask-limiter</code> är redan installerat — vi behöver bara slå på det.
                 </div>
-            </div>
 
-            <div class="section">
-                <h2><span class="icon">📦</span> Nya Dependencies</h2>
-                <div class="code-block">
-                    <code>
-flask-limiter>=3.5.0          # Rate limiting<br>
-flask-principal>=0.4.0        # Role-based access control<br>
-cryptography>=42.0.0          # Data encryption<br>
-celery>=5.3.0                 # Async processing<br>
-redis>=5.0.0                  # Caching<br>
-sqlalchemy>=2.0.0             # Advanced DB features
-                    </code>
-                </div>
-                <div class="description">
-                    <strong>Installation:</strong>
-                    <div class="code-block">
-                        <code>pip install flask-limiter flask-principal cryptography celery redis sqlalchemy</code>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">📁</span> Uppdaterad Filstruktur</h2>
-                <div class="code-block">
-                    <code>
-src/<br>
-├── app.py                     # Uppdaterad med rate limiting<br>
-├── auth.py                    # RBAC implementation<br>
-├── database.py                # Transaktioner & kryptering<br>
-└── audit.py                   # Audit logging<br>
-<br>
-dashboard/backend/<br>
-├── app.py                     # API versioning<br>
-├── test_cases_api.py          # Paginering<br>
-└── ai_testing_api.py          # Async processing<br>
-<br>
-requirements.txt               # Uppdaterade deps<br>
-migrations/                    # DB migrations
-                    </code>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">🔢</span> 1.1 API-Versionering</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Implementera versionshantering för API:er för att möjliggöra bakåtkompatibla uppdateringar utan att bryta befintliga klienter.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# dashboard/backend/app.py<br>
-from flask import Blueprint<br>
-<br>
-v1_bp = Blueprint('v1', __name__, url_prefix='/v1')<br>
-v2_bp = Blueprint('v2', __name__, url_prefix='/v2')<br>
-<br>
-@v1_bp.route('/test-cases')<br>
-def get_test_cases_v1():<br>
-    # Legacy implementation<br>
-    pass<br>
-<br>
-@v2_bp.route('/test-cases')<br>
-def get_test_cases_v2():<br>
-    # New implementation with pagination<br>
-    pass
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Bakåtkompatibilitet</li>
-                        <li>Gradvisa uppdateringar</li>
-                        <li>Möjlighet att deprefera gamla endpoints</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2><span class="icon">🛡️</span> 1.2 Rate Limiting</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Skydda API:erna mot överbelastning och DoS-attacker genom att begränsa antalet requests per användare/tid.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/app.py<br>
+                <h4>Fil att ändra: <code>src/app.py</code></h4>
+                <div class="code-block"><code>
+# Lägg till import högst upp i app.py<br>
 from flask_limiter import Limiter<br>
 from flask_limiter.util import get_remote_address<br>
 <br>
+# Skapa limiter-objektet — lägg efter att app skapas<br>
 limiter = Limiter(<br>
-    app=app,<br>
-    key_func=get_remote_address,<br>
-    default_limits=["200 per day", "50 per hour"]<br>)
+&nbsp;&nbsp;&nbsp;&nbsp;app=app,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;key_func=get_remote_address,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;default_limits=["200 per day", "50 per hour"]<br>
+)
+                </code></div>
+
+                <h4>Fil att ändra: <code>src/blueprints/v1/auth.py</code></h4>
+                <div class="code-block"><code>
+# Lägg till decorator på login-routen<br>
+from flask import current_app<br>
 <br>
-@app.route('/api/login', methods=['POST'])<br>
-@limiter.limit("5 per minute")<br>
+# Importera limiter från app.py<br>
+# OBS: limiter-objektet måste vara åtkomligt — se nedan<br>
+<br>
+@bp.route("/login", methods=["POST"])<br>
+@limiter.limit("5 per minute")  # Max 5 inloggningsförsök per minut<br>
 def login():<br>
-    # Login logic<br>
-    pass
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Förebygg DoS-attacker</li>
-                        <li>Fair användning</li>
-                        <li>Konfigurerbara limiter per endpoint</li>
-                    </ul>
-                </div>
-            </div>
+&nbsp;&nbsp;&nbsp;&nbsp;# befintlig kod — rör ingenting annat<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+<br>
+@bp.route("/register", methods=["POST"])<br>
+@limiter.limit("3 per minute")  # Max 3 registreringar per minut<br>
+def register():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+<br>
+@bp.route("/password-reset-request", methods=["POST"])<br>
+@limiter.limit("3 per minute")<br>
+def password_reset_request():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...
+                </code></div>
 
-            <div class="section">
-                <h2><span class="icon">👥</span> 1.3 Rollbaserad Auktorisering (RBAC)</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Implementera roller (admin, tester, viewer) för att kontrollera åtkomst till olika delar av systemet.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/auth.py<br>
-from flask_principal import Principal, Permission, RoleNeed<br>
-<br>
-principal = Principal(app)<br>
-admin_permission = Permission(RoleNeed('admin'))<br>
-tester_permission = Permission(RoleNeed('tester'))<br>
-<br>
-@app.route('/admin/dashboard')<br>
-@admin_permission.require()<br>
-def admin_dashboard():<br>
-    # Admin only content<br>
-    pass<br>
-<br>
-@app.route('/test-cases')<br>
-@tester_permission.require()<br>
-def manage_test_cases():<br>
-    # Tester and admin access<br>
-    pass
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Säker åtkomstkontroll</li>
-                        <li>Flexibla roller</li>
-                        <li>Audit trails för åtgärder</li>
-                    </ul>
+                <div class="warning-box">
+                    <h3>⚠️ Praktisk detalj — limiter-objektet</h3>
+                    <p>
+                        Blueprints och app.py är separata filer. Det enklaste sättet att dela
+                        limiter-objektet är att skapa en <code>src/extensions.py</code> som
+                        bara håller limiter, och importera den i både app.py och auth.py.
+                        Det förklaras i detalj när vi implementerar.
+                    </p>
                 </div>
-            </div>
 
-            <div class="section">
-                <h2><span class="icon">🔄</span> 1.4 Databastransaktioner</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Lägg till transaktionshantering för att säkerställa dataintegritet vid bulk-operationer.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# dashboard/backend/test_cases_api.py<br>
-from sqlalchemy import create_engine<br>
-from sqlalchemy.orm import sessionmaker<br>
-<br>
-engine = create_engine(DATABASE_URL)<br>
-Session = sessionmaker(bind=engine)<br>
-<br>
-@app.route('/bulk-import', methods=['POST'])<br>
-def bulk_import_test_cases():<br>
-    session = Session()<br>
-    try:<br>
-        # Bulk operations<br>
-        session.commit()<br>
-        return {"status": "success"}<br>
-    except Exception as e:<br>
-        session.rollback()<br>
-        return {"error": str(e)}, 500<br>
-    finally:<br>
-        session.close()
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Dataintegritet</li>
-                        <li>Rollback vid fel</li>
-                        <li>Atomiska operationer</li>
-                    </ul>
+                <h4>Hur testar vi det?</h4>
+                <div class="code-block"><code>
+# I tests/api/test_auth_registration.py — lägg till:<br>
+def test_rate_limit_on_login(client):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Kontrollera att vi får 429 efter för många försök"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;bad_creds = {"username": "x", "password": "wrong"}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for _ in range(5):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;client.post("/api/v1/login", json=bad_creds)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response = client.post("/api/v1/login", json=bad_creds)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert response.status_code == 429
+                </code></div>
+            </div>
+        </div>
+
+        <!-- STEG 2: ROLLKONTROLL -->
+        <div class="section">
+            <h2><span class="icon">👥</span> Steg 2 — Rollkontroll (RBAC)</h2>
+
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
+                <div class="description">
+                    JWT-tokenen innehåller redan ett <code>role</code>-fält (<code>member</code> eller <code>admin</code>).
+                    Men koden kontrollerar aldrig vilket roll användaren har — alla
+                    med giltig token kan göra allt. Vi behöver en enkel decorator
+                    som kontrollerar rollen.
                 </div>
-            </div>
 
-            <div class="section">
-                <h2><span class="icon">📊</span> 1.5 Audit Logging</h2>
-                <div class="phase-item">
-                    <h3>Beskrivning</h3>
-                    <div class="description">
-                        Spåra alla användaråtgärder för compliance, felsökning och säkerhet.
-                    </div>
-                    <h4>Implementation</h4>
-                    <div class="code-block">
-                        <code>
-# src/audit.py<br>
+                <h4>Ny fil: <code>src/auth_helpers.py</code> — lägg till längst ner</h4>
+                <div class="code-block"><code>
+def role_required(*allowed_roles):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Decorator som kräver en specifik roll i JWT-tokenen."""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def decorator(f):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@wraps(f)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def decorated(*args, **kwargs):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;token = request.headers.get("Authorization")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if not token:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"message": "Token saknas"}), 401<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;token = token.split()[1] if token.startswith("Bearer ") else token<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;payload = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;user_role = payload.get("role", "member")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if user_role not in allowed_roles:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"message": "Åtkomst nekad — fel roll"}), 403<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except Exception:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"message": "Ogiltig token"}), 401<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return f(*args, **kwargs)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return decorated<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return decorator
+                </code></div>
+
+                <h4>Hur används det i routes?</h4>
+                <div class="code-block"><code>
+# Exempel: en admin-only cleanup-endpoint<br>
+from auth_helpers import token_required, role_required<br>
+<br>
+@bp.route("/guestbook/cleanup", methods=["DELETE"])<br>
+@token_required<br>
+@role_required("admin")   # &lt;-- bara admin får radera allt<br>
+def cleanup_all_entries():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+<br>
+# Exempel: endpoint för både admin och tester<br>
+@bp.route("/guestbook/bulk", methods=["DELETE"])<br>
+@token_required<br>
+@role_required("admin", "tester")<br>
+def bulk_delete_entries():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...
+                </code></div>
+
+                <h4>Hur testar vi det?</h4>
+                <div class="code-block"><code>
+def test_cleanup_requires_admin_role(member_token, client):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""En vanlig member ska inte kunna rensa databasen"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;headers = {"Authorization": f"Bearer {member_token}"}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response = client.delete("/api/v1/guestbook/cleanup", headers=headers)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert response.status_code == 403<br>
+<br>
+def test_cleanup_works_for_admin(admin_token, client):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;headers = {"Authorization": f"Bearer {admin_token}"}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response = client.delete("/api/v1/guestbook/cleanup", headers=headers)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assert response.status_code == 200
+                </code></div>
+            </div>
+        </div>
+
+        <!-- STEG 3: AUDIT LOGGING -->
+        <div class="section">
+            <h2><span class="icon">📊</span> Steg 3 — Audit logging</h2>
+
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
+                <div class="description">
+                    Loggern i <code>logger_config.py</code> loggar HTTP-requests men inte
+                    <em>vad användaren faktiskt gjorde</em>. Vi vill kunna se: vem loggade in,
+                    vem skapade en post, vem raderade något. Det är audit logging.
+                </div>
+
+                <h4>Ny fil: <code>src/audit.py</code></h4>
+                <div class="code-block"><code>
 import logging<br>
 from datetime import datetime<br>
+import jwt<br>
+from flask import request, current_app<br>
 <br>
-audit_logger = logging.getLogger('audit')<br>
+# Skapa en separat logger bara för audit-händelser<br>
+audit_logger = logging.getLogger("audit")<br>
 <br>
-def log_action(user, action, resource, details=None):<br>
-    audit_logger.info(f"{datetime.now()} | {user} | {action} | {resource} | {details}")<br>
+def get_current_user():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""Hämta användarnamn från JWT-token i requesten."""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;token = request.headers.get("Authorization", "")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;token = token.split()[1] if token.startswith("Bearer ") else token<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;payload = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return payload.get("user", "anonymous")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;except Exception:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return "anonymous"<br>
 <br>
-# Usage in endpoints<br>
-@app.route('/test-cases', methods=['POST'])<br>
-def create_test_case():<br>
-    # Create logic<br>
-    log_action(current_user, 'CREATE', 'test_case', {'id': new_id})<br>
-    return response
-                        </code>
-                    </div>
-                    <h4>Fördelar</h4>
-                    <ul>
-                        <li>Full spårbarhet</li>
-                        <li>Compliance-krav</li>
-                        <li>Felsökningshjälp</li>
-                    </ul>
-                </div>
-            </div>
+def log_action(action, resource, details=None):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Logga en användaråtgärd.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Exempel: log_action("DELETE", "guestbook_entry", {"id": 5})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user = get_current_user()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ip = request.remote_addr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timestamp = datetime.utcnow().isoformat()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;msg = f"{timestamp} | USER={user} | IP={ip} | ACTION={action} | RESOURCE={resource}"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if details:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;msg += f" | DETAILS={details}"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;audit_logger.info(msg)
+                </code></div>
 
-            <div class="section">
-                <h2><span class="icon">🚀</span> Implementation Plan</h2>
-                <div class="warning-box">
-                    <h3>📅 Tidsplan</h3>
-                    <ul>
-                        <li><strong>Veck 1-2:</strong> API-versionering och rate limiting</li>
-                        <li><strong>Veck 3-4:</strong> RBAC-system</li>
-                        <li><strong>Veck 5-6:</strong> Databastransaktioner och audit logging</li>
-                        <li><strong>Veck 7-8:</strong> Testing och dokumentation</li>
-                    </ul>
-                </div>
+                <h4>Lägg till i <code>logger_config.py</code> — konfigurera audit-loggern</h4>
+                <div class="code-block"><code>
+# I setup_logger() — lägg till en fil-handler för audit.log<br>
+audit_handler = logging.FileHandler("logs/audit.log")<br>
+audit_handler.setFormatter(logging.Formatter("%(message)s"))<br>
+logging.getLogger("audit").addHandler(audit_handler)<br>
+logging.getLogger("audit").setLevel(logging.INFO)
+                </code></div>
+
+                <h4>Använd i befintliga routes — exempel</h4>
+                <div class="code-block"><code>
+# I blueprints/v1/guestbook.py<br>
+from audit import log_action<br>
+<br>
+def create_entry():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... befintlig logik ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;log_action("CREATE", "guestbook_entry", {"id": entry_id, "name": name})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify(dict(entry)), 201<br>
+<br>
+def delete_entry(user_id):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... befintlig logik ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;log_action("DELETE", "guestbook_entry", {"id": user_id})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"message": "Entry deleted successfully"})
+                </code></div>
+
                 <div class="success-box">
-                    <h3>✅ Förväntade Resultat</h3>
-                    <p>Efter denna fas kommer plattformen att ha förbättrad säkerhet, stabilitet och skalbarhet, redo för vidare utveckling.</p>
+                    <h3>Resultat i logs/audit.log</h3>
+                    <p>
+                        <code>2026-09-06T10:32:11 | USER=admin@test.com | IP=127.0.0.1 | ACTION=DELETE | RESOURCE=guestbook_entry | DETAILS={'id': 5}</code>
+                    </p>
                 </div>
             </div>
         </div>
 
-        <footer>
-            <p>© 2026 QA Platform v2 - Fas 1 Implementation Guide</p>
-        </footer>
+        <!-- STEG 4: DATABASTRANSAKTIONER -->
+        <div class="section">
+            <h2><span class="icon">🔄</span> Steg 4 — Databastransaktioner på bulk-operationer</h2>
+
+            <div class="phase-item">
+                <h3>Vad är problemet nu?</h3>
+                <div class="description">
+                    I <code>guestbook.py</code>'s bulk-delete och import-Excel körs SQL-satser
+                    utan explicit transaktionshantering. Om något går fel mitt i en bulk-radering
+                    kan databasen hamna i ett halvt raderat tillstånd.
+                    SQLite stöder transaktioner — vi behöver bara använda dem.
+                </div>
+
+                <h4>Ändra i <code>src/blueprints/v1/guestbook.py</code></h4>
+                <div class="code-block"><code>
+# Befintlig bulk_delete — lägg till try/except med rollback<br>
+def bulk_delete_entries():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# ... validering ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn = get_db()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor = conn.cursor()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;placeholders = ",".join("?" * len(ids))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor.execute(f"DELETE FROM guestbook WHERE userId IN ({placeholders})", ids)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn.commit()   # Bekräfta bara om allt gick bra<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;deleted = cursor.rowcount<br>
+&nbsp;&nbsp;&nbsp;&nbsp;except Exception as e:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn.rollback() # Ångra om något gick fel<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"message": f"Fel: {str(e)}"}), 500<br>
+&nbsp;&nbsp;&nbsp;&nbsp;finally:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conn.close()    # Stäng alltid anslutningen<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"deleted": deleted, ...})
+                </code></div>
+
+                <div class="info-box">
+                    <h3>💡 Samma mönster för import_excel</h3>
+                    <p>
+                        Wrap hela Excel-loopen i samma try/except/rollback-mönster.
+                        Om en rad i Excel-filen är ogiltig ska inga rader sparas alls.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHECKLIST -->
+        <div class="section">
+            <h2><span class="icon">✅</span> Fas 1 — Checklista innan vi går vidare</h2>
+            <div class="description">
+                Bocka av varje punkt innan Fas 2 påbörjas.
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Uppgift</th><th>Fil</th><th>Klar?</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Rate limiting aktiverat på /login</td>
+                        <td><code>src/extensions.py</code> · <code>blueprints/v1/auth.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td>Rate limiting aktiverat på /register</td>
+                        <td><code>blueprints/v1/auth.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>role_required</code> decorator skapad</td>
+                        <td><code>src/auth_helpers.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td>cleanup-endpoint skyddad med admin-roll</td>
+                        <td><code>blueprints/v1/guestbook.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>src/audit.py</code> skapad</td>
+                        <td><code>src/audit.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td>audit.log konfigurerat i logger_config</td>
+                        <td><code>src/logger_config.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td>log_action() i create/delete/bulk</td>
+                        <td><code>blueprints/v1/guestbook.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td>Transaktioner i bulk_delete</td>
+                        <td><code>blueprints/v1/guestbook.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td>Transaktioner i import_excel</td>
+                        <td><code>blueprints/v1/guestbook.py</code></td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                    <tr>
+                        <td>Alla befintliga tester fortfarande gröna</td>
+                        <td><code>pytest tests/</code> — kräver körande server på :8080</td>
+                        <td><span class="status completed">✅ KLAR</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="success-box">
+                <h3>🎉 Fas 1 helt klar!</h3>
+                <p>
+                    Alla 10 punkter är implementerade. Applikationen laddar rent,
+                    <code>logs/audit.log</code> skapas automatiskt vid start,
+                    och alla moduler importerar utan fel.
+                    Redo att starta Fas 2 när du vill.
+                </p>
+            </div>
+        </div>
+
     </div>
+
+    <footer>
+        <p>QA Platform v2 — Fas 1 &nbsp;·&nbsp; <a href="qa_platform_roadmap_v2.html" style="color:#34d399;">← Tillbaka till översikten</a></p>
+    </footer>
+
+</div>
 </body>
 </html>

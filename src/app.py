@@ -9,6 +9,7 @@ from flask import Flask, g, jsonify, redirect, render_template, request
 
 from auth_helpers import is_user_authenticated
 from database import get_db, init_db
+from extensions import limiter
 from logger_config import setup_logger
 from rate_limiter import init_limiter
 from webhooks import dispatch, list_webhooks, register_webhook, unregister_webhook
@@ -95,6 +96,11 @@ app.config["DATABASE_URL"] = os.getenv("DATABASE_URL", "sqlite:///data/guestbook
 app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
 app.config["ALLOWED_ROLES"] = ["member", "tester"]
 app.config["DEFAULT_ROLE"] = "member"
+
+# ---------------------------------------------------------------------------
+# Rate limiter — binds limiter to app (defined in extensions.py)
+# ---------------------------------------------------------------------------
+limiter.init_app(app)
 
 # ---------------------------------------------------------------------------
 # Blueprint registrations â€” DEV-26 (Flask Blueprints) + DEV-27 (/api/v1/ aliases)
