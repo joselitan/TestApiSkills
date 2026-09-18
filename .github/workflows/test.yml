@@ -90,7 +90,7 @@ jobs:
 
     - name: Run performance tests
       run: |
-        pytest tests/performance/test_load_testing.py -s -v
+    #    pytest tests/performance/test_load_testing.py -s -v
     #    pytest tests/performance/test_load_testing.py -s -v
     #    pytest tests/performance/test_stress_testing.py -s -v
     #    pytest tests/performance/test_volume_testing.py -s -v

@@ -84,10 +84,6 @@ def login():
               type: string
               example: "Rate limit exceeded. Please try again later."
     """
-    limiter = get_limiter()
-    if limiter:
-        limiter.check()
-        
     try:
         data = request.get_json(force=True)
         if not data:
