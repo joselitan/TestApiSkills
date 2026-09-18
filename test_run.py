@@ -95,7 +95,7 @@ class QAPlatformTester:
             # Test login
             login_data = {"username": "admin", "password": "password123"}
             response = requests.post(
-                f"{self.base_url}/api/login", json=login_data, timeout=5
+                f"{self.base_url}/api/v1/login", json=login_data, timeout=5
             )
 
             if response.status_code == 200:
@@ -133,7 +133,7 @@ class QAPlatformTester:
                 "comment": "Test run entry",
             }
             response = requests.post(
-                f"{self.base_url}/api/guestbook",
+                f"{self.base_url}/api/v1/guestbook",
                 json=entry_data,
                 headers=headers,
                 timeout=5,
@@ -146,7 +146,7 @@ class QAPlatformTester:
 
                 # Test READ
                 response = requests.get(
-                    f"{self.base_url}/api/guestbook/{entry_id}",
+                    f"{self.base_url}/api/v1/guestbook/{entry_id}",
                     headers=headers,
                     timeout=5,
                 )
@@ -159,7 +159,7 @@ class QAPlatformTester:
 
                 # Test LIST
                 response = requests.get(
-                    f"{self.base_url}/api/guestbook", headers=headers, timeout=5
+                    f"{self.base_url}/api/v1/guestbook", headers=headers, timeout=5
                 )
                 if response.status_code == 200:
                     self.test_results.append("✅ LIST: OK")
@@ -170,7 +170,7 @@ class QAPlatformTester:
 
                 # Test DELETE (cleanup)
                 response = requests.delete(
-                    f"{self.base_url}/api/guestbook/{entry_id}",
+                    f"{self.base_url}/api/v1/guestbook/{entry_id}",
                     headers=headers,
                     timeout=5,
                 )

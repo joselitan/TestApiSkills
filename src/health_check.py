@@ -9,6 +9,7 @@ from datetime import datetime
 
 import psutil
 from flask import jsonify
+from database import get_db_path
 
 
 class HealthChecker:
@@ -36,7 +37,7 @@ class HealthChecker:
     def check_database_health(self):
         """Check database connectivity and basic operations"""
         try:
-            conn = sqlite3.connect("guestbook.db")
+            conn = sqlite3.connect(get_db_path())
             cursor = conn.cursor()
 
             # Test basic query
@@ -65,7 +66,7 @@ class HealthChecker:
             # Test login endpoint
             try:
                 response = client.post(
-                    "/api/login", json={"username": "admin", "password": "password123"}
+                    "/api/v1/login", json={"username": "admin", "password": "password123"}
                 )
                 endpoints_status["login"] = {
                     "status": "healthy" if response.status_code == 200 else "unhealthy",
@@ -76,7 +77,7 @@ class HealthChecker:
 
             # Test guestbook list endpoint
             try:
-                response = client.get("/api/guestbook")
+                response = client.get("/api/v1/guestbook")
                 endpoints_status["guestbook_list"] = {
                     "status": (
                         "healthy" if response.status_code in [200, 401] else "unhealthy"
