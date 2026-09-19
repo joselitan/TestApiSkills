@@ -43,14 +43,6 @@ LOGIN_RESPONSE_SCHEMA = {
 }
 
 
-@pytest.fixture(scope="module")
-def auth_token():
-    response = requests.post(
-        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
-    )
-    return response.json()["token"]
-
-
 @allure.feature("API Contract")
 @allure.story("Authentication")
 @allure.severity(allure.severity_level.CRITICAL)

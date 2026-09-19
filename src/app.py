@@ -97,6 +97,10 @@ app.config["ENVIRONMENT"] = os.getenv("ENVIRONMENT", "development")
 app.config["ALLOWED_ROLES"] = ["member", "tester"]
 app.config["DEFAULT_ROLE"] = "member"
 
+# Disable rate limiting in test environment to prevent 429 errors during test runs
+if app.config["ENVIRONMENT"] == "test":
+    app.config["RATELIMIT_ENABLED"] = False
+
 # ---------------------------------------------------------------------------
 # Rate limiter — binds limiter to app (defined in extensions.py)
 # ---------------------------------------------------------------------------

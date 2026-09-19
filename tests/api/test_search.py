@@ -29,15 +29,6 @@ BASE_URL = "http://127.0.0.1:8080"
 
 
 @pytest.fixture(scope="module")
-def auth_token():
-    resp = requests.post(
-        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
-    )
-    assert resp.status_code == 200
-    return resp.json()["token"]
-
-
-@pytest.fixture(scope="module")
 def search_entries(auth_token):
     """Seed a small set of known entries for search tests and return their IDs."""
     headers = {"Authorization": f"Bearer {auth_token}"}

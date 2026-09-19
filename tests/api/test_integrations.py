@@ -46,14 +46,6 @@ def mock_server():
     server.shutdown()
 
 
-@pytest.fixture(scope="module")
-def auth_token():
-    resp = requests.post(
-        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
-    )
-    return resp.json()["token"]
-
-
 @pytest.fixture(autouse=True)
 def clear_events():
     received_events.clear()

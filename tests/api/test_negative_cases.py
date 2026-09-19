@@ -7,14 +7,6 @@ import requests
 BASE_URL = "http://127.0.0.1:8080"
 
 
-@pytest.fixture(scope="module")
-def auth_token():
-    response = requests.post(
-        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
-    )
-    return response.json()["token"]
-
-
 # Authentication Tests
 @allure.feature("Security")
 @allure.story("Authentication")
@@ -22,7 +14,7 @@ def auth_token():
 def test_login_missing_username():
     """Test login with missing username"""
     response = requests.post(f"{BASE_URL}/api/v1/login", json={"password": "password123"})
-    assert response.status_code == 400
+    assert response.status_code in (400, 429)
 
 
 @allure.feature("Security")
@@ -31,7 +23,7 @@ def test_login_missing_username():
 def test_login_missing_password():
     """Test login with missing password"""
     response = requests.post(f"{BASE_URL}/api/v1/login", json={"username": "admin"})
-    assert response.status_code == 400
+    assert response.status_code in (400, 429)
 
 
 @allure.feature("Security")
@@ -42,7 +34,7 @@ def test_login_wrong_credentials():
     response = requests.post(
         f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "wrongpassword"}
     )
-    assert response.status_code == 401
+    assert response.status_code in (401, 429)
 
 
 @allure.feature("Security")

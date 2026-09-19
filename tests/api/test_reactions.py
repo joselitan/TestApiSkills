@@ -11,21 +11,6 @@ import requests
 BASE_URL = "http://127.0.0.1:8080"
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture(scope="module")
-def auth_token():
-    """Obtain a JWT token for the admin user."""
-    response = requests.post(
-        f"{BASE_URL}/api/v1/login", json={"username": "admin", "password": "password123"}
-    )
-    assert response.status_code == 200
-    return response.json()["token"]
-
-
 @pytest.fixture(scope="module")
 def entry_id(auth_token):
     """Create a guestbook entry for reaction tests and return its ID."""
